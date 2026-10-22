@@ -259,8 +259,8 @@
         <div class="do">Try it: type anything and watch it split into pieces.</div>
         <input class="tokin" id="sIn" value="A cute teddy bear is reading." maxlength="100" spellcheck="false" aria-label="Text to cut into word pieces">
         <div class="split"><div class="toks" id="sToks"></div></div>
-        <p class="bpe-stats" style="margin:12px 0 0"><span>Words: <b id="sW"></b></span><span>Letters: <b id="sC"></b></span><span>Pieces: <b id="sP"></b></span></p>
-        <p class="note">Try “unbelievable”, “playfully” or “readers”. Common words stay whole; others are built from pieces. (This uses a small practice vocabulary; real LLMs know 100,000+ pieces.)</p>
+        <p class="bpe-stats" style="margin:12px 0 0"><span>Words: <b id="sW"></b></span><span>Letters: <b id="sC"></b></span><span><span data-peek="This box uses a small practice vocabulary. Real LLMs know 100,000+ pieces.">Pieces</span>: <b id="sP"></b></span></p>
+        <p class="note">Try “unbelievable”, “playfully” or “readers”.</p>
       </div>
       <details class="unclear">
         <summary>🤔 What about spaces?</summary>
@@ -285,7 +285,7 @@
     <!-- 6b -->
     <section class="part" data-title="How pieces are learned: BPE">
       <h2>How pieces are learned: BPE</h2>
-      <p class="say">Almost every LLM learns its pieces with <mark>BPE</mark> (byte pair encoding). It has one rule:</p>
+      <p class="say">Almost every LLM learns its pieces with <mark data-peek="Byte pair encoding. It was first a way to compress files, then borrowed for tokenizers.">BPE</mark>. It has one rule:</p>
       <p class="say"><b>Find the two pieces that appear side by side most often. Glue them into one new piece. Repeat.</b></p>
 
       <div class="activity">
@@ -355,7 +355,7 @@
       <ul>
         <li><b>[BOS]</b> tells the model “start writing”. When the model writes <b>[EOS]</b>, it means “I'm done”.</li>
         <li><b>[PAD]</b> fills sequences up to the same length, so many can be processed together as a neat rectangle of numbers.</li>
-        <li>There are more, like tokens marking the <b>user</b> and the <b>assistant</b> in a chat. Names vary between models, for example <span style="font-family:var(--mono)">&lt;|end_of_text|&gt;</span> instead of [EOS].</li>
+        <li>There are more, like tokens marking the <b>user</b> and the <b>assistant</b> in a chat. <span data-peek="Each model names them its own way, e.g. &lt;|end_of_text|&gt; instead of [EOS].">Names vary</span> between models.</li>
       </ul>
       <div class="quiz" data-right="Yes. The model writes [EOS] to say it has finished, so we stop asking for more.">
         <div class="q">A chat model is writing an answer. How do we know when to stop?</div>
@@ -425,8 +425,7 @@
           <p class="good">Now “close” means “related”.</p>
         </div>
       </div>
-      <p class="say">A learned vector like this is called an <mark>embedding</mark>.</p>
-      <p class="note">These numbers are made up to show the idea. Real embeddings have hundreds or thousands of numbers.</p>
+      <p class="say">A learned vector like this is called an <mark data-peek="The numbers above are made up to show the idea. Real embeddings have hundreds or thousands of numbers each.">embedding</mark>.</p>
       <div class="quiz" data-right="Right. With one-hot vectors, every pair of different tokens has a dot product of 0, so “bear” is exactly as far from “bears” as from “volcano”.">
         <div class="q">With one-hot vectors, how similar are “bear” and “bears”?</div>
         <div class="options">
@@ -454,7 +453,6 @@
         <p class="mono" id="smLoss"></p>
         <p class="note" id="smSays"></p>
       </div>
-      <p class="note">Loss = −log(chance of the right answer). 100% gives loss 0; small chances give big losses.</p>
       <p class="hook">Training means: change the weights until the right answers get high chances. Now let's use this to learn embeddings.</p>
     </section>
 
@@ -473,7 +471,7 @@
         <p class="note" id="w2vSays"></p>
       </div>
       <ul>
-        <li><b>CBOW</b> (continuous bag of words): the neighbours guess the middle word.</li>
+        <li><b data-peek="Continuous bag of words: the neighbours are thrown into a “bag”, without their order.">CBOW</b>: the neighbours guess the middle word.</li>
         <li><b>Skip-gram</b>: the middle word guesses its neighbours.</li>
       </ul>
       <p class="hook">Let's look inside the network, using the simplest task: guess the next word.</p>
@@ -558,7 +556,7 @@
     <!-- 15 -->
     <section class="part" data-title="RNNs">
       <h2>Recurrent neural networks (RNNs)</h2>
-      <p class="say">An <mark>RNN</mark> reads a sentence <b>one token at a time, in order</b>, the way you read.</p>
+      <p class="say">An <mark data-peek="Recurrent neural network. Around since the 1980s. The same box, with the same weights, is reused at every step.">RNN</mark> reads a sentence <b>one token at a time, in order</b>, the way you read.</p>
       <p class="say">It carries a small <mark>memory</mark> (called the <b>hidden state</b>) from each step to the next. At every step it mixes the new token into the memory, then uses the memory to guess the next token.</p>
       <div class="activity">
         <div class="do">Try it: step through the sentence.</div>
@@ -570,7 +568,6 @@
         </div>
       </div>
       <p class="say">Because the memory is built in order, <b>word order now matters</b>: “the child hugs the teddy bear” and “the teddy bear hugs the child” leave different memories.</p>
-      <p class="note">RNNs date back to the 1980s. The same box (the same weights) is reused at every step.</p>
       <p class="hook">In the 2010s, RNNs did most language tasks. Which ones?</p>
     </section>
 
@@ -606,7 +603,7 @@
       <h2>The problem: RNNs forget</h2>
       <p class="say">The whole sentence has to squeeze into <b>one small memory</b>, and every new token overwrites part of it.</p>
       <div class="activity">
-        <div class="do">Try it: keep adding words. How much of the first word is still in the memory?</div>
+        <div class="do">Try it (<span data-peek="In this picture each step keeps 60% of the old memory. Real RNNs learn how much to keep, but they fade in the same way.">simplified</span>): keep adding words. How much of the first word is still in the memory?</div>
         <div class="fade" id="fadeRows"></div>
         <div class="btnrow">
           <button class="primary" id="fadeAdd">Add a word</button>
@@ -614,7 +611,6 @@
         </div>
         <p class="note" id="fadeSays"></p>
       </div>
-      <p class="note">This is a simplified picture: each step keeps 60% of the old memory. Real RNNs learn how much to keep, but the effect is the same.</p>
       <ul>
         <li><b>Long-range dependencies are hard.</b> In “My teddy bear, which I got as a child from my grandmother in Kerala, <mark>is</mark> still soft”, the RNN must remember “teddy bear” across many words to know what “is” refers to.</li>
         <li><b>Training has the same problem.</b> When the network learns, the signal telling early steps how to change also fades as it travels back. This is called the <mark>vanishing gradient</mark> problem.</li>
@@ -626,7 +622,7 @@
     <!-- 18 -->
     <section class="part" data-title="LSTMs">
       <h2>LSTMs: memory with switches</h2>
-      <p class="say">The <mark>LSTM</mark> (long short-term memory, 1997) adds a second, longer-lasting memory called the <b>cell state</b>, plus <mark>gates</mark>: learned switches that decide what to do with it.</p>
+      <p class="say">The <mark data-peek="Long short-term memory, introduced in 1997.">LSTM</mark> adds a second, longer-lasting memory called the <b>cell state</b>, plus <mark>gates</mark>: learned switches that decide what to do with it.</p>
       <div class="cards three">
         <div class="card"><h3>Forget gate</h3><p>What to <b>erase</b> from the cell state.</p></div>
         <div class="card"><h3>Update gate</h3><p>What new information to <b>write in</b>.</p></div>
@@ -888,7 +884,7 @@ drawPad();
       row.querySelector(".pct").textContent = Math.round(p[i] * 100) + "%";
     });
     const loss = -Math.log(p[RIGHT]);
-    document.getElementById("smLoss").innerHTML = `Loss = −log(${p[RIGHT].toFixed(2)}) = <b>${loss.toFixed(2)}</b>`;
+    document.getElementById("smLoss").innerHTML = `<span data-peek="Loss = −log(chance of the right answer). 100% gives loss 0; small chances give big losses.">Loss</span> = −log(${p[RIGHT].toFixed(2)}) = <b>${loss.toFixed(2)}</b>`;
     document.getElementById("smSays").textContent = p[RIGHT] > 0.8 ? "Great guess: the loss is small." : p[RIGHT] > 0.4 ? "Not bad. Raise cute's score to shrink the loss." : "Bad guess: “cute” gets a small chance, so the loss is big. Training would raise its score.";
   }
   box.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => { scores[Number(inp.dataset.i)] = Number(inp.value); draw(); }));
