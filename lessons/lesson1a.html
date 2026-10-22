@@ -508,7 +508,7 @@
       </svg>
       <p class="say">Each arrow has a number called a <mark>weight</mark>. The score is just <b>input × weight</b>: 1 × 2.0 = 2.0 for “cute”.</p>
       <p class="say">Change the weights, and the scores change. A higher score means: “I think this word is more likely.”</p>
-      <p class="say">Real networks chain many of these steps, called <mark data-peek="Each layer multiplies by its own weights and passes new numbers to the next. The numbers in between are where the network keeps what it has learned. Word2vec keeps them as embeddings.">layers</mark>, with many inputs and millions of weights. But each step is this simple.</p>
+      <p class="say">Real networks chain many of these steps, called <mark data-peek="One layer is the picture above: numbers go in, get multiplied by weights, and new numbers come out. With two layers, those new numbers go into a second picture like this one, and its outputs are the scores. More layers can spot harder patterns.">layers</mark>, with many inputs and millions of weights. But each step is this simple.</p>
       <p class="hook">But scores like 2.0 or 0.5 are hard to read. How do they become chances?</p>
     </section>
 
