@@ -56,6 +56,44 @@
   .vocab span.added { background: var(--note-green); color: var(--on-hl); border-color: var(--ink); }
 
   .padrows { display: grid; gap: 6px; margin-top: 8px; }
+  /* Vectors and dot products */
+  .mono { font-family: var(--mono); }
+  .vecwrap { display: grid; grid-template-columns: minmax(200px, 300px) 1fr; gap: 20px; align-items: center; }
+  .vecplot, .embplot { width: 100%; background: var(--paper); border: 1.5px solid var(--rule); border-radius: 8px; }
+  .vecplot line.axis { stroke: var(--rule); stroke-width: 0.01; }
+  .vecplot circle { fill: none; stroke: var(--rule); stroke-width: 0.008; stroke-dasharray: 0.03 0.03; }
+  .vecplot .arA { stroke: var(--pen); } .vecplot .arB { stroke: var(--redpen); }
+  .vecplot text { font-size: 0.13px; font-family: var(--mono); }
+  table.mini { border-collapse: collapse; margin: 8px 0; font-size: 0.92rem; }
+  table.mini td { padding: 3px 10px 3px 0; }
+  ol.steps { padding-left: 1.3em; display: grid; gap: 6px; }
+  /* Softmax sliders */
+  .sm { display: grid; gap: 8px; max-width: 560px; }
+  .smrow { display: grid; grid-template-columns: 6.5em 9em 1fr 3.5em; gap: 10px; align-items: center; font-family: var(--mono); font-size: 0.9rem; }
+  .smrow input { width: 100%; accent-color: var(--pen); }
+  .smrow .track { height: 18px; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .smrow .fill { display: block; height: 100%; background: var(--hl-yellow); border-right: 2px solid var(--ink); }
+  .smrow.right .fill { background: var(--hl-green); }
+  .smrow .pct { text-align: right; color: var(--pencil); }
+  /* Word2vec context picker */
+  .w2v .tk { cursor: pointer; }
+  .w2v .tk.mid { outline: 3px solid var(--pen); }
+  .w2v .tk.ctx { outline: 3px solid var(--hl-green); }
+  .w2v .tk.far { opacity: 0.4; }
+  button.on { background: var(--ink); color: var(--paper); }
+  /* Inside the network */
+  .net { display: grid; gap: 6px; padding: 10px 12px; background: var(--paper); border: 1.5px solid var(--rule); border-radius: 8px; }
+  .net-row { display: grid; grid-template-columns: 15em 1fr; gap: 10px; align-items: baseline; }
+  .net-l small { color: var(--pencil); }
+  .net .hit { color: var(--redpen); font-weight: 700; }
+  .net .tk.now { outline: 3px solid var(--pen); }
+  .net .tk.goal { outline: 3px solid var(--hl-green); }
+  .net-row.dim { opacity: 0.35; }
+  /* Embedding map */
+  .corpus { font-size: 0.85rem; color: var(--pencil); columns: 2; margin: 0 0 10px; }
+  .embplot text { font-family: var(--mono); font-size: 11px; fill: var(--ink); }
+  .embplot circle { stroke: var(--ink); stroke-width: 1; }
+  @media (max-width: 640px) { .vecwrap { grid-template-columns: 1fr; } .net-row { grid-template-columns: 1fr; gap: 0; } .smrow { grid-template-columns: 5.5em 1fr 3em; } .smrow input { grid-column: 1 / -1; } .corpus { columns: 1; } }
   @media (max-width: 560px) { .timeline li { grid-template-columns: 1fr; gap: 4px; } }
 </style>
 </head>
@@ -266,15 +304,201 @@
       <p class="hook">Now every token has a number. But does that number tell the model what the token means?</p>
     </section>
 
+    <!-- 8 -->
+    <section class="part" data-title="Quick basics: vectors">
+      <h2>✏️ Quick basics: vectors</h2>
+      <p class="say">A <mark>vector</mark> is just a list of numbers, like <span class="mono">[0.9, 0.4]</span>.</p>
+      <p class="say">With two numbers, you can draw it as an arrow: go 0.9 right and 0.4 up.</p>
+      <p class="say">To measure how similar two arrows are, we use the <mark>dot product</mark>: multiply matching numbers, then add.</p>
+      <div class="activity">
+        <div class="do">Try it: turn arrow B and watch the dot product.</div>
+        <div class="vecwrap">
+          <svg class="vecplot" id="vecPlot" viewBox="-1.25 -1.25 2.5 2.5" aria-label="Two arrows"></svg>
+          <div>
+            <p class="mono" id="vecA"></p>
+            <p class="mono" id="vecB"></p>
+            <label for="vecAngle">Turn arrow B</label>
+            <input type="range" id="vecAngle" min="0" max="180" value="20" style="width:100%">
+            <p class="mono" id="vecDot"></p>
+            <p class="note" id="vecSays"></p>
+          </div>
+        </div>
+      </div>
+      <ul>
+        <li>Same direction → dot product <b>close to 1</b>: very similar.</li>
+        <li>At a right angle → <b>0</b>: nothing in common.</li>
+        <li>Opposite → <b>−1</b>: opposites.</li>
+      </ul>
+      <p class="hook">Now: which vector should each token get?</p>
+    </section>
+
+    <!-- 9 -->
+    <section class="part" data-title="Token representations">
+      <h2>Token representations</h2>
+      <p class="say">Each token needs a vector. Take three tokens: <b>teddy bear</b>, <b>soft</b> and <b>book</b>.</p>
+      <div class="cards">
+        <div class="card">
+          <h3>Idea 1: one-hot</h3>
+          <p>Give each token its own position, with a 1 there and 0 everywhere else.</p>
+          <table class="mini">
+            <tr><td>teddy bear</td><td class="mono">[1, 0, 0]</td></tr>
+            <tr><td>soft</td><td class="mono">[0, 1, 0]</td></tr>
+            <tr><td>book</td><td class="mono">[0, 0, 1]</td></tr>
+          </table>
+          <p>teddy bear · soft = <b>0</b>&nbsp;&nbsp; teddy bear · book = <b>0</b></p>
+          <p class="bad">Every pair scores 0. The vectors say nothing about meaning: teddy bears are soft, but the model can't tell.</p>
+        </div>
+        <div class="card">
+          <h3>Idea 2: learned embeddings</h3>
+          <p>Let the model <b>learn</b> the numbers, so related tokens get similar vectors.</p>
+          <table class="mini">
+            <tr><td>teddy bear</td><td class="mono">[0.90, 0.40, 0.10]</td></tr>
+            <tr><td>soft</td><td class="mono">[0.95, 0.32, 0.01]</td></tr>
+            <tr><td>book</td><td class="mono">[0.05, 0.10, 0.99]</td></tr>
+          </table>
+          <p>teddy bear · soft ≈ <b>1</b>&nbsp;&nbsp; teddy bear · book ≈ <b>0</b></p>
+          <p class="good">Now “close” means “related”.</p>
+        </div>
+      </div>
+      <p class="say">A learned vector like this is called an <mark>embedding</mark>.</p>
+      <p class="note">These numbers are made up to show the idea. Real embeddings have hundreds or thousands of numbers.</p>
+      <div class="quiz" data-right="Right. With one-hot vectors, every pair of different tokens has a dot product of 0, so “bear” is exactly as far from “bears” as from “volcano”.">
+        <div class="q">With one-hot vectors, how similar are “bear” and “bears”?</div>
+        <div class="options">
+          <button data-why="One-hot vectors never share a 1 in the same place, so they can't be close.">Very similar</button>
+          <button data-right>Not at all: dot product 0</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+      <p class="hook">To learn embeddings, we need a small neural network. Let's see what that is.</p>
+    </section>
+
+    <!-- 10 -->
+    <section class="part" data-title="Quick basics: a tiny neural network">
+      <h2>✏️ Quick basics: a tiny neural network</h2>
+      <p class="say">A <mark>neural network</mark> turns numbers into new numbers, in layers:</p>
+      <ol class="steps">
+        <li><b>Multiply and add.</b> Each layer multiplies its input by a table of numbers called <mark>weights</mark>.</li>
+        <li><b>Scores → chances.</b> At the end, <mark>softmax</mark> turns raw scores into chances that add up to 100%.</li>
+        <li><b>Measure the mistake.</b> The <mark>loss</mark> is big when the right answer got a small chance.</li>
+        <li><b>Nudge the weights</b> so the loss gets a bit smaller. Repeat thousands of times. That's <mark>training</mark>.</li>
+      </ol>
+      <div class="activity">
+        <div class="do">Try it: move the scores. Softmax turns them into chances. The right answer is “cute”.</div>
+        <div class="sm" id="smRows"></div>
+        <p class="mono" id="smLoss"></p>
+        <p class="note" id="smSays"></p>
+      </div>
+      <p class="note">Loss = −log(chance of the right answer). 100% gives loss 0; small chances give big losses.</p>
+      <p class="hook">Training means: change the weights until the right answers get high chances. Now let's use this to learn embeddings.</p>
+    </section>
+
+    <!-- 11 -->
+    <section class="part" data-title="Word2vec">
+      <h2>Word2vec</h2>
+      <p class="say"><mark>Word2vec</mark> (2013) learns embeddings with a trick: train a small network on a <mark>proxy task</mark>, a practice task we don't actually care about.</p>
+      <p class="say">The task: guess words from their neighbours, over billions of words of text. To do it well, the network must learn what words mean.</p>
+      <div class="activity">
+        <div class="do">Two versions of the practice task. Pick one, then click a word.</div>
+        <div class="btnrow" style="margin:0 0 10px">
+          <button class="on" id="w2vCbow">CBOW</button>
+          <button id="w2vSkip">Skip-gram</button>
+        </div>
+        <div class="toks w2v" id="w2vToks"></div>
+        <p class="note" id="w2vSays"></p>
+      </div>
+      <ul>
+        <li><b>CBOW</b> (continuous bag of words): the neighbours guess the middle word.</li>
+        <li><b>Skip-gram</b>: the middle word guesses its neighbours.</li>
+      </ul>
+      <p class="hook">Let's look inside the network, using the simplest task: guess the next word.</p>
+    </section>
+
+    <!-- 12 -->
+    <section class="part" data-title="Inside word2vec">
+      <h2>Inside word2vec: guessing the next word</h2>
+      <p class="say">Our vocabulary has <b>V = 6</b> tokens: A, cute, teddy bear, is, reading, “.”. The middle layer has <b>d = 2</b> numbers.</p>
+      <div class="activity">
+        <div class="do">Step through one guess.</div>
+        <div class="net" id="netBox">
+          <div class="net-row"><span class="net-l">Target: the real next word <small>(size V)</small></span><span class="mono" id="netTarget"></span></div>
+          <div class="net-row"><span class="net-l">Output: guessed chances <small>(size V)</small></span><span class="mono" id="netOut"></span></div>
+          <div class="net-row"><span class="net-l">Hidden: the embedding <small>(size d)</small></span><span class="mono" id="netHid"></span></div>
+          <div class="net-row"><span class="net-l">Input: one-hot <small>(size V)</small></span><span class="mono" id="netIn"></span></div>
+          <div class="toks" id="netSent" style="margin-top:8px"></div>
+        </div>
+        <p class="note" id="netSays"></p>
+        <div class="btnrow">
+          <button id="netBack">← Back</button>
+          <button class="primary" id="netNext">Next step →</button>
+        </div>
+      </div>
+      <p class="say">Repeat for every word in billions of sentences. The weights keep moving until the guesses get good.</p>
+      <p class="hook">And then something nice happens to the hidden layer.</p>
+    </section>
+
+    <!-- 13 -->
+    <section class="part" data-title="Embeddings that make sense">
+      <h2>Embeddings that make sense</h2>
+      <p class="say">After training, we throw the guessing away and keep the <b>hidden layer</b>: each token's embedding.</p>
+      <p class="say">Words used in similar places end up close together.</p>
+      <div class="activity">
+        <div class="do">Try it: a real word2vec, training right here on six short sentences. Watch where the words go.</div>
+        <div class="corpus mono" id="w2vCorpus"></div>
+        <div class="vecwrap">
+          <svg class="embplot" id="embPlot" viewBox="0 0 300 300" aria-label="Word embeddings on a 2D map"></svg>
+          <div>
+            <p class="bpe-stats" style="margin:0 0 8px"><span>Steps: <b id="embSteps">0</b></span><span>Loss: <b id="embLoss"></b></span></p>
+            <div class="btnrow">
+              <button class="primary" id="embTrain">▶ Train</button>
+              <button class="reset" id="embReset">↺ Start again</button>
+            </div>
+            <p class="note" id="embSays">Every word starts at a random spot.</p>
+          </div>
+        </div>
+      </div>
+      <p class="say">With huge amounts of text, embeddings even capture relationships: <b>teddy bear</b> is to <b>soft</b> as <b>Persian poetry</b> is to <b>art</b>. The step from one to the other points the same way.</p>
+      <p class="hook">Word2vec is simple and powerful. But it has two big blind spots.</p>
+    </section>
+
+    <!-- 14 -->
+    <section class="part" data-title="What word2vec misses">
+      <h2>What word2vec misses</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>1 · One meaning per word</h3>
+          <p>Every word gets <b>one</b> embedding, wherever it appears.</p>
+          <p class="mono">“What a <mark>cute</mark> teddy bear!”<br>“Oh, how <mark>cute</mark>.” (said with an eye-roll)</p>
+          <p class="mono">“Sit by the river <mark>bank</mark>.”<br>“Put money in the <mark>bank</mark>.”</p>
+          <p class="bad">Same vector, different meanings. The embedding doesn't look at the sentence around it.</p>
+        </div>
+        <div class="card">
+          <h3>2 · Word order is lost</h3>
+          <p>Looking up each word's embedding gives the same set of vectors for:</p>
+          <p class="mono">“The child is hugging the teddy bear.”<br>“The teddy bear is hugging the child.”</p>
+          <p class="bad">Same words, opposite meanings. Who does what is lost.</p>
+        </div>
+      </div>
+      <div class="quiz" data-right="Yes. Word2vec gives “bank” one fixed vector, so the river and the money meaning get the same numbers.">
+        <div class="q">Why can't word2vec tell a river bank from a money bank?</div>
+        <div class="options">
+          <button data-why="It can learn “bank”: the problem isn't missing the word, it's that one word gets only one vector.">“bank” isn't in its vocabulary</button>
+          <button data-right>Each word gets one embedding, whatever the sentence</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+      <p class="hook">We need models that read the whole sentence, in order.</p>
+    </section>
+
     <!-- coming next -->
     <section class="part" data-title="Coming next">
       <h2>Coming next</h2>
-      <p class="say">So far: text → tokens → numbers. ✓</p>
-      <p class="say">But token <b>4021</b> and token <b>4022</b> could be “cat” and “volcano”. The number itself means nothing.</p>
+      <p class="say">So far: text → tokens → embeddings that capture meaning. ✓</p>
+      <p class="say">But each word still ignores the sentence around it, and word order is lost.</p>
       <div class="open-question">
         <div>This leaves a question</div>
-        <div class="big">How can we give each token numbers that capture what it means?</div>
-        <div>The next parts of this lesson answer it: vectors, embeddings, a tiny neural network, and word2vec. Coming soon.</div>
+        <div class="big">How can a model read a sentence word by word, in order, and remember what came before?</div>
+        <div>The next parts of this lesson answer it: RNNs and LSTMs. Coming soon.</div>
       </div>
     </section>
   </main>
@@ -393,6 +617,182 @@ document.getElementById("padAdd").onclick = () => { padState = 1; drawPad(); };
 document.getElementById("padPad").onclick = () => { padState = 2; drawPad(); };
 document.getElementById("padReset").onclick = () => { padState = 0; drawPad(); };
 drawPad();
+
+// ---------- Part 8: vectors and the dot product ----------
+(function vectors() {
+  const svg = document.getElementById("vecPlot"), slider = document.getElementById("vecAngle");
+  const A_DEG = 35, rad = d => d * Math.PI / 180;
+  function arrow(x, y, cls, label) {
+    const hx = x * 0.86, hy = y * 0.86;
+    return `<line class="${cls}" x1="0" y1="0" x2="${x}" y2="${-y}" stroke-width="0.035" stroke-linecap="round"/>
+      <circle cx="${x}" cy="${-y}" r="0.045" style="fill:currentColor;stroke:none" class="${cls}"/>
+      <text x="${x * 1.12 - 0.08}" y="${-y * 1.12 + 0.04}" class="${cls}" style="fill:currentColor;stroke:none">${label}</text>`;
+  }
+  function draw() {
+    const b = Number(slider.value);
+    const a = [Math.cos(rad(A_DEG)), Math.sin(rad(A_DEG))], v = [Math.cos(rad(b)), Math.sin(rad(b))];
+    const dot = a[0] * v[0] + a[1] * v[1];
+    svg.innerHTML = `<circle cx="0" cy="0" r="1"/><line class="axis" x1="-1.2" y1="0" x2="1.2" y2="0"/><line class="axis" x1="0" y1="-1.2" x2="0" y2="1.2"/>
+      <g style="color:var(--pen)">${arrow(a[0], a[1], "arA", "A")}</g><g style="color:var(--redpen)">${arrow(v[0], v[1], "arB", "B")}</g>`;
+    document.getElementById("vecA").textContent = `A = [${a[0].toFixed(2)}, ${a[1].toFixed(2)}]`;
+    document.getElementById("vecB").textContent = `B = [${v[0].toFixed(2)}, ${v[1].toFixed(2)}]`;
+    document.getElementById("vecDot").innerHTML = `A · B = ${a[0].toFixed(2)}×${v[0].toFixed(2)} + ${a[1].toFixed(2)}×${v[1].toFixed(2)} = <b>${dot.toFixed(2)}</b>`;
+    document.getElementById("vecSays").textContent = dot > 0.8 ? "Pointing the same way: very similar." : dot > 0.2 ? "Somewhat similar." : dot > -0.2 ? "About a right angle: nothing in common." : dot > -0.8 ? "Pointing apart." : "Opposite directions: opposites.";
+  }
+  slider.addEventListener("input", draw);
+  draw();
+})();
+
+// ---------- Part 10: softmax and loss ----------
+(function softmaxDemo() {
+  const WORDS = ["A", "cute", "teddy bear", "is", "reading", "."], RIGHT = 1;
+  const scores = [0.5, 1.2, 0.3, 0.1, 0.2, 0.1];
+  const box = document.getElementById("smRows");
+  box.innerHTML = WORDS.map((w, i) => `<div class="smrow${i === RIGHT ? " right" : ""}"><span>${w}${i === RIGHT ? " ✓" : ""}</span>
+    <input type="range" min="-3" max="3" step="0.1" value="${scores[i]}" data-i="${i}" aria-label="Score for ${w}">
+    <span class="track"><span class="fill"></span></span><span class="pct"></span></div>`).join("");
+  function draw() {
+    const ex = scores.map(Math.exp), sum = ex.reduce((a, b) => a + b, 0), p = ex.map(e => e / sum);
+    box.querySelectorAll(".smrow").forEach((row, i) => {
+      row.querySelector(".fill").style.width = (p[i] * 100).toFixed(1) + "%";
+      row.querySelector(".pct").textContent = Math.round(p[i] * 100) + "%";
+    });
+    const loss = -Math.log(p[RIGHT]);
+    document.getElementById("smLoss").innerHTML = `Loss = −log(${p[RIGHT].toFixed(2)}) = <b>${loss.toFixed(2)}</b>`;
+    document.getElementById("smSays").textContent = p[RIGHT] > 0.8 ? "Great guess: the loss is small." : p[RIGHT] > 0.4 ? "Not bad. Raise cute's score to shrink the loss." : "Bad guess: “cute” gets a small chance, so the loss is big. Training would raise its score.";
+  }
+  box.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => { scores[Number(inp.dataset.i)] = Number(inp.value); draw(); }));
+  draw();
+})();
+
+// ---------- Part 11: CBOW and skip-gram ----------
+(function contexts() {
+  const T = ["A", "cute", "teddy bear", "is", "reading"];
+  let mode = "cbow", mid = 2;
+  const box = document.getElementById("w2vToks");
+  function draw() {
+    box.innerHTML = T.map((t, i) => `<button class="tk ${i === mid ? "mid" : Math.abs(i - mid) <= 2 ? "ctx" : "far"}" data-i="${i}">${t}</button>`).join("");
+    box.querySelectorAll("button").forEach(b => b.onclick = () => { mid = Number(b.dataset.i); draw(); });
+    const ctx = T.filter((_, i) => i !== mid && Math.abs(i - mid) <= 2).map(t => `“${t}”`).join(", ");
+    document.getElementById("w2vSays").innerHTML = mode === "cbow"
+      ? `<b>CBOW:</b> from ${ctx}, guess the middle word <b>“${T[mid]}”</b>.`
+      : `<b>Skip-gram:</b> from <b>“${T[mid]}”</b>, guess each neighbour: ${ctx}.`;
+    document.getElementById("w2vCbow").classList.toggle("on", mode === "cbow");
+    document.getElementById("w2vSkip").classList.toggle("on", mode === "skip");
+  }
+  document.getElementById("w2vCbow").onclick = () => { mode = "cbow"; draw(); };
+  document.getElementById("w2vSkip").onclick = () => { mode = "skip"; draw(); };
+  draw();
+})();
+
+// ---------- Part 12: one guess, step by step ----------
+(function inside() {
+  const W = ["A", "cute", "teddy bear", "is", "reading", "."];
+  const fmt = (arr, hit) => "[" + arr.map((x, i) => i === hit ? `<span class="hit">${x}</span>` : x).join(", ") + "]";
+  const STEPS = [
+    { now: 0, rows: [3], inp: [1, 0, 0, 0, 0, 0], says: "Input: the word <b>A</b>, as a one-hot vector: a 1 in A's place, 0 elsewhere. Its size is V = 6." },
+    { now: 0, rows: [3, 2], inp: [1, 0, 0, 0, 0, 0], hid: [0.2, 0.9], says: "Multiply by the first weights → just <b>d = 2</b> numbers. This middle layer is the <b>embedding</b> (also called the latent representation)." },
+    { now: 0, rows: [3, 2, 1], inp: [1, 0, 0, 0, 0, 0], hid: [0.2, 0.9], out: [0.2, 0.4, 0.1, 0.1, 0.1, 0.1], says: "Multiply by the second weights, then softmax → a chance for each of the 6 words. Size V again." },
+    { now: 0, goal: 1, rows: [3, 2, 1, 0], inp: [1, 0, 0, 0, 0, 0], hid: [0.2, 0.9], out: [0.2, 0.4, 0.1, 0.1, 0.1, 0.1], tgt: [0, 1, 0, 0, 0, 0], hit: 1, says: "The real next word is <b>cute</b>. The network gave it <b>0.4</b> but we wanted <b>1</b>. Loss = −log(0.4) ≈ 0.92, so we nudge all the weights to raise that 0.4." },
+    { now: 1, goal: 2, rows: [3, 2, 1, 0], inp: [0, 1, 0, 0, 0, 0], hid: [0.8, 0.4], out: [0.2, 0.2, 0.2, 0.1, 0.2, 0.1], tgt: [0, 0, 1, 0, 0, 0], hit: 2, says: "Next pair: <b>cute</b> → <b>teddy bear</b>. Same steps: one-hot in, 2 hidden numbers, 6 chances out. Teddy bear only got 0.2, so we nudge again." },
+    { now: 2, goal: 3, rows: [3, 2, 1, 0], says: "Then <b>teddy bear</b> → <b>is</b>, then <b>is</b> → <b>reading</b>… through every sentence we have." },
+  ];
+  let at = 0;
+  function draw() {
+    const s = STEPS[at];
+    document.getElementById("netIn").innerHTML = s.inp ? fmt(s.inp) : "…";
+    document.getElementById("netHid").innerHTML = s.hid ? fmt(s.hid) : "…";
+    document.getElementById("netOut").innerHTML = s.out ? fmt(s.out, s.hit) : "…";
+    document.getElementById("netTarget").innerHTML = s.tgt ? fmt(s.tgt, s.hit) : "…";
+    ["netTarget", "netOut", "netHid", "netIn"].forEach((id, r) => document.getElementById(id).parentElement.classList.toggle("dim", !s.rows.includes(r)));
+    document.getElementById("netSent").innerHTML = W.slice(0, 5).map((w, i) => `<span class="tk ${i === s.now ? "now" : i === s.goal ? "goal" : ""}">${w}</span>`).join("");
+    document.getElementById("netSays").innerHTML = s.says;
+    document.getElementById("netBack").disabled = at === 0;
+    document.getElementById("netNext").disabled = at === STEPS.length - 1;
+  }
+  document.getElementById("netBack").onclick = () => { at--; draw(); };
+  document.getElementById("netNext").onclick = () => { at++; draw(); };
+  draw();
+})();
+
+// ---------- Part 13: a real word2vec, trained in the browser ----------
+(function trainEmbeddings() {
+  const SENTS = [
+    ["a", "cute", "teddy bear", "is", "reading", "."], ["a", "soft", "teddy bear", "is", "sleeping", "."],
+    ["a", "cute", "cat", "is", "sleeping", "."], ["a", "soft", "cat", "is", "reading", "."],
+    ["a", "cute", "dog", "is", "reading", "."], ["a", "soft", "dog", "is", "sleeping", "."],
+  ];
+  document.getElementById("w2vCorpus").innerHTML = SENTS.map(s => s.join(" ").replace(" .", ".")).join("<br>");
+  const V = [...new Set(SENTS.flat())], idx = Object.fromEntries(V.map((w, i) => [w, i])), n = V.length, d = 2;
+  const PAIRS = SENTS.flatMap(s => s.slice(0, -1).map((w, i) => [idx[w], idx[s[i + 1]]]));
+  const GROUP = { cute: "var(--hl-pink)", soft: "var(--hl-pink)", "teddy bear": "var(--hl-blue)", cat: "var(--hl-blue)", dog: "var(--hl-blue)", reading: "var(--hl-green)", sleeping: "var(--hl-green)" };
+  let W1, W2, b2, steps, timer = null;
+  function rng(seed) { return () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }; }
+  function reset() {
+    const r = rng(7);
+    W1 = V.map(() => [r() * 2 - 1, r() * 2 - 1]);
+    W2 = [0, 1].map(() => V.map(() => (r() * 2 - 1) * 0.5));
+    b2 = V.map(() => 0); steps = 0;
+    stop(); draw(lossNow());
+    document.getElementById("embSays").textContent = "Every word starts at a random spot.";
+  }
+  function forward(i) {
+    const h = W1[i], z = V.map((_, k) => h[0] * W2[0][k] + h[1] * W2[1][k] + b2[k]);
+    const m = Math.max(...z), e = z.map(x => Math.exp(x - m)), s = e.reduce((a, b) => a + b, 0);
+    return { h, p: e.map(x => x / s) };
+  }
+  function lossNow() { return PAIRS.reduce((L, [i, j]) => L - Math.log(forward(i).p[j]), 0) / PAIRS.length; }
+  function step(lr = 0.3) {
+    const gW1 = V.map(() => [0, 0]), gW2 = [V.map(() => 0), V.map(() => 0)], gb = V.map(() => 0);
+    for (const [i, j] of PAIRS) {
+      const { h, p } = forward(i);
+      for (let k = 0; k < n; k++) {
+        const g = p[k] - (k === j ? 1 : 0);
+        gW2[0][k] += g * h[0]; gW2[1][k] += g * h[1]; gb[k] += g;
+        gW1[i][0] += g * W2[0][k]; gW1[i][1] += g * W2[1][k];
+      }
+    }
+    const N = PAIRS.length;
+    for (let k = 0; k < n; k++) { W2[0][k] -= lr * gW2[0][k] / N; W2[1][k] -= lr * gW2[1][k] / N; b2[k] -= lr * gb[k] / N; }
+    for (let i = 0; i < n; i++) { W1[i][0] -= lr * gW1[i][0] / N * 4; W1[i][1] -= lr * gW1[i][1] / N * 4; }
+    steps++;
+  }
+  function draw(loss) {
+    const xs = W1.map(v => v[0]), ys = W1.map(v => v[1]);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const sx = x => 40 + (x - minX) / ((maxX - minX) || 1) * 220, sy = y => 260 - (y - minY) / ((maxY - minY) || 1) * 220;
+    // Labels of words that sit together are stacked, so they stay readable
+    const pts = V.map((w, i) => ({ w, x: sx(xs[i]), y: sy(ys[i]), ly: sy(ys[i]) + 4 })).sort((a, b) => a.y - b.y);
+    for (let pass = 0; pass < 4; pass++)
+      for (let a = 0; a < pts.length; a++) for (let b = a + 1; b < pts.length; b++)
+        if (Math.abs(pts[a].x - pts[b].x) < 70 && Math.abs(pts[a].ly - pts[b].ly) < 13) pts[b].ly = pts[a].ly + 13;
+    document.getElementById("embPlot").innerHTML = pts.map(q =>
+      `<circle cx="${q.x}" cy="${q.y}" r="6" style="fill:${GROUP[q.w] || "var(--card)"}"/>`).join("") + pts.map(q =>
+      `<text x="${q.x + 9}" y="${q.ly}">${q.w}</text>`).join("");
+    document.getElementById("embSteps").textContent = steps;
+    document.getElementById("embLoss").textContent = loss.toFixed(2);
+  }
+  function stop() { if (timer) cancelAnimationFrame(timer); timer = null; document.getElementById("embTrain").textContent = "▶ Train"; }
+  function run() {
+    for (let k = 0; k < 15; k++) step();
+    draw(lossNow());
+    if (steps >= 1500) {
+      stop();
+      document.getElementById("embSays").innerHTML = "Done! <b>cute</b> and <b>soft</b> ended up together, so did <b>teddy bear</b>, <b>cat</b> and <b>dog</b>, and <b>reading</b> and <b>sleeping</b>. Nobody told the network: those words are just used in the same places.";
+      return;
+    }
+    document.getElementById("embSays").textContent = "Training: each step nudges every word's 2 numbers to guess the next word better.";
+    timer = requestAnimationFrame(run);
+  }
+  document.getElementById("embTrain").onclick = () => {
+    if (timer) { stop(); return; }
+    if (steps >= 1500) reset();
+    document.getElementById("embTrain").textContent = "⏸ Pause";
+    timer = requestAnimationFrame(run);
+  };
+  document.getElementById("embReset").onclick = reset;
+  reset();
+})();
 </script>
 </body>
 </html>
