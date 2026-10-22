@@ -312,12 +312,12 @@
       </div>
       <p class="say" style="position:relative">Each merge adds one piece and makes the text shorter. We stop at the vocabulary size we want. Today's LLMs stop at <b>hundreds of thousands of pieces</b>, from many languages.<button class="doubt" type="button" data-peek-from="stopPeek" aria-label="How do we decide where to stop?">🤔</button></p>
       <div hidden id="stopPeek"><b>🤔 How do we decide where to stop?</b>
-        <div style="margin-top:6px">It's a trade-off, chosen by the people building the model:</div>
+        <div style="margin-top:6px">There's no perfect point. It's a balance:</div>
         <ul style="margin:6px 0 0">
-          <li><b>More pieces:</b> text gets shorter, so the model is faster. But every piece needs its own embedding to learn, and rare pieces get little practice.</li>
-          <li><b>Fewer pieces:</b> less to learn, but text gets longer, so the model is slower.</li>
+          <li><b>Stop too early:</b> words stay chopped into small bits. In our pile, “teddy” would still be 5 letters. Long text = slow.</li>
+          <li><b>Stop too late:</b> a huge list of pieces. The model must learn every one, and pieces that hardly ever appear are learned badly.</li>
         </ul>
-        <div style="margin-top:6px">So they try a few sizes and pick what works. Older English models used about 30,000–50,000 pieces; newer ones that handle many languages use about 100,000–250,000.</div>
+        <div style="margin-top:6px">So builders try a few sizes and keep what works. Today that's usually <b>100,000–250,000</b> pieces.</div>
       </div>
       <div class="quiz" data-right="Right. BPE learns from the text it's given. Trained only on English, it would cut Hindi or Malayalam into many tiny pieces: slow and costly.">
         <div class="q">You want an LLM that's good at Hindi and Malayalam. What should the BPE training text include?</div>
