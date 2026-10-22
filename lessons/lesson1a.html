@@ -55,6 +55,7 @@
   .vocab span { padding: 1px 6px; border: 1px solid var(--rule); border-radius: 4px; }
   .vocab span.added { background: var(--note-green); color: var(--on-hl); border-color: var(--ink); }
 
+  .pile { font-family: var(--mono); font-size: 0.95rem; line-height: 1.9; padding: 8px 12px; background: var(--paper); border: 1.5px dashed var(--rule); border-radius: 8px; }
   .padrows { display: grid; gap: 6px; margin-top: 8px; }
   /* Vectors and dot products */
   .mono { font-family: var(--mono); }
@@ -287,8 +288,9 @@
       <p class="say"><b>Find the two pieces that appear side by side most often. Glue them into one new piece. Repeat.</b></p>
 
       <div class="activity">
-        <div class="do">Try it: BPE learns its pieces from a big pile of text. Let's pretend the whole pile is just these 8 words.</div>
-        <p class="note" style="margin-top:0">The number on the left is how many times the word shows up in the pile: “read” 6 times, “reads” 3 times… Every word starts as single letters.</p>
+        <div class="do">Try it: BPE learns its pieces from text. Here's a tiny pile of text, just 17 words:</div>
+        <div class="pile" id="bpePile"></div>
+        <p class="note" style="margin-top:6px">Below, the same words are grouped and counted: “read” is in the pile 4 times, so it shows ×4. Every word starts as single letters.</p>
         <div class="bpe-stats">
           <span>Pieces in our list: <b id="bpeVocab"></b> <small>(grows)</small></span>
           <span>Tokens for the whole text: <b id="bpeLen"></b> <small>(shrinks)</small></span>
@@ -746,7 +748,10 @@ document.getElementById("unkIn").addEventListener("input", drawUnk);
 drawUnk();
 
 // ---------- Part 5: BPE, the real algorithm on a tiny text ----------
-const BPE_TEXT = { read: 6, reads: 3, reading: 5, reader: 2, bear: 4, bears: 3, teddy: 2, ready: 2 };
+const BPE_PILE = "read bear reading reads teddy read bears reading read reader bear ready reads read reading bears bear";
+const BPE_TEXT = {};
+BPE_PILE.split(" ").forEach(w => { BPE_TEXT[w] = (BPE_TEXT[w] || 0) + 1; });
+document.getElementById("bpePile").innerHTML = BPE_PILE.split(" ").map(w => `<span>${w}</span>`).join(" ");
 let bpe, vocab, added;
 function bpeReset() {
   bpe = Object.entries(BPE_TEXT).map(([w, n]) => ({ n, parts: Array.from(w) }));
