@@ -253,6 +253,14 @@
       </div>
       <p class="note">## means “this piece glues onto the one before it”: ted + ##dy = teddy.</p>
 
+      <div class="activity">
+        <div class="do">Try it: type anything and watch it split into pieces.</div>
+        <input class="tokin" id="sIn" value="A cute teddy bear is reading." maxlength="100" spellcheck="false" aria-label="Text to cut into word pieces">
+        <div class="split"><div class="toks" id="sToks"></div></div>
+        <p class="bpe-stats" style="margin:12px 0 0"><span>Words: <b id="sW"></b></span><span>Letters: <b id="sC"></b></span><span>Pieces: <b id="sP"></b></span></p>
+        <p class="note">Try “unbelievable”, “playfully” or “readers”. Common words stay whole; others are built from pieces. (This uses a small practice vocabulary; real LLMs know 100,000+ pieces.)</p>
+      </div>
+
       <div class="cards">
         <div class="card"><h3 class="good">🙂 Good</h3><ul>
           <li><b>Related words share pieces.</b> “read”, “reads” and “reading” all contain the piece “read”, so the model can see they're related.</li>
@@ -1027,6 +1035,48 @@ memoryDemo("lstmRows", "lstmAdd", "lstmReset", "lstmSays", "lstmKeep");
   }
   document.getElementById("attLook").onclick = () => { looked = true; draw(); };
   document.getElementById("attReset").onclick = () => { looked = false; draw(); };
+  draw();
+})();
+
+// ---------- Part 6: live word pieces (greedy longest match, like WordPiece) ----------
+(function livePieces() {
+  const WORDS = ("a an the is are was were be been am i you he she it we they my your his her its our their me him us them this that these those " +
+    "and or but not no yes so if then than to of in on at by for with from up down out over into about as " +
+    "cute bear soft book read cat dog bird king queen time day night year good bad big small little new old happy sad nice " +
+    "play work walk talk jump run eat drink sleep sit stand look see go come make take give get have do say tell know think want like love help " +
+    "what who where when why how all some many much more most very just also only one two three four five ten hundred " +
+    "laugh smile write learn teach school class model word text token language large computer people person child children man woman " +
+    "house home water food tree river bank money world story fair tale once upon there here ted wonder believ beauti care hope use").split(" ");
+  const PREFIX = ["un", "re", "dis", "pre", "mis", "over", "under"];
+  const SUFFIX = ["ing", "ed", "s", "es", "er", "ers", "est", "ly", "ness", "able", "ible", "tion", "ment", "ful", "fully", "less", "dy", "y", "ie", "ish", "ive", "al", "ous"];
+  const V = new Set([...WORDS, ...PREFIX, ...SUFFIX.map(x => "##" + x), ...WORDS.map(w => "##" + w)]);
+  "abcdefghijklmnopqrstuvwxyz0123456789".split("").forEach(c => { V.add(c); V.add("##" + c); });
+  function pieces(word) {
+    const lower = word.toLowerCase(), out = [];
+    let start = 0;
+    while (start < lower.length) {
+      let end = lower.length, found = null;
+      while (end > start) {
+        const sub = (start ? "##" : "") + lower.slice(start, end);
+        if (V.has(sub)) { found = sub; break; }
+        end--;
+      }
+      if (!found) return ["[UNK]"];
+      out.push(start ? found : word.slice(0, end));   // keep the first piece's capitals, like the slide's “A”
+      start = end;
+    }
+    return out;
+  }
+  function draw() {
+    const s = document.getElementById("sIn").value;
+    const words = s.match(/[A-Za-z0-9]+|[^\sA-Za-z0-9]/g) || [];
+    const all = words.flatMap(w => /[A-Za-z0-9]/.test(w) ? pieces(w) : [w]);
+    document.getElementById("sToks").innerHTML = all.map(t => tok(t, t === "[UNK]" ? "unk" : "")).join("");
+    document.getElementById("sW").textContent = words.length;
+    document.getElementById("sC").textContent = Array.from(s).length;
+    document.getElementById("sP").textContent = all.length;
+  }
+  document.getElementById("sIn").addEventListener("input", draw);
   draw();
 })();
 </script>
