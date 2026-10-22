@@ -767,7 +767,7 @@ function pairCounts() {
 function bpeMerge() {
   const pairs = pairCounts(), top = pairs[0];
   if (top) bpeHistory.push({ bpe: JSON.stringify(bpe), vocab: vocab.slice(), added, note: document.getElementById("bpeNote").innerHTML });
-  if (!top) { document.getElementById("bpeNote").textContent = "Every word is one piece now. Nothing left to merge."; return false; }
+  if (!top) { document.getElementById("bpeNote").innerHTML = "Every word is one piece now, so there's nothing left to merge. Real BPE stops much earlier, once the vocabulary reaches the size we want."; return false; }
   const [a, b] = top[0].split("\u0001"), joined = a + b;
   bpe.forEach(w => {
     const out = [];
@@ -798,12 +798,15 @@ function pieceColor(p) {
 const ptok = (p, cls = "") => `<span class="tk ${cls}" style="${pieceColor(p)}">${esc(p)}</span>`;
 function drawBpe() {
   document.getElementById("bpeBack").disabled = !bpeHistory.length;
+  const done = !pairCounts().length;   // nothing left to glue: only Back and Start again make sense
+  document.getElementById("bpeMerge").disabled = done;
+  document.getElementById("bpeAll").disabled = done;
   document.getElementById("bpeWords").innerHTML = bpe.map(w =>
     `<div class="bpe-word"><span class="times">×${w.n}</span><span class="toks">${w.parts.map(p => ptok(p, p === added ? "new" : "")).join("")}</span></div>`).join("");
   const pc = pairCounts().slice(0, 4);
   document.getElementById("bpePairs").innerHTML = pc.length
     ? pc.map(([k, n], i) => { const [x, y] = k.split("\u0001"); return `<span class="${i ? "" : "top"}">${ptok(x)} + ${ptok(y)} → ${n} times</span>`; }).join("")
-    : "<span>none</span>";
+    : "<span>No pairs left: every word is a single piece.</span>";
   document.getElementById("bpeVocab").textContent = vocab.length;
   document.getElementById("bpeLen").textContent = bpe.reduce((s, w) => s + w.parts.length * w.n, 0);
   // What the two numbers mean, shown on hover or tap
