@@ -266,9 +266,9 @@
         <p class="note">Try “unbelievable”, “playfully” or “readers”.</p>
       </div>
       <div hidden id="spacesPeek"><b>🤔 What about spaces?</b><ul style="margin:6px 0 0">
-          <li><b>By words:</b> spaces are just where we cut. They don't become tokens.</li>
-          <li><b>By letters:</b> every space is a token, shown as _. That's one reason that version is so long.</li>
-          <li><b>By pieces:</b> no separate space tokens, but nothing is lost. A piece without ## starts a new word. (GPT-style models glue the space onto the next word instead: “ cute” is one token.)</li>
+          <li><b>By words:</b> spaces are just where we cut. They aren't tokens.</li>
+          <li><b>By letters:</b> each space is a token (shown as _).</li>
+          <li><b>By pieces:</b> a piece without ## starts a new word, so the space is understood. Nothing is lost.</li>
         </ul></div>
 
       <div class="cards">
@@ -312,13 +312,11 @@
       </div>
       <p class="say" style="position:relative">Each merge adds one piece and makes the text shorter. We stop at the vocabulary size we want. Today's LLMs stop at <b>hundreds of thousands of pieces</b>, from many languages.<button class="doubt" type="button" data-peek-from="stopPeek" aria-label="How do we decide where to stop?">🤔</button></p>
       <div hidden id="stopPeek"><b>🤔 How do we decide where to stop?</b>
-        <div style="margin-top:6px">There's no perfect point. It's a balance:</div>
         <ul style="margin:6px 0 0">
-          <li><b>Stop too early:</b> words stay chopped into small bits. In our pile, “teddy” would still be 5 letters. Long text = slow.</li>
-          <li><b>Stop too late:</b> a huge list of pieces. The model must learn every one, and pieces that hardly ever appear are learned badly.</li>
+          <li><b>Stop too early:</b> words stay in small bits (“teddy” is still 5 letters). Long text = slow.</li>
+          <li><b>Stop too late:</b> a huge list of pieces, and rare ones are learned badly.</li>
         </ul>
-        <div style="margin-top:6px">So builders try a few sizes and keep what works. Today the finished vocabulary usually holds <b>100,000–250,000 pieces</b>.</div>
-        <div style="margin-top:6px">Like our game, but much bigger: they start with about 256 tiny building blocks (enough to spell any character in any language), learn from billions of words, and merge one piece at a time until the list is that long.</div>
+        <div style="margin-top:6px">So builders try a few sizes and keep the best. Today's LLMs end up with about <b>100,000–250,000 pieces</b>.</div>
       </div>
       <div class="quiz" data-right="Right. BPE learns from the text it's given. Trained only on English, it would cut Hindi or Malayalam into many tiny pieces: slow and costly.">
         <div class="q">You want an LLM that's good at Hindi and Malayalam. What should the BPE training text include?</div>
@@ -401,9 +399,8 @@
         </div>
       </div>
       <div hidden id="dotPeek"><b>🤔 Why only between −1 and 1?</b>
-        <div style="margin-top:6px">In general a dot product can be any number: A · B = (length of A) × (length of B) × (how much they point the same way).</div>
-        <div style="margin-top:6px">Here both arrows have <b>length 1</b> (they end on the dashed circle), so only the direction counts, and the answer stays between −1 and 1.</div>
-        <div style="margin-top:6px">For embeddings we often divide by the lengths to get this same −1 to 1 score. It's called <b>cosine similarity</b>.</div>
+        <div style="margin-top:6px">Normally a dot product can be any number: longer arrows give bigger answers.</div>
+        <div style="margin-top:6px">Here both arrows have the <b>same length, 1</b> (they end on the circle). So only the direction matters: same way → 1, right angle → 0, opposite → −1.</div>
       </div>
       <ul>
         <li>Same direction → dot product <b>close to 1</b>: very similar.</li>
