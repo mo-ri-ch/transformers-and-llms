@@ -154,6 +154,7 @@
   .gm-o { font-family: var(--mono); font-size: 15px; fill: var(--ink); }
   .gm-w { font-family: var(--mono); font-size: 14px; font-weight: 700; fill: var(--redpen); text-anchor: middle; paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
   .gm-n { fill: var(--pen); font-weight: 700; }
+  .gm-peek { text-decoration: underline dotted; text-underline-offset: 4px; cursor: help; }
   .ly-pic { display: block; width: 100%; max-width: 330px; margin: 6px 0; }
   .ly-a { stroke: var(--pen); stroke-width: 1.5; marker-end: url(#lyHead); opacity: .8; }
   .ly-in { fill: var(--paper); stroke: var(--on-hl); stroke-width: 1.5; }
@@ -507,7 +508,7 @@
       <p class="say">A <mark>neural network</mark> is a machine that guesses. A word goes in, and out come <b>scores</b> for what might come next.</p>
       <svg class="guessmac" viewBox="0 0 520 170" aria-label="The word A, as the number 1, is multiplied by a weight on each arrow to give a score for cute, teddy bear and is">
         <defs><marker id="gmHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
-        <rect x="8" y="64" width="78" height="40" rx="6" class="gm-in"/><text x="47" y="90" class="gm-t">A = 1</text>
+        <rect x="8" y="64" width="78" height="40" rx="6" class="gm-in"/><text x="47" y="90" class="gm-t gm-peek" data-peek="To keep it simple, the word A is just the number 1 here. Real networks use the word’s list of numbers (its vector), like the arrows on slide 11.">A = 1</text>
         <line x1="88" y1="78" x2="290" y2="30" class="gm-a"/><line x1="88" y1="84" x2="290" y2="84" class="gm-a"/><line x1="88" y1="90" x2="290" y2="138" class="gm-a"/>
         <text x="170" y="44" class="gm-w">× 2.0</text><text x="170" y="78" class="gm-w">× 0.5</text><text x="170" y="128" class="gm-w">× 0.1</text>
         <text x="300" y="35" class="gm-o">cute: score <tspan class="gm-n">2.0</tspan></text>
@@ -516,6 +517,7 @@
       </svg>
       <p class="say">Each arrow has a number called a <mark>weight</mark>. The score is just <b>input × weight</b>: 1 × 2.0 = 2.0 for “cute”.</p>
       <p class="say">Change the weights, and the scores change. A higher score means: “I think this word is more likely.”</p>
+      <p class="say">Where do the weights come from? The network <b>learns</b> them. We’ll see how in 2 slides.</p>
       <p class="say">Real networks chain many of these steps, called <mark data-peek-from="layersPeek">layers</mark>, with many inputs and millions of weights. But each step is this simple.</p>
       <div hidden id="layersPeek"><div>Each layer is the picture above: numbers in, <b>× weights</b>, new numbers out. Chain two:</div>
         <svg class="ly-pic" viewBox="0 0 350 172" aria-label="Two layers: A goes through layer 1 to three new numbers, then through layer 2 to the scores">
