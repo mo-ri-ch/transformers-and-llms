@@ -293,8 +293,8 @@
         <div class="pile" id="bpePile"></div>
         <p class="note" style="margin-top:6px">Below, the same words are grouped and counted: “read” is in the pile 4 times, so it shows ×4. Every word starts as single letters.</p>
         <div class="bpe-stats">
-          <span>Vocabulary: <b id="bpeVocab"></b> pieces <small>(each merge adds one)</small></span>
-          <span>The whole pile: <b id="bpeLen"></b> tokens <small>(fewer, bigger pieces)</small></span>
+          <span>Vocabulary: <b data-peek-from="bpeVocabPeek"><span id="bpeVocab"></span> pieces</b> <small>(each merge adds one)</small></span>
+          <span>The whole pile: <b data-peek-from="bpeLenPeek"><span id="bpeLen"></span> tokens</b> <small>(fewer, bigger pieces)</small></span>
         </div>
         <div class="bpe-words" id="bpeWords"></div>
         <div>Which two pieces sit side by side most often?</div>
@@ -305,8 +305,8 @@
           <button class="reset" id="bpeReset">↺ Start again</button>
         </div>
         <p class="note" id="bpeNote"></p>
-        <div style="margin-top:10px">The vocabulary <small>(the newest piece is outlined)</small>:</div>
-        <div class="vocab" id="bpeVocabList" aria-label="Vocabulary"></div>
+        <div hidden id="bpeVocabPeek"></div>
+        <div hidden id="bpeLenPeek"></div>
       </div>
       <p class="say">Each merge adds one piece and makes the text shorter. We stop at the vocabulary size we want. Today's LLMs stop at <b>hundreds of thousands of pieces</b>, from many languages.</p>
       <div class="quiz" data-right="Right. BPE learns from the text it's given. Trained only on English, it would cut Hindi or Malayalam into many tiny pieces: slow and costly.">
@@ -800,7 +800,12 @@ function drawBpe() {
     : "<span>none</span>";
   document.getElementById("bpeVocab").textContent = vocab.length;
   document.getElementById("bpeLen").textContent = bpe.reduce((s, w) => s + w.parts.length * w.n, 0);
-  document.getElementById("bpeVocabList").innerHTML = vocab.map(v => ptok(v, v === added ? "new" : "")).join("");
+  // What the two numbers mean, shown on hover or tap
+  document.getElementById("bpeVocabPeek").innerHTML = `<b>The vocabulary: every piece the model knows</b><div class="toks" style="margin-top:6px">${vocab.map(v => ptok(v, v === added ? "new" : "")).join("")}</div>` +
+    (added ? `<div style="margin-top:6px">The newest piece, <b>${esc(added)}</b>, is outlined.</div>` : "");
+  const total = bpe.reduce((s, w) => s + w.parts.length * w.n, 0);
+  document.getElementById("bpeLenPeek").innerHTML = `<b>The whole pile, cut into pieces</b><div class="mono" style="margin-top:6px">` +
+    bpe.map(w => `${w.parts.join("")}: ${w.parts.length} piece${w.parts.length === 1 ? "" : "s"} × ${w.n}`).join("<br>") + `<br>Total: ${total}</div>`;
 }
 document.getElementById("bpeMerge").onclick = bpeMerge;
 document.getElementById("bpeAll").onclick = () => { for (let i = 0; i < 5; i++) if (!bpeMerge()) break; };
