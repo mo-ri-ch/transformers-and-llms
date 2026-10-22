@@ -784,11 +784,14 @@ function bpeMerge() {
   drawBpe();
   return true;
 }
-// Each piece gets its own colour (the same everywhere), so you can follow it through the merges
+// Single letters stay plain. Each merged piece gets its own clearly different colour (the same everywhere),
+// so you can follow it through the merges.
+const PIECE_COLORS = ["#FFE07A", "#9FD3FF", "#FFADC4", "#A8E89A", "#FFC27A", "#CDB6FF",
+                      "#8FE3D3", "#FF9C9C", "#DDF28C", "#8FB2FF", "#F0B0EE", "#E6CFA6"];
 function pieceColor(p) {
-  const i = vocab.indexOf(p);
-  const hue = Math.round((i * 137.508) % 360);   // the golden angle spreads the colours apart
-  return `background:hsl(${hue} 75% 86%);color:#1D2238;border-color:hsl(${hue} 45% 45%)`;
+  if (p.length === 1) return "background:var(--paper);color:var(--ink);border-color:var(--rule)";
+  const merged = vocab.filter(v => v.length > 1), i = merged.indexOf(p);
+  return `background:${PIECE_COLORS[i % PIECE_COLORS.length]};color:#1D2238;border-color:#1D2238`;
 }
 const ptok = (p, cls = "") => `<span class="tk ${cls}" style="${pieceColor(p)}">${esc(p)}</span>`;
 function drawBpe() {
