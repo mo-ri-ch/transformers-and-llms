@@ -154,6 +154,14 @@
   .gm-o { font-family: var(--mono); font-size: 15px; fill: var(--ink); }
   .gm-w { font-family: var(--mono); font-size: 14px; font-weight: 700; fill: var(--redpen); text-anchor: middle; paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
   .gm-n { fill: var(--pen); font-weight: 700; }
+  .ly-pic { display: block; width: 100%; max-width: 330px; margin: 6px 0; }
+  .ly-a { stroke: var(--pen); stroke-width: 1.5; marker-end: url(#lyHead); opacity: .8; }
+  .ly-in { fill: var(--paper); stroke: var(--on-hl); stroke-width: 1.5; }
+  .ly-d { fill: var(--paper); stroke: var(--on-hl); stroke-width: 1.5; }
+  .ly-t { font-family: var(--head); font-size: 20px; text-anchor: middle; fill: var(--on-hl); }
+  .ly-o { font-family: var(--mono); font-size: 14px; fill: var(--on-hl); }
+  .ly-l { font-family: var(--head); font-size: 17px; text-anchor: middle; fill: var(--on-hl); }
+  .ly-s { font-family: var(--hand); font-size: 13px; text-anchor: middle; fill: var(--on-hl); }
   .smrow .sc { color: var(--pencil); font-size: 0.85rem; }
   .wrongbar { display: grid; grid-template-columns: 6.5em 1fr 3.5em; gap: 10px; align-items: center; margin: 12px 0 4px; max-width: 560px; font-family: var(--head); }
   .wrongbar .track { height: 18px; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
@@ -508,7 +516,19 @@
       </svg>
       <p class="say">Each arrow has a number called a <mark>weight</mark>. The score is just <b>input × weight</b>: 1 × 2.0 = 2.0 for “cute”.</p>
       <p class="say">Change the weights, and the scores change. A higher score means: “I think this word is more likely.”</p>
-      <p class="say">Real networks chain many of these steps, called <mark data-peek="One layer is the picture above: numbers go in, get multiplied by weights, and new numbers come out. With two layers, those new numbers go into a second picture like this one, and its outputs are the scores. More layers can spot harder patterns.">layers</mark>, with many inputs and millions of weights. But each step is this simple.</p>
+      <p class="say">Real networks chain many of these steps, called <mark data-peek-from="layersPeek">layers</mark>, with many inputs and millions of weights. But each step is this simple.</p>
+      <div hidden id="layersPeek"><div>Each layer is the picture above: numbers in, <b>× weights</b>, new numbers out. Chain two:</div>
+        <svg class="ly-pic" viewBox="0 0 350 172" aria-label="Two layers: A goes through layer 1 to three new numbers, then through layer 2 to the scores">
+          <defs><marker id="lyHead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
+          <line x1="56" y1="75" x2="140" y2="30" class="ly-a"/><line x1="56" y1="75" x2="140" y2="75" class="ly-a"/><line x1="56" y1="75" x2="140" y2="120" class="ly-a"/><line x1="160" y1="30" x2="244" y2="30" class="ly-a"/><line x1="160" y1="30" x2="244" y2="75" class="ly-a"/><line x1="160" y1="30" x2="244" y2="120" class="ly-a"/><line x1="160" y1="75" x2="244" y2="30" class="ly-a"/><line x1="160" y1="75" x2="244" y2="75" class="ly-a"/><line x1="160" y1="75" x2="244" y2="120" class="ly-a"/><line x1="160" y1="120" x2="244" y2="30" class="ly-a"/><line x1="160" y1="120" x2="244" y2="75" class="ly-a"/><line x1="160" y1="120" x2="244" y2="120" class="ly-a"/>
+          <rect x="6" y="57" width="50" height="36" rx="6" class="ly-in"/><text x="31" y="81" class="ly-t">A</text>
+          <circle cx="150" cy="30" r="9" class="ly-d"/><circle cx="150" cy="75" r="9" class="ly-d"/><circle cx="150" cy="120" r="9" class="ly-d"/><circle cx="254" cy="30" r="9" class="ly-d"/><text x="268" y="35" class="ly-o">cute</text><circle cx="254" cy="75" r="9" class="ly-d"/><text x="268" y="80" class="ly-o">teddy bear</text><circle cx="254" cy="120" r="9" class="ly-d"/><text x="268" y="125" class="ly-o">is</text>
+          <text x="150" y="12" class="ly-s">new numbers</text><text x="254" y="12" class="ly-s">scores</text>
+          <text x="98" y="152" class="ly-l">layer 1</text><text x="202" y="152" class="ly-l">layer 2</text>
+          <text x="98" y="168" class="ly-s">× weights</text><text x="202" y="168" class="ly-s">× weights</text>
+        </svg>
+        <div>More layers can spot harder patterns.</div>
+      </div>
       <p class="hook">But scores like 2.0 or 0.5 are hard to read. How do they become chances?</p>
     </section>
 
