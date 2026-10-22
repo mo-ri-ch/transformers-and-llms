@@ -152,17 +152,11 @@
   .gm-s { font-family: var(--hand); font-size: 13px; text-anchor: middle; fill: var(--on-hl); }
   .gm-a { stroke: var(--pen); stroke-width: 2.5; marker-end: url(#gmHead); }
   .gm-o { font-family: var(--mono); font-size: 15px; fill: var(--ink); }
-  .gm-w { font-family: var(--mono); font-size: 14px; font-weight: 700; fill: var(--redpen); text-anchor: middle; paint-order: stroke; stroke: var(--paper); stroke-width: 5px; }
   .gm-n { fill: var(--pen); font-weight: 700; }
-  .gm-peek { text-decoration: underline dotted; text-underline-offset: 4px; cursor: help; }
-  .ly-pic { display: block; width: 100%; max-width: 330px; margin: 6px 0; }
-  .ly-a { stroke: var(--pen); stroke-width: 1.5; marker-end: url(#lyHead); opacity: .8; }
-  .ly-in { fill: var(--paper); stroke: var(--on-hl); stroke-width: 1.5; }
-  .ly-d { fill: var(--paper); stroke: var(--on-hl); stroke-width: 1.5; }
-  .ly-t { font-family: var(--head); font-size: 20px; text-anchor: middle; fill: var(--on-hl); }
-  .ly-o { font-family: var(--mono); font-size: 14px; fill: var(--on-hl); }
-  .ly-l { font-family: var(--head); font-size: 17px; text-anchor: middle; fill: var(--on-hl); }
-  .ly-s { font-family: var(--hand); font-size: 13px; text-anchor: middle; fill: var(--on-hl); }
+  .gmwrap { position: relative; max-width: 560px; }
+  .gm-k { fill: var(--paper); stroke: var(--on-hl); stroke-width: 1.5; }
+  .gm-kp { stroke: var(--on-hl); stroke-width: 2.5; stroke-linecap: round; }
+  .gm-cap { font-family: var(--hand); font-size: 15px; fill: var(--pencil); }
   .smrow .sc { color: var(--pencil); font-size: 0.85rem; }
   .wrongbar { display: grid; grid-template-columns: 6.5em 1fr 3.5em; gap: 10px; align-items: center; margin: 12px 0 4px; max-width: 560px; font-family: var(--head); }
   .wrongbar .track { height: 18px; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
@@ -506,30 +500,26 @@
     <section class="part" data-title="Quick basics: a guessing machine">
       <h2>✏️ Quick basics: a guessing machine</h2>
       <p class="say">A <mark>neural network</mark> is a machine that guesses. A word goes in, and out come <b>scores</b> for what might come next.</p>
-      <svg class="guessmac" viewBox="0 0 520 170" aria-label="The word A, as the number 1, is multiplied by a weight on each arrow to give a score for cute, teddy bear and is">
-        <defs><marker id="gmHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
-        <rect x="8" y="64" width="78" height="40" rx="6" class="gm-in"/><text x="47" y="90" class="gm-t gm-peek" data-peek="To keep it simple, the word A is just the number 1 here. Real networks use the word’s list of numbers (its vector), like the arrows on slide 11.">A = 1</text>
-        <line x1="88" y1="78" x2="290" y2="30" class="gm-a"/><line x1="88" y1="84" x2="290" y2="84" class="gm-a"/><line x1="88" y1="90" x2="290" y2="138" class="gm-a"/>
-        <text x="170" y="44" class="gm-w">× 2.0</text><text x="170" y="78" class="gm-w">× 0.5</text><text x="170" y="128" class="gm-w">× 0.1</text>
-        <text x="300" y="35" class="gm-o">cute: score <tspan class="gm-n">2.0</tspan></text>
-        <text x="300" y="89" class="gm-o">teddy bear: score <tspan class="gm-n">0.5</tspan></text>
-        <text x="300" y="143" class="gm-o">is: score <tspan class="gm-n">0.1</tspan></text>
-      </svg>
-      <p class="say">Each arrow has a number called a <mark>weight</mark>. The score is just <b>input × weight</b>: 1 × 2.0 = 2.0 for “cute”.</p>
-      <p class="say">Change the weights, and the scores change. A higher score means: “I think this word is more likely.”</p>
-      <p class="say">Real networks chain many of these steps, called <mark data-peek-from="layersPeek">layers</mark>, with many inputs and millions of weights. But each step is this simple.</p>
-      <div hidden id="layersPeek"><div>Each layer is the picture above: numbers in, <b>× weights</b>, new numbers out. Chain two:</div>
-        <svg class="ly-pic" viewBox="0 0 350 172" aria-label="Two layers: A goes through layer 1 to three new numbers, then through layer 2 to the scores">
-          <defs><marker id="lyHead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
-          <line x1="56" y1="75" x2="140" y2="30" class="ly-a"/><line x1="56" y1="75" x2="140" y2="75" class="ly-a"/><line x1="56" y1="75" x2="140" y2="120" class="ly-a"/><line x1="160" y1="30" x2="244" y2="30" class="ly-a"/><line x1="160" y1="30" x2="244" y2="75" class="ly-a"/><line x1="160" y1="30" x2="244" y2="120" class="ly-a"/><line x1="160" y1="75" x2="244" y2="30" class="ly-a"/><line x1="160" y1="75" x2="244" y2="75" class="ly-a"/><line x1="160" y1="75" x2="244" y2="120" class="ly-a"/><line x1="160" y1="120" x2="244" y2="30" class="ly-a"/><line x1="160" y1="120" x2="244" y2="75" class="ly-a"/><line x1="160" y1="120" x2="244" y2="120" class="ly-a"/>
-          <rect x="6" y="57" width="50" height="36" rx="6" class="ly-in"/><text x="31" y="81" class="ly-t">A</text>
-          <circle cx="150" cy="30" r="9" class="ly-d"/><circle cx="150" cy="75" r="9" class="ly-d"/><circle cx="150" cy="120" r="9" class="ly-d"/><circle cx="254" cy="30" r="9" class="ly-d"/><text x="268" y="35" class="ly-o">cute</text><circle cx="254" cy="75" r="9" class="ly-d"/><text x="268" y="80" class="ly-o">teddy bear</text><circle cx="254" cy="120" r="9" class="ly-d"/><text x="268" y="125" class="ly-o">is</text>
-          <text x="150" y="12" class="ly-s">new numbers</text><text x="254" y="12" class="ly-s">scores</text>
-          <text x="98" y="152" class="ly-l">layer 1</text><text x="202" y="152" class="ly-l">layer 2</text>
-          <text x="98" y="168" class="ly-s">× weights</text><text x="202" y="168" class="ly-s">× weights</text>
+      <div class="gmwrap">
+        <svg class="guessmac" viewBox="0 0 560 170" aria-label="The word A goes into a box called network, full of little knobs. Out come scores: cute 2.0, teddy bear 0.5, is 0.1">
+          <defs><marker id="gmHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
+          <rect x="8" y="88" width="60" height="40" rx="6" class="gm-in"/><text x="38" y="115" class="gm-t">A</text>
+          <line x1="70" y1="108" x2="156" y2="108" class="gm-a"/>
+          <rect x="160" y="22" width="180" height="134" rx="12" class="gm-box"/><text x="250" y="54" class="gm-t">network</text>
+          <circle cx="205" cy="88" r="12" class="gm-k"/><line x1="205" y1="88" x2="210.0" y2="79.3" class="gm-kp"/><circle cx="250" cy="88" r="12" class="gm-k"/><line x1="250" y1="88" x2="259.4" y2="91.4" class="gm-kp"/><circle cx="295" cy="88" r="12" class="gm-k"/><line x1="295" y1="88" x2="288.6" y2="80.3" class="gm-kp"/><circle cx="205" cy="126" r="12" class="gm-k"/><line x1="205" y1="126" x2="214.4" y2="122.6" class="gm-kp"/><circle cx="250" cy="126" r="12" class="gm-k"/><line x1="250" y1="126" x2="250.0" y2="116.0" class="gm-kp"/><circle cx="295" cy="126" r="12" class="gm-k"/><line x1="295" y1="126" x2="302.7" y2="132.4" class="gm-kp"/>
+          <line x1="342" y1="100" x2="410" y2="44" class="gm-a"/><line x1="342" y1="108" x2="410" y2="96" class="gm-a"/><line x1="342" y1="116" x2="410" y2="148" class="gm-a"/>
+          <text x="418" y="16" class="gm-cap">scores</text>
+          <text x="418" y="49" class="gm-o">cute <tspan class="gm-n">2.0</tspan></text>
+          <text x="418" y="101" class="gm-o">teddy bear <tspan class="gm-n">0.5</tspan></text>
+          <text x="418" y="153" class="gm-o">is <tspan class="gm-n">0.1</tspan></text>
         </svg>
-        <div>More layers can spot harder patterns.</div>
+        <button class="doubt" type="button" data-peek-from="insidePeek" aria-label="What's inside the box?">🤔</button>
       </div>
+      <div hidden id="insidePeek"><b>🤔 What's inside the box?</b>
+        <div style="margin-top:6px">Only numbers. The word goes in as numbers, gets multiplied by the weights, and new numbers come out. Do that a few times (each time is a <b>layer</b>), and you get the scores.</div>
+        <div style="margin-top:6px">Want to see it step by step? <a href="https://mo-ri-ch.github.io/build-an-llm-from-scratch/" target="_blank" rel="noopener">Build a Tiny LLM</a> makes one from scratch.</div>
+      </div>
+      <p class="say">Inside are lots of little knobs, called <mark>weights</mark>. Turn them, and the scores change. A higher score means: “I think this word is more likely.”</p>
       <p class="hook">But scores like 2.0 or 0.5 are hard to read. How do they become chances?</p>
     </section>
 
@@ -553,7 +543,7 @@
       <p class="say">The real next word was <b>“cute”</b>, but the network gave it only a small chance.</p>
       <p class="say">How wrong it was is called the <mark data-peek="Loss = −log(chance of the right answer). A 100% chance gives a loss of 0. The smaller the chance, the bigger the loss.">loss</mark>. Learning means nudging the weights a little so the loss shrinks. That's <mark>training</mark>.</p>
       <div class="activity">
-        <div class="do">Try it: press Learn a little, again and again. Watch the weights change.</div>
+        <div class="do">Try it: press Learn a little, again and again. Watch the scores change.</div>
         <button class="doubt" type="button" data-peek-from="nudgePeek" aria-label="How does it know which way to nudge?">🤔</button>
         <div class="sm" id="trainRows"></div>
         <div class="wrongbar"><span>How wrong?</span><span class="track"><span class="fill" id="trainLoss"></span></span><b id="trainLossN"></b></div>
@@ -1025,7 +1015,7 @@ function overlayArrows(box, links, opts = {}) {
 const smWords = ["cute", "teddy bear", "is"];
 const smChances = sc => { const e = sc.map(Math.exp), t = e.reduce((a, b) => a + b, 0); return e.map(x => x / t); };
 function smRowsHTML(id, scores, editable, right) {
-  const head = `<div class="smrow smhead"><span></span><span>${editable ? "score" : "weight"}</span><span>chance</span><span></span></div>`;
+  const head = `<div class="smrow smhead"><span></span><span>score</span><span>chance</span><span></span></div>`;
   return head + smWords.map((w, i) => `<div class="smrow${i === right ? " right" : ""}"><span>${w}${i === right ? " ✓" : ""}</span>` +
     (editable ? `<span class="scorecell"><input type="range" min="-3" max="3" step="0.1" value="${scores[i]}" data-i="${i}" aria-label="Score for ${w}"><b class="mono scv">${scores[i].toFixed(1)}</b></span>` : `<span class="mono sc">${scores[i].toFixed(1)}</span>`) +
     `<span class="track"><span class="fill"></span></span><span class="pct"></span></div>`).join("");
@@ -1066,7 +1056,7 @@ function smFill(box, p) {
     document.getElementById("trainSays").innerHTML = steps === 0
       ? "“cute” only gets " + Math.round(p[RIGHT] * 100) + "%. The network was quite wrong."
       : p[RIGHT] > 0.9 ? `After ${steps} small steps, “cute” gets ${Math.round(p[RIGHT] * 100)}%. The network has learned this example.`
-      : `Step ${steps}: cute's weight went up, the others went down. “cute” is now ${Math.round(p[RIGHT] * 100)}%, and the loss went down.`;
+      : `Step ${steps}: the network nudged its weights. cute's score went up, the others went down. “cute” is now ${Math.round(p[RIGHT] * 100)}%, and the loss went down.`;
     document.getElementById("trainStep").hidden = p[RIGHT] > 0.9;
   }
   // One small step: raise the right word's score, lower the others (what training does to the weights)
