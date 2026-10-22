@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transformers & Large Language Models</title>
+<meta name="description" content="How modern LLMs work, from the Transformer to reasoning models and agents. Interactive notebook-style lessons, one question at a time.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Kalam:wght@400&family=Patrick+Hand&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://mo-ri-ch.github.io/study-notebook-design/v1/style.css">
+<link rel="stylesheet" href="https://mo-ri-ch.github.io/study-notebook-design/v1/home.css">
+<style>
+  .map { padding: 26px 24px 20px; margin-top: 18px; }
+  .map h3 { font-size: 1.35rem; margin: 0 0 12px; }
+  .map ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+  .map li::marker { font-family: var(--head); color: var(--pencil); }
+  .map .part-label { font-family: var(--hand); color: var(--redpen); font-size: 1.05rem; margin: 14px 0 6px; }
+  .map .part-label:first-of-type { margin-top: 0; }
+  .companion { font-size: 0.9rem; color: var(--pencil); max-width: 60ch; margin: 0 0 40px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <a class="home" href="./">Transformers & LLMs</a>
+    <div class="tools">
+      <a class="btn" href="https://github.com/mo-ri-ch/transformers-and-llms">Code</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <h1>How LLMs <span class="swash">really</span> work.</h1>
+        <p class="say">ChatGPT, Claude and Gemini are all built on one idea: <b>the Transformer.</b> Follow it from the first paper to today's reasoning models and agents, one question at a time.</p>
+        <div class="actions">
+          <a class="btn primary" href="#path">See the path</a>
+          <button data-note="needNote" aria-expanded="false" aria-controls="needNote">What you need</button>
+          <button data-note="howNote" aria-expanded="false" aria-controls="howNote">How to use</button>
+        </div>
+        <div class="need" id="needNote" hidden>
+          <button class="close" aria-label="Close">×</button>
+          <div class="cols">
+            <div>
+              <h3>Helps to know</h3>
+              <ul>
+                <li><span class="yes">✓</span> Matrices and multiplying them</li>
+                <li><span class="yes">✓</span> What a neural network and a loss are</li>
+                <li><span class="yes">✓</span> Or: finish <a href="https://mo-ri-ch.github.io/build-an-llm-from-scratch/">Build a Tiny LLM</a> first</li>
+              </ul>
+            </div>
+            <div>
+              <h3>You don't need</h3>
+              <ul>
+                <li><span class="no">✗</span> A GPU</li>
+                <li><span class="no">✗</span> Research experience</li>
+                <li><span class="no">✗</span> Heavy math</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="need blue" id="howNote" hidden>
+          <button class="close" aria-label="Close">×</button>
+          <div class="cols">
+            <div>
+              <h3>Learning</h3>
+              <ul>
+                <li><span class="yes">1</span> Go in order.</li>
+                <li><span class="yes">2</span> Guess before you click.</li>
+                <li><span class="yes">3</span> Play with every demo.</li>
+                <li><span class="yes">4</span> Take your own notes with the pen (P).</li>
+              </ul>
+            </div>
+            <div>
+              <h3>Teaching</h3>
+              <ul>
+                <li><span class="yes">T</span> Big text for a projector</li>
+                <li><span class="yes">← →</span> Move between parts</li>
+                <li><span class="yes">?</span> Ask quizzes out loud first</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="activity map">
+        <h3>The big picture</h3>
+        <div class="part-label">Part 1 · How the model works</div>
+        <ol>
+          <li>The Transformer</li>
+          <li>Transformer tricks</li>
+          <li>Large language models</li>
+        </ol>
+        <div class="part-label">Part 2 · How it learns</div>
+        <ol start="4">
+          <li>Training</li>
+          <li>Tuning to human preferences</li>
+          <li>Reasoning</li>
+        </ol>
+        <div class="part-label">Part 3 · How we use it</div>
+        <ol start="7">
+          <li>Agents</li>
+          <li>Evaluation</li>
+          <li>What's next</li>
+        </ol>
+      </div>
+    </section>
+
+    <h2 id="path">The path</h2>
+    <p class="path-intro">Each lesson ends with a question. The next lesson answers it.</p>
+    <ol class="path" id="pathList"></ol>
+
+    <p class="companion">An independent study companion, written in my own words. It follows the order of Stanford's public
+      <a href="https://cme295.stanford.edu/syllabus/" target="_blank" rel="noopener">CME295 syllabus</a>; watch the lectures there,
+      then come here to try each idea yourself. Not affiliated with or endorsed by Stanford.</p>
+  </main>
+  <footer class="site">Your progress is saved in this browser only.<span class="made">Made with <span class="heart" aria-label="love">♥</span> by <a href="https://www.linkedin.com/in/morich/" target="_blank" rel="noopener">Rishal</a></span></footer>
+</div>
+
+<script src="assets/course.js"></script>
+<script src="https://mo-ri-ch.github.io/study-notebook-design/v1/common.js"></script>
+<script src="https://mo-ri-ch.github.io/study-notebook-design/v1/pen.js"></script>
+<script src="https://mo-ri-ch.github.io/study-notebook-design/v1/home.js"></script>
+</body>
+</html>
