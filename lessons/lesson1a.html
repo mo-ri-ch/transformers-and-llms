@@ -158,6 +158,12 @@
   .frac > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 4px 2px; }
   .frac > span:last-child { padding: 2px 4px 0; }
   .eq sup { font-size: 0.75em; }
+  .smx { margin-top: 8px; border-collapse: collapse; font-family: var(--mono); font-size: 0.85rem; }
+  .smx th, .smx td { padding: 3px 8px; text-align: right; white-space: nowrap; }
+  .smx th { font-weight: 400; }
+  .smx td:first-child { text-align: left; font-family: var(--body, inherit); }
+  .smx tr + tr td { border-top: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+  .smx small { opacity: .75; }
   .gmwrap { position: relative; max-width: 560px; }
   .gm-k { fill: var(--paper); stroke: var(--on-hl); stroke-width: 1.5; }
   .gm-kp { stroke: var(--on-hl); stroke-width: 2.5; stroke-linecap: round; }
@@ -531,11 +537,15 @@
     <section class="part" data-title="Quick basics: scores → chances">
       <h2>✏️ Quick basics: scores → chances</h2>
       <p class="say">The last step turns scores into <b>chances</b> that add up to 100%. It's called <mark data-peek-from="softmaxPeek">softmax</mark>.</p>
-      <div hidden id="softmaxPeek"><b>Softmax</b>, with the scores 2.0, 0.5, 0.1:
+      <div hidden id="softmaxPeek"><b>Softmax</b>
         <div class="eq">chance(cute) = <span class="frac"><span>e<sup>2.0</sup></span><span>e<sup>2.0</sup> + e<sup>0.5</sup> + e<sup>0.1</sup></span></span></div>
-        <div class="eq">= <span class="frac"><span>7.39</span><span>7.39 + 1.65 + 1.11</span></span> = <b>73%</b></div>
-        <div style="margin-top:8px">Top: <i>e</i> to cute's score. Bottom: the same for every word, added up. So the chances always add up to 100%.</div>
-        <div style="margin-top:4px"><i>e</i> is a fixed number, about 2.72. It makes every score positive.</div>
+        <table class="smx">
+          <tr><th></th><th>cute</th><th>teddy bear</th><th>is</th></tr>
+          <tr><td>score</td><td>2.0</td><td>0.5</td><td>0.1</td></tr>
+          <tr><td><b>1</b> e<sup>score</sup></td><td>7.39</td><td>1.65</td><td>1.11</td></tr>
+          <tr><td><b>2</b> ÷ total <small>10.15</small></td><td><b>73%</b></td><td><b>16%</b></td><td><b>11%</b></td></tr>
+        </table>
+        <div style="margin-top:6px"><b>1</b> turns every score into a positive number <span style="white-space:nowrap">(<i>e</i> ≈ 2.72)</span>.<br><b>2</b> gives each word its share of the total.</div>
       </div>
       <div class="activity">
         <div class="do">Try it: drag the sliders to change each word's score, and watch the chances.</div>
