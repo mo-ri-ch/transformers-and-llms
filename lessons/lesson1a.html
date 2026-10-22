@@ -765,7 +765,7 @@ function pairCounts() {
   return Object.entries(counts).sort((a, b) => b[1] - a[1]);
 }
 function bpeMerge() {
-  const top = pairCounts()[0];
+  const pairs = pairCounts(), top = pairs[0];
   if (top) bpeHistory.push({ bpe: JSON.stringify(bpe), vocab: vocab.slice(), added, note: document.getElementById("bpeNote").innerHTML });
   if (!top) { document.getElementById("bpeNote").textContent = "Every word is one piece now. Nothing left to merge."; return false; }
   const [a, b] = top[0].split("\u0001"), joined = a + b;
@@ -778,8 +778,11 @@ function bpeMerge() {
   });
   vocab.push(joined); added = joined;
   const eg = bpe.find(w => w.parts.includes(joined));
+  // A tie: say so, so the choice doesn't look mysterious
+  const tied = pairs.filter(([, n]) => n === top[1]).length - 1;
+  const tieNote = tied ? ` <span data-peek="${tied === 1 ? "Another pair also" : `${tied} other pairs also`} sat side by side ${top[1]} times. When there's a tie, we just take the first one found. The next merge can pick ${tied === 1 ? "the other one" : "the others"}, so it ends the same way.">It was a tie.</span>` : "";
   document.getElementById("bpeNote").innerHTML = `<b>${esc(a)}</b> and <b>${esc(b)}</b> sat side by side <b>${top[1]}</b> times, so we glued them into one new piece: <b>${esc(joined)}</b>. ` +
-    `Now “${eg.parts.join("")}” is ${eg.parts.map(esc).join(" · ")}: ${eg.parts.length} piece${eg.parts.length === 1 ? "" : "s"}.`;
+    `Now “${eg.parts.join("")}” is ${eg.parts.map(esc).join(" · ")}: ${eg.parts.length} piece${eg.parts.length === 1 ? "" : "s"}.` + tieNote;
   drawBpe();
   return true;
 }
