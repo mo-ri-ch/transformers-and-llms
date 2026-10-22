@@ -159,7 +159,7 @@
   .frac > span:last-child { padding: 2px 4px 0; }
   .eq sup { font-size: 0.75em; }
   .smx { margin-top: 8px; border-collapse: collapse; font-family: var(--mono); font-size: 0.85rem; }
-  .smx th, .smx td { padding: 3px 8px; text-align: right; white-space: nowrap; }
+  .smx th, .smx td { padding: 3px 8px; text-align: center; white-space: nowrap; }
   .smx th { font-weight: 400; }
   .smx td:first-child { text-align: left; font-family: var(--body, inherit); }
   .smx tr + tr td { border-top: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
@@ -542,10 +542,10 @@
         <table class="smx">
           <tr><th></th><th>cute</th><th>teddy bear</th><th>is</th></tr>
           <tr><td>score</td><td>2.0</td><td>0.5</td><td>0.1</td></tr>
-          <tr><td><b>1</b> e<sup>score</sup></td><td>7.39</td><td>1.65</td><td>1.11</td></tr>
-          <tr><td><b>2</b> ÷ total <small>10.15</small></td><td><b>73%</b></td><td><b>16%</b></td><td><b>11%</b></td></tr>
+          <tr><td>make positive: e<sup>score</sup></td><td>7.39</td><td>1.65</td><td>1.11</td></tr>
+          <tr><td>share of total: ÷ 10.15</td><td><b>73%</b></td><td><b>16%</b></td><td><b>11%</b></td></tr>
         </table>
-        <div style="margin-top:6px"><b>1</b> turns every score into a positive number <span style="white-space:nowrap">(<i>e</i> ≈ 2.72)</span>.<br><b>2</b> gives each word its share of the total.</div>
+        <div style="margin-top:6px"><small><i>e</i> ≈ 2.72</small></div>
       </div>
       <div class="activity">
         <div class="do">Try it: drag the sliders to change each word's score, and watch the chances.</div>
