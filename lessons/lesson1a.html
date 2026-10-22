@@ -269,14 +269,6 @@
         </ul>
       </details>
 
-      <div class="cards">
-        <div class="card"><h3 class="good">🙂 Good</h3><ul>
-          <li><b>Related words share pieces.</b> “read”, “reads” and “reading” all contain the piece “read”, so the model can see they're related.</li>
-          <li><b>Pieces come from real text.</b> Common words stay whole, and rare words are built from common pieces, so nothing is unknown.</li></ul></div>
-        <div class="card"><h3 class="bad">😢 Not so good</h3><ul>
-          <li><b>Extra work.</b> Before training the model, we first have to learn which pieces to use.</li>
-          <li><b>Pieces fit their text.</b> Pieces learned from English text cut other languages into many small bits, which is slower.</li></ul></div>
-      </div>
       <p class="say">This is what almost every LLM uses today. The most common method is <mark>BPE</mark> (byte pair encoding), with one rule:</p>
       <p class="say"><b>Find the two pieces that appear side by side most often. Glue them into one new piece. Repeat.</b></p>
 
@@ -298,6 +290,14 @@
         <div class="vocab" id="bpeVocabList" aria-label="Vocabulary"></div>
       </div>
       <p class="say">Each merge adds one piece and makes the text shorter. We stop at the vocabulary size we want. Today's LLMs stop at <b>hundreds of thousands of pieces</b>, from many languages.</p>
+      <div class="cards">
+        <div class="card"><h3 class="good">🙂 Good</h3><ul>
+          <li><b>Related words stay connected.</b> “reads” = read + ##s, and “reading” = read + ##ing. Both share “read”, so the model can tell they're about reading.</li>
+          <li><b>No word is ever unknown.</b> A word that isn't in the list is built from smaller pieces, down to single letters if needed: “Kochi” → K ##o ##c ##h ##i.</li></ul></div>
+        <div class="card"><h3 class="bad">😢 Not so good</h3><ul>
+          <li><b>An extra step first.</b> Before training the model, we must make the list of pieces, with the merging you just did.</li>
+          <li><b>The list fits its text.</b> Pieces learned from English chop Malayalam into many tiny pieces. More pieces = more work = slower.</li></ul></div>
+      </div>
       <div class="quiz" data-right="Right. BPE learns from the text it's given. Trained only on English, it would cut Hindi or Malayalam into many tiny pieces: slow and costly.">
         <div class="q">You want an LLM that's good at Hindi and Malayalam. What should the BPE training text include?</div>
         <div class="options">
