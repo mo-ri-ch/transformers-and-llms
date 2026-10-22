@@ -387,7 +387,7 @@
       <p class="say">To measure how similar two arrows are, we use the <mark>dot product</mark>: multiply matching numbers, then add.</p>
       <div class="activity">
         <div class="do">Try it: turn arrow B and watch the dot product.</div>
-        <button class="doubt" type="button" data-peek-from="dotPeek" aria-label="Isn't a dot product any number?">🤔</button>
+        <button class="doubt" type="button" data-peek-from="dotPeek" aria-label="Why only between −1 and 1?">🤔</button>
         <div class="vecwrap">
           <svg class="vecplot" id="vecPlot" viewBox="-1.25 -1.25 2.5 2.5" aria-label="Two arrows"></svg>
           <div>
@@ -400,8 +400,8 @@
           </div>
         </div>
       </div>
-      <div hidden id="dotPeek"><b>🤔 Isn't a dot product any number?</b>
-        <div style="margin-top:6px">Yes! In general: A · B = (length of A) × (length of B) × (how much they point the same way).</div>
+      <div hidden id="dotPeek"><b>🤔 Why only between −1 and 1?</b>
+        <div style="margin-top:6px">In general a dot product can be any number: A · B = (length of A) × (length of B) × (how much they point the same way).</div>
         <div style="margin-top:6px">Here both arrows have <b>length 1</b> (they end on the dashed circle), so only the direction counts, and the answer stays between −1 and 1.</div>
         <div style="margin-top:6px">For embeddings we often divide by the lengths to get this same −1 to 1 score. It's called <b>cosine similarity</b>.</div>
       </div>
