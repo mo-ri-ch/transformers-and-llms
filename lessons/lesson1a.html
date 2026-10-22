@@ -260,6 +260,14 @@
         <p class="bpe-stats" style="margin:12px 0 0"><span>Words: <b id="sW"></b></span><span>Letters: <b id="sC"></b></span><span>Pieces: <b id="sP"></b></span></p>
         <p class="note">Try “unbelievable”, “playfully” or “readers”. Common words stay whole; others are built from pieces. (This uses a small practice vocabulary; real LLMs know 100,000+ pieces.)</p>
       </div>
+      <details class="unclear">
+        <summary>🤔 What about spaces?</summary>
+        <ul>
+          <li><b>By words:</b> spaces are just where we cut. They don't become tokens.</li>
+          <li><b>By letters:</b> every space is a token, shown as _. That's one reason that version is so long.</li>
+          <li><b>By pieces:</b> no separate space tokens, but nothing is lost. In the ## style, a piece without ## starts a new word, so the space is understood. GPT-style models glue the space onto the next word: “ cute” (with its space) is a single token.</li>
+        </ul>
+      </details>
 
       <div class="cards">
         <div class="card"><h3 class="good">🙂 Good</h3><ul>
