@@ -127,6 +127,23 @@
   .tr3d .axl { font-family: var(--mono); font-size: 10px; fill: var(--pencil); }
   .tr3d .arr { stroke-width: 3.2; stroke-linecap: round; }
   .tr3d .lbl { font-family: var(--hand); font-size: 15px; }
+  /* Pictures drawn over boxes: arrows between words */
+  svg.links { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+  .w2vwrap { position: relative; padding-top: 52px; }
+  .att2014 { position: relative; }
+  .att2014.looked { row-gap: 64px; }
+  /* The network picture in Inside word2vec */
+  .netpic { width: 100%; max-width: 360px; justify-self: center; margin-bottom: 6px; }
+  .netpic .w { stroke: var(--rule); stroke-width: 1; }
+  .netpic .w.lit { stroke: var(--pen); stroke-opacity: 0.45; }
+  .netpic .n { stroke: var(--ink); stroke-width: 1.5; fill: var(--paper); }
+  .netpic .n.dim { stroke-opacity: 0.3; }
+  .netpic .n.in.one { fill: var(--ink); }
+  .netpic .n.hid { fill: var(--note-green); }
+  .netpic .n.out { fill: color-mix(in srgb, var(--hl-yellow) var(--p), var(--paper)); }
+  .netpic .n.goal { stroke: var(--good); stroke-width: 3.5; }
+  .netpic .nv { font-family: var(--mono); font-size: 7.5px; text-anchor: middle; fill: var(--on-hl); }
+  .netpic .nl { font-family: var(--mono); font-size: 9px; text-anchor: middle; fill: var(--pencil); }
   @media (max-width: 560px) { .timeline li { grid-template-columns: 1fr; gap: 4px; } }
 </style>
 </head>
@@ -487,7 +504,7 @@
           <button class="on" id="w2vCbow">CBOW</button>
           <button id="w2vSkip">Skip-gram</button>
         </div>
-        <div class="toks w2v" id="w2vToks"></div>
+        <div class="w2vwrap"><div class="toks w2v" id="w2vToks"></div></div>
         <p class="note" id="w2vSays"></p>
       </div>
       <ul>
@@ -504,6 +521,7 @@
       <div class="activity">
         <div class="do">Step through one guess.</div>
         <div class="net" id="netBox">
+          <svg class="netpic" id="netPic" viewBox="0 0 260 150" aria-label="The network: 6 inputs, 2 hidden numbers, 6 outputs"></svg>
           <div class="net-row"><span class="net-l">Target: the real next word <small>(size V)</small></span><span class="mono" id="netTarget"></span></div>
           <div class="net-row"><span class="net-l">Output: guessed chances <small>(size V)</small></span><span class="mono" id="netOut"></span></div>
           <div class="net-row"><span class="net-l">Hidden: the embedding <small>(size d)</small></span><span class="mono" id="netHid"></span></div>
@@ -878,6 +896,29 @@ document.getElementById("padPad").onclick = () => { padState = 2; drawPad(); };
 document.getElementById("padReset").onclick = () => { padState = 0; drawPad(); };
 drawPad();
 
+
+// Draw curved arrows between elements inside a box (an SVG laid over it, so it's just a picture)
+// Redraw the arrows when their box appears (slides start hidden) or changes size
+const arrowWatch = new ResizeObserver(entries => entries.forEach(e => { const a = e.target._arrows; if (a) overlayArrows(e.target, a.links, a.opts); }));
+function overlayArrows(box, links, opts = {}) {
+  if (!box._arrows) arrowWatch.observe(box);
+  box._arrows = { links, opts };
+  let svg = box.querySelector(":scope > svg.links");
+  if (!svg) { svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.setAttribute("class", "links"); svg.setAttribute("aria-hidden", "true"); box.prepend(svg); }
+  const b = box.getBoundingClientRect();
+  svg.setAttribute("width", b.width); svg.setAttribute("height", b.height);
+  const at = (el, side) => { const r = el.getBoundingClientRect(); return [r.left - b.left + r.width / 2, side === "top" ? r.top - b.top - 2 : r.bottom - b.top + 2]; };
+  svg.innerHTML = `<defs><marker id="${opts.id || "ah"}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${opts.color || "var(--pen)"}"/></marker></defs>` +
+    links.map(l => {
+      let [x1, y1] = at(l.from, l.fromSide || "top"), [x2, y2] = at(l.to, l.toSide || "top");
+      // Spread the ends a little toward the other word, so arrows sharing a word don't pile onto one point
+      if (!l.straight) { const k = Math.max(-16, Math.min(16, (x2 - x1) * 0.08)); x1 += k; x2 -= k; }
+      const lift = l.lift == null ? Math.min(46, 14 + Math.abs(x2 - x1) * 0.25) : l.lift;
+      const d = l.straight ? `M${x1},${y1} L${x2},${y2}` : `M${x1},${y1} Q${(x1 + x2) / 2},${Math.min(y1, y2) - lift} ${x2},${y2}`;
+      return `<path d="${d}" fill="none" stroke="${l.color || opts.color || "var(--pen)"}" stroke-width="${l.width || 2}" stroke-opacity="${l.opacity == null ? 1 : l.opacity}" stroke-linecap="round" ${l.noHead ? "" : `marker-end="url(#${opts.id || "ah"})"`}/>`;
+    }).join("");
+}
+
 // ---------- Part 8: vectors and the dot product ----------
 (function vectors() {
   const svg = document.getElementById("vecPlot"), slider = document.getElementById("vecAngle");
@@ -933,6 +974,11 @@ drawPad();
   function draw() {
     box.innerHTML = T.map((t, i) => `<button class="tk ${i === mid ? "mid" : Math.abs(i - mid) <= 2 ? "ctx" : "far"}" data-i="${i}">${t}</button>`).join("");
     box.querySelectorAll("button").forEach(b => b.onclick = () => { mid = Number(b.dataset.i); draw(); });
+    // Arrows show who guesses whom: neighbours → middle (CBOW), or middle → neighbours (skip-gram)
+    const btns = Array.from(box.querySelectorAll("button"));
+    const links = btns.map((b, i) => ({ b, i })).filter(x => x.i !== mid && Math.abs(x.i - mid) <= 2)
+      .map(x => mode === "cbow" ? { from: x.b, to: btns[mid] } : { from: btns[mid], to: x.b });
+    requestAnimationFrame(() => overlayArrows(box.parentElement, links, { id: "w2vHead" }));
     const ctx = T.filter((_, i) => i !== mid && Math.abs(i - mid) <= 2).map(t => `“${t}”`).join(", ");
     document.getElementById("w2vSays").innerHTML = mode === "cbow"
       ? `<b>CBOW:</b> from ${ctx}, guess the middle word <b>“${T[mid]}”</b>.`
@@ -966,12 +1012,35 @@ drawPad();
     document.getElementById("netOut").innerHTML = s.out ? fmt(s.out, s.hit) : "…";
     document.getElementById("netTarget").innerHTML = s.tgt ? fmt(s.tgt, s.hit) : "…";
     ["netTarget", "netOut", "netHid", "netIn"].forEach((id, r) => document.getElementById(id).parentElement.classList.toggle("dim", !s.rows.includes(r)));
+    drawNetPic(s);
     document.getElementById("netSent").innerHTML = W.slice(0, 5).map((w, i) => `<span class="tk ${i === s.now ? "now" : i === s.goal ? "goal" : ""}">${w}</span>`).join("");
     document.getElementById("netSays").innerHTML = s.says;
     document.getElementById("netBack").hidden = at === 0;
     document.getElementById("netNext").hidden = at === STEPS.length - 1;
   }
   addReset("netBox", () => { at = 0; draw(); });
+
+  // The network as a picture: 6 inputs (bottom) → 2 hidden (middle) → 6 outputs (top). Active layers light up.
+  function drawNetPic(st) {
+    const xs6 = [30, 70, 110, 150, 190, 230], xs2 = [110, 150], Y = { out: 22, hid: 75, inp: 128 };
+    const on = r => st.rows.includes(r);    // rows: 3 input, 2 hidden, 1 output, 0 target
+    let g = "";
+    xs6.forEach(x => xs2.forEach(h => { g += `<line x1="${x}" y1="${Y.inp}" x2="${h}" y2="${Y.hid}" class="w ${on(2) ? "lit" : ""}"/>`; }));
+    xs2.forEach(h => xs6.forEach(x => { g += `<line x1="${h}" y1="${Y.hid}" x2="${x}" y2="${Y.out}" class="w ${on(1) ? "lit" : ""}"/>`; }));
+    xs6.forEach((x, i) => {
+      const one = st.inp && st.inp[i] === 1;
+      g += `<circle cx="${x}" cy="${Y.inp}" r="9" class="n in ${one ? "one" : ""} ${on(3) ? "" : "dim"}"/>`;
+      const pr = st.out ? st.out[i] : 0, goal = st.tgt && st.tgt[i] === 1;
+      g += `<circle cx="${x}" cy="${Y.out}" r="9" class="n out ${on(1) ? "" : "dim"} ${goal ? "goal" : ""}" style="--p:${(pr * 100).toFixed(0)}%"/>`;
+      if (on(1) && st.out) g += `<text x="${x}" y="${Y.out + 3}" class="nv">${pr}</text>`;
+      g += `<text x="${x}" y="${Y.inp + 22}" class="nl">${W[i] === "teddy bear" ? "teddy" : W[i]}</text>`;
+    });
+    xs2.forEach((h, k) => {
+      g += `<circle cx="${h}" cy="${Y.hid}" r="11" class="n hid ${on(2) ? "" : "dim"}"/>`;
+      if (on(2) && st.hid) g += `<text x="${h}" y="${Y.hid + 3}" class="nv">${st.hid[k]}</text>`;
+    });
+    document.getElementById("netPic").innerHTML = g;
+  }
   document.getElementById("netBack").onclick = () => { at--; draw(); };
   document.getElementById("netNext").onclick = () => { at++; draw(); };
   draw();
@@ -1119,6 +1188,11 @@ memoryDemo("lstmRows", "lstmAdd", "lstmReset", "lstmSays", "lstmKeep");
     document.getElementById("att2014").innerHTML = `
       <div class="arow"><span class="alabel">Writer (French)</span>${FR.map(w => `<span class="tk">${w}</span>`).join("")}<span class="tk ${looked ? "sp" : "unk"}">${looked ? "lit" : "?"}</span></div>
       <div class="arow"><span class="alabel">Reader (English)</span>${EN.map((w, i) => `<span class="tk aw" style="--w:${looked ? W[i] / 0.75 : 0}">${w}${looked ? `<small>${Math.round(W[i] * 100)}%</small>` : ""}</span>`).join("")}</div>`;
+    // Lines from "lit" back to every English word: thicker = more attention
+    const box = document.getElementById("att2014");
+    box.classList.toggle("looked", looked);
+    const lit = box.querySelector(".arow .tk:last-child"), en = Array.from(box.querySelectorAll(".tk.aw"));
+    requestAnimationFrame(() => overlayArrows(box, looked ? en.map((e, i) => ({ from: lit, fromSide: "bottom", to: e, toSide: "top", straight: true, width: 1 + W[i] * 9, opacity: 0.35 + W[i] * 0.65, noHead: true, color: "var(--redpen)" })) : [], { id: "attHead" }));
     document.getElementById("attSays").innerHTML = looked
       ? "The writer looks back at all the English words and puts most of its attention on <b>reading</b>. So it writes <b>lit</b> (French for “reads”)."
       : "Using only its squeezed memory, the writer may have lost which verb came at the end.";
