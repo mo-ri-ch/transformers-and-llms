@@ -852,6 +852,7 @@ drawPad();
     document.getElementById("w2vCbow").classList.toggle("on", mode === "cbow");
     document.getElementById("w2vSkip").classList.toggle("on", mode === "skip");
   }
+  addReset("w2vToks", () => { mode = "cbow"; mid = 2; draw(); });
   document.getElementById("w2vCbow").onclick = () => { mode = "cbow"; draw(); };
   document.getElementById("w2vSkip").onclick = () => { mode = "skip"; draw(); };
   draw();
@@ -882,6 +883,7 @@ drawPad();
     document.getElementById("netBack").disabled = at === 0;
     document.getElementById("netNext").disabled = at === STEPS.length - 1;
   }
+  addReset("netBox", () => { at = 0; draw(); });
   document.getElementById("netBack").onclick = () => { at--; draw(); };
   document.getElementById("netNext").onclick = () => { at++; draw(); };
   draw();
@@ -984,6 +986,7 @@ drawPad();
     document.getElementById("rnnBack").disabled = at === 0;
     document.getElementById("rnnNext").disabled = at === IN.length - 1;
   }
+  addReset("rnnRow", () => { at = 0; draw(); });
   document.getElementById("rnnBack").onclick = () => { at--; draw(); };
   document.getElementById("rnnNext").onclick = () => { at++; draw(); };
   draw();
@@ -1079,6 +1082,17 @@ memoryDemo("lstmRows", "lstmAdd", "lstmReset", "lstmSays", "lstmKeep");
   document.getElementById("sIn").addEventListener("input", draw);
   draw();
 })();
+
+// ---------- Reset for typing boxes and sliders: back to how they started ----------
+["wIn", "cIn", "sIn", "unkIn", "vecAngle"].forEach(id => addReset(id, () => {
+  const el = document.getElementById(id);
+  el.value = el.defaultValue;
+  el.dispatchEvent(new Event("input"));
+}));
+addReset("smRows", () => document.querySelectorAll("#smRows input").forEach(el => {
+  el.value = el.defaultValue;
+  el.dispatchEvent(new Event("input"));
+}));
 </script>
 </body>
 </html>
