@@ -47,6 +47,7 @@
   .pairs { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 4px; font-family: var(--mono); font-size: 0.9rem; }
   .pairs > span { padding: 3px 8px; border-radius: 12px; border: 1.5px solid var(--rule); display: inline-flex; gap: 4px; align-items: center; }
   .pairs .tk { padding: 0 5px; }
+  .pairs .tie { align-self: center; font-family: var(--hand); color: var(--redpen); font-size: 1.05rem; }
   .pairs > span.top { background: var(--hl-yellow); color: var(--on-hl); border-color: var(--ink); }
   .bpe-stats { display: flex; gap: 22px; flex-wrap: wrap; font-family: var(--head); font-size: 1.15rem; margin: 10px 0; }
   .bpe-stats b { color: var(--pen); }
@@ -302,6 +303,7 @@
           <button id="bpeBack">← Back one merge</button>
           <button class="primary" id="bpeMerge">Merge the top pair</button>
           <button id="bpeAll">Merge 5 more</button>
+          <button class="primary" id="bpeAgain" hidden>↺ Start again</button>
           <button class="reset" id="bpeReset">↺ Start again</button>
         </div>
         <p class="note" id="bpeNote"></p>
@@ -778,11 +780,8 @@ function bpeMerge() {
   });
   vocab.push(joined); added = joined;
   const eg = bpe.find(w => w.parts.includes(joined));
-  // A tie: say so, so the choice doesn't look mysterious
-  const tied = pairs.filter(([, n]) => n === top[1]).length - 1;
-  const tieNote = tied ? ` <span data-peek="${tied === 1 ? "Another pair also" : `${tied} other pairs also`} sat side by side ${top[1]} times. When there's a tie, we just take the first one found. The next merge can pick ${tied === 1 ? "the other one" : "the others"}, so it ends the same way.">It was a tie.</span>` : "";
   document.getElementById("bpeNote").innerHTML = `<b>${esc(a)}</b> and <b>${esc(b)}</b> sat side by side <b>${top[1]}</b> times, so we glued them into one new piece: <b>${esc(joined)}</b>. ` +
-    `Now “${eg.parts.join("")}” is ${eg.parts.map(esc).join(" · ")}: ${eg.parts.length} piece${eg.parts.length === 1 ? "" : "s"}.` + tieNote;
+    `Now “${eg.parts.join("")}” is ${eg.parts.map(esc).join(" · ")}: ${eg.parts.length} piece${eg.parts.length === 1 ? "" : "s"}.`;
   drawBpe();
   return true;
 }
@@ -796,16 +795,26 @@ function pieceColor(p) {
   return `background:${PIECE_COLORS[i % PIECE_COLORS.length]};color:#1D2238;border-color:#1D2238`;
 }
 const ptok = (p, cls = "") => `<span class="tk ${cls}" style="${pieceColor(p)}">${esc(p)}</span>`;
+// When the top pairs are tied, say so before the merge, naming them (details on hover)
+function tieNote(pc) {
+  const tied = pc.filter(([, n]) => n === pc[0][1]);
+  if (tied.length < 2) return "";
+  const names = tied.map(([k]) => k.split("\u0001").join(" + "));
+  const list = names.length === 2 ? `${names[0]} and ${names[1]}` : names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+  return ` <span class="tie" data-peek="${esc(list)} ${names.length === 2 ? "both" : "all"} sit side by side ${pc[0][1]} times. Merge takes the first one, ${esc(names[0])}. ${names.length === 2 ? "The other one comes" : "The others come"} next, so it ends the same way.">It's a tie</span>`;
+}
 function drawBpe() {
   document.getElementById("bpeBack").disabled = !bpeHistory.length;
   const done = !pairCounts().length;   // nothing left to glue: only Back and Start again make sense
-  document.getElementById("bpeMerge").disabled = done;
-  document.getElementById("bpeAll").disabled = done;
+  // At the end the merge buttons step aside for one clear "Start again"
+  document.getElementById("bpeMerge").hidden = done;
+  document.getElementById("bpeAll").hidden = done;
+  document.getElementById("bpeAgain").hidden = !done;
   document.getElementById("bpeWords").innerHTML = bpe.map(w =>
     `<div class="bpe-word"><span class="times">×${w.n}</span><span class="toks">${w.parts.map(p => ptok(p, p === added ? "new" : "")).join("")}</span></div>`).join("");
   const pc = pairCounts().slice(0, 4);
   document.getElementById("bpePairs").innerHTML = pc.length
-    ? pc.map(([k, n], i) => { const [x, y] = k.split("\u0001"); return `<span class="${i ? "" : "top"}">${ptok(x)} + ${ptok(y)} → ${n} times</span>`; }).join("")
+    ? pc.map(([k, n], i) => { const [x, y] = k.split("\u0001"); return `<span class="${n === pc[0][1] ? "top" : ""}">${ptok(x)} + ${ptok(y)} → ${n} times</span>`; }).join("") + tieNote(pc)
     : "<span>No pairs left: every word is a single piece.</span>";
   document.getElementById("bpeVocab").textContent = vocab.length;
   document.getElementById("bpeLen").textContent = bpe.reduce((s, w) => s + w.parts.length * w.n, 0);
@@ -826,6 +835,7 @@ document.getElementById("bpeBack").onclick = () => {
   drawBpe();
 };
 document.getElementById("bpeReset").onclick = bpeReset;
+document.getElementById("bpeAgain").onclick = bpeReset;
 bpeReset();
 
 // ---------- Part 7: [BOS], [EOS] and [PAD] ----------
