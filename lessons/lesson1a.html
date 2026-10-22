@@ -73,118 +73,131 @@
     </div>
 
     <!-- 1 -->
-    <section class="part" data-title="What an LLM does">
-      <h2>What an LLM does</h2>
+    <section class="part" data-title="How we got here">
+      <h2>How we got here</h2>
+      <p class="say">Today's AI chatbots and coding assistants didn't appear overnight. Here's the short story.</p>
+      <ol class="timeline">
+        <li><span class="yr">2010s</span>
+          <div class="what n-y"><b>One model per task</b>
+            Each language task needed its own model, built and trained just for that task. Most were <b>RNNs</b>, which we meet later in this lesson.
+            <div class="task-row"><span class="task">Sentiment: is this review positive or negative?</span><span class="task">Machine translation: English → French</span><span class="task">Named entities: find the people and places</span></div>
+          </div></li>
+        <li><span class="yr">2017</span>
+          <div class="what n-p"><b>“Attention Is All You Need”</b>
+            A research paper introduced the <mark>Transformer</mark>. Its big surprise: give it more data, more computing power and more size, and it keeps getting better, much more than older models did.</div></li>
+        <li><span class="yr">2022</span>
+          <div class="what n-b"><b>The conversational era</b>
+            ChatGPT launched on 30 November 2022: a scaled-up Transformer you could simply talk to. Millions of people chatted with a language model for the first time.</div></li>
+        <li><span class="yr">Now</span>
+          <div class="what n-g"><b>The agentic era</b>
+            The same kind of model now acts: coding agents like Claude Code, Codex, Cursor and Antigravity write and run code, use tools and work through long tasks.</div></li>
+      </ol>
+      <p class="say">Everything since 2017 is built on the Transformer. Lessons 1a and 1b build up to it from zero.</p>
+      <p class="hook">First, what does a language model actually do?</p>
+    </section>
+
+    <!-- 2 -->
+    <section class="part" data-title="Quick basics: what an LLM does">
+      <h2>✏️ Quick basics: what an LLM does</h2>
       <p class="say">ChatGPT, Claude and Gemini look like they think. Underneath, they do one simple thing:</p>
       <p class="say"><mark>Guess the next piece of text.</mark> Then add it, and guess again.</p>
 
       <div class="activity">
         <div class="do">Try it: what comes next?</div>
-        <p class="say" style="font-family:var(--mono)">The cat sat on the ___</p>
-        <div class="quiz" data-right="You just did what an LLM does: you guessed the most likely next word. “mat” fits best, but “sofa” or “floor” would also make sense.">
+        <p class="say" style="font-family:var(--mono)">A cute teddy bear is ___</p>
+        <div class="quiz" data-right="You just did what an LLM does: you guessed a likely next word. “reading” works, and so would “sleeping” or “smiling”.">
           <div class="q">Pick the most likely next word.</div>
           <div class="options">
-            <button data-right>mat</button>
-            <button data-why="Possible, but unusual. A cat sitting on a banana isn't what most sentences say.">banana</button>
-            <button data-why="That doesn't fit the grammar: “on the quickly” isn't a sentence.">quickly</button>
+            <button data-right>reading</button>
+            <button data-why="“is volcano” isn't a sentence. The next word has to fit the grammar.">volcano</button>
+            <button data-why="“is the” could start something (“is the best”), but it's much less likely here than a word like “reading”.">the</button>
           </div>
           <div class="feedback"></div>
         </div>
       </div>
-      <p class="say">An LLM (<b>large language model</b>) does this billions of times, with a huge vocabulary and a lot of practice.</p>
-      <p class="say">This course explains <b>how</b> it learns to guess so well.</p>
-      <p class="hook">But it wasn't always one model. Let's see how we got here.</p>
-    </section>
-
-    <!-- 2 -->
-    <section class="part" data-title="How we got here">
-      <h2>How we got here</h2>
-      <ol class="timeline">
-        <li><span class="yr">2010s</span>
-          <div class="what n-y"><b>One model per job</b>
-            Each language task had its own model, trained only for that task.
-            <div class="task-row"><span class="task">Is this review happy or angry?</span><span class="task">Translate English → French</span><span class="task">Find the names in this text</span></div>
-          </div></li>
-        <li><span class="yr">2017</span>
-          <div class="what n-p"><b>The Transformer</b>
-            A research paper called <i>“Attention Is All You Need”</i> introduced a new kind of model. Its big surprise: the more data, computing power and size you gave it, the better it kept getting.</div></li>
-        <li><span class="yr">2022</span>
-          <div class="what n-b"><b>Chat assistants</b>
-            Scaled-up Transformers, trained on huge amounts of text, became ChatGPT. For the first time, millions of people talked to a language model.</div></li>
-        <li><span class="yr">Today</span>
-          <div class="what n-g"><b>Agents</b>
-            The same kind of model now writes code, uses tools and works through long tasks on its own.</div></li>
-      </ol>
-      <p class="say">Everything after 2017 is built on the Transformer. In Lessons 1a and 1b, we build up to it from zero.</p>
-      <p class="hook">Step one: a model only understands numbers. So how do we give it text?</p>
+      <p class="say">An <b>LLM</b> (large language model) does this over and over, with a huge vocabulary and a lot of practice.</p>
+      <p class="hook">But a model is math. How do we even give it text?</p>
     </section>
 
     <!-- 3 -->
-    <section class="part" data-title="Cutting text into tokens">
-      <h2>Cutting text into tokens</h2>
-      <p class="say">A model is math. Math works on <b>numbers</b>, not letters.</p>
-      <p class="say">So first, we cut the text into small pieces called <mark>tokens</mark>. Then each token gets a number.</p>
-      <p class="say">The list of all tokens a model knows is its <mark>vocabulary</mark>.</p>
+    <section class="part" data-title="Tokenization">
+      <h2>Tokenization</h2>
+      <p class="say">A model works with <b>numbers</b>, not letters. So first, we cut the text into pieces called <mark>tokens</mark>.</p>
+      <p class="say">Cutting text into tokens is called <mark>tokenization</mark>.</p>
 
       <div class="activity">
-        <div class="do">Try it: type anything and see two ways to cut it.</div>
-        <input class="tokin" id="tokIn" value="The little robot is reading." maxlength="80" spellcheck="false" aria-label="Text to cut into tokens">
-        <div class="split">
-          <h4>By words <span class="count" id="wCount"></span></h4>
-          <div class="toks" id="wToks"></div>
+        <div class="do">One way to cut our example sentence:</div>
+        <p class="say" style="font-family:var(--mono)">A cute teddy bear is reading.</p>
+        <div class="toks" style="margin:6px 0 10px">
+          <span class="tk">A</span><span class="tk">cute</span><span class="tk">teddy bear</span><span class="tk">is</span><span class="tk">reading</span><span class="tk">.</span>
         </div>
-        <div class="split">
-          <h4>By letters <span class="count" id="cCount"></span></h4>
-          <div class="toks" id="cToks"></div>
-        </div>
-        <p class="note">Spaces count as letters too. They show as <span style="font-family:var(--mono)">·</span></p>
+        <ul>
+          <li><b>teddy bear</b> can be one token: a token doesn't have to be one word.</li>
+          <li>The number of tokens is the <mark>sequence length</mark>, written <i>n</i>. Here, <i>n</i> = 6.</li>
+          <li>All the tokens the model knows make up its <mark>vocabulary</mark>, written <i>V</i>.</li>
+        </ul>
+        <div class="vocab" aria-label="Example vocabulary"><span>A</span><span>book</span><span>cute</span><span>is</span><span>laughing</span><span>reading</span><span>soft</span><span>teddy bear</span><span>.</span><span>…</span></div>
       </div>
-      <p class="hook">Both work. But each one has a problem. Which is better?</p>
+      <p class="say">Later, each token becomes a list of numbers, like <span style="font-family:var(--mono)">[0.37, −1.24, …, 0.82]</span>. That's what the model really reads.</p>
+      <p class="hook">So how do we decide where to cut? There are three main ways.</p>
     </section>
 
     <!-- 4 -->
-    <section class="part" data-title="Words or letters?">
-      <h2>Words or letters?</h2>
-      <p class="say">Imagine the word vocabulary was made from a few books. Then someone types a word the books never had.</p>
-
+    <section class="part" data-title="Word-level">
+      <h2>Way 1: one token per word</h2>
       <div class="activity">
-        <div class="do">Try it: our word vocabulary only knows these words.</div>
-        <div class="vocab" id="knownWords"></div>
-        <p class="say" style="margin-top:12px">Type a sentence with a new word, like <span style="font-family:var(--mono)">the little robots love reading</span>.</p>
-        <input class="tokin" id="unkIn" value="the little robots love reading" maxlength="80" spellcheck="false" aria-label="Sentence to cut into known words">
-        <div class="split"><div class="toks" id="unkToks"></div></div>
-        <p class="note" id="unkNote"></p>
+        <div class="do">Try it: type anything. Each word (and each punctuation mark) becomes a token.</div>
+        <input class="tokin" id="wIn" value="A cute teddy bear is reading." maxlength="80" spellcheck="false" aria-label="Text to cut into words">
+        <div class="split"><h4>By words <span class="count" id="wCount"></span></h4><div class="toks" id="wToks"></div></div>
       </div>
-
-      <table class="compare">
-        <tr><th></th><th>By words</th><th>By letters</th></tr>
-        <tr><td>Vocabulary</td><td class="bad">Huge: robot, robots, robot's…</td><td class="good">Tiny: about 100 characters</td></tr>
-        <tr><td>Unknown words</td><td class="bad">Become [UNK], meaning lost</td><td class="good">Never: every word is made of letters</td></tr>
-        <tr><td>Length</td><td class="good">Short: few tokens</td><td class="bad">Long: many tokens, so slow</td></tr>
-        <tr><td>“robot” and “robots”</td><td class="bad">Two unrelated tokens</td><td>Share letters, but letters mean little alone</td></tr>
-      </table>
-
-      <div class="quiz" data-right="Yes. With letters, any word can be spelled, so nothing is ever unknown.">
-        <div class="q">Which way never meets an unknown word?</div>
-        <div class="options">
-          <button data-why="A word vocabulary misses any word it didn't see, like a new name or a typo.">By words</button>
-          <button data-right>By letters</button>
-        </div>
-        <div class="feedback"></div>
+      <div class="cards">
+        <div class="card"><h3 class="good">🙂 Good</h3><ul><li>Simple</li><li>Easy to read: each token is a real word</li></ul></div>
+        <div class="card"><h3 class="bad">😢 Not so good</h3><ul>
+          <li><b>Huge vocabulary:</b> bear, bears, bear's… each needs its own token</li>
+          <li><b>Ignores word roots:</b> “bear” and “bears” look unrelated</li>
+          <li><b>Out-of-vocabulary:</b> a word never seen in training has no token at all</li></ul></div>
       </div>
-      <p class="hook">Is there something in between, with short sequences and no unknown words?</p>
+      <p class="hook">What if we cut smaller instead?</p>
     </section>
 
     <!-- 5 -->
-    <section class="part" data-title="Word pieces">
-      <h2>Word pieces: the best of both</h2>
-      <p class="say">Today's LLMs cut text into <mark>word pieces</mark>: common words stay whole, rare words are built from smaller pieces.</p>
-      <p class="say"><span style="font-family:var(--mono)">reading</span> → <span class="tk" style="background:var(--note-yellow);color:var(--on-hl)">read</span> <span class="tk" style="background:var(--note-blue);color:var(--on-hl)">ing</span> &nbsp; <span style="font-family:var(--mono)">robots</span> → <span class="tk" style="background:var(--note-yellow);color:var(--on-hl)">robot</span> <span class="tk" style="background:var(--note-blue);color:var(--on-hl)">s</span></p>
-      <p class="say">The most common method is <mark>BPE</mark> (byte pair encoding). It learns the pieces from text, with one rule:</p>
+    <section class="part" data-title="Character-level">
+      <h2>Way 2: one token per character</h2>
+      <div class="activity">
+        <div class="do">Try it: the same text, cut into single characters. Spaces show as _</div>
+        <input class="tokin" id="cIn" value="A cute teddy bear is reading." maxlength="80" spellcheck="false" aria-label="Text to cut into characters">
+        <div class="split"><h4>By characters <span class="count" id="cCount"></span></h4><div class="toks" id="cToks"></div></div>
+        <p class="note" id="cNote"></p>
+      </div>
+      <div class="cards">
+        <div class="card"><h3 class="good">🙂 Good</h3><ul>
+          <li><b>Small vocabulary:</b> about 100 characters</li>
+          <li><b>Copes with odd capitals and typos:</b> “TEDDY” or “tedi” is still just letters, so nothing is out-of-vocabulary</li></ul></div>
+        <div class="card"><h3 class="bad">😢 Not so good</h3><ul>
+          <li><b>Much slower:</b> sequences get several times longer, and the work grows with length</li>
+          <li><b>Hard to interpret:</b> a single letter like “e” means very little</li></ul></div>
+      </div>
+      <p class="hook">Words are too big, letters too small. Is there something in between?</p>
+    </section>
+
+    <!-- 6 -->
+    <section class="part" data-title="Subword-level">
+      <h2>Way 3: pieces of words</h2>
+      <p class="say">Common words stay whole. Other words are built from smaller, common pieces, called <mark>subwords</mark>.</p>
+      <div class="toks" style="margin:6px 0 4px">
+        <span class="tk">A</span><span class="tk">cute</span><span class="tk">ted</span><span class="tk">##dy</span><span class="tk">bear</span><span class="tk">is</span><span class="tk">read</span><span class="tk">##ing</span><span class="tk">.</span>
+      </div>
+      <p class="note">## means “this piece glues onto the one before it”: ted + ##dy = teddy.</p>
+
+      <div class="cards">
+        <div class="card"><h3 class="good">🙂 Good</h3><ul><li><b>Uses word roots:</b> read, reads and reading all share “read”</li><li><b>Learned from data:</b> the pieces come from real text</li></ul></div>
+        <div class="card"><h3 class="bad">😢 Not so good</h3><ul><li><b>Extra work:</b> we must learn the pieces first</li><li><b>Depends on the training text:</b> pieces fit the text they were learned from</li></ul></div>
+      </div>
+      <p class="say">This is what almost every LLM uses today. The most common method is <mark>BPE</mark> (byte pair encoding), with one rule:</p>
       <p class="say"><b>Find the two pieces that appear side by side most often. Glue them into one new piece. Repeat.</b></p>
 
       <div class="activity">
-        <div class="do">Try it: our text has these words. Press Merge and watch the pieces grow.</div>
+        <div class="do">Try it: our training text has these words. Press Merge and watch the pieces grow.</div>
         <div class="bpe-stats">
           <span>Vocabulary: <b id="bpeVocab"></b> pieces</span>
           <span>All words together: <b id="bpeLen"></b> tokens</span>
@@ -200,11 +213,11 @@
         <p class="note" id="bpeNote"></p>
         <div class="vocab" id="bpeVocabList" aria-label="Vocabulary"></div>
       </div>
-      <p class="say">Every merge adds one piece to the vocabulary and makes the text shorter. We stop at the vocabulary size we want. Today's LLMs stop at <b>around 100,000 to 200,000 pieces</b>, from many languages.</p>
-      <div class="quiz" data-right="Right. BPE learns from the text it's given, so a tokenizer trained only on English would cut Hindi or Malayalam into many tiny pieces: slow and costly.">
+      <p class="say">Each merge adds one piece and makes the text shorter. We stop at the vocabulary size we want. Today's LLMs stop at <b>hundreds of thousands of pieces</b>, from many languages.</p>
+      <div class="quiz" data-right="Right. BPE learns from the text it's given. Trained only on English, it would cut Hindi or Malayalam into many tiny pieces: slow and costly.">
         <div class="q">You want an LLM that's good at Hindi and Malayalam. What should the BPE training text include?</div>
         <div class="options">
-          <button data-why="Then the common Hindi and Malayalam pieces never get merged, and those languages need far more tokens.">Only English, it's the biggest</button>
+          <button data-why="Then common Hindi and Malayalam pieces never get merged, and those languages need far more tokens.">Only English, it's the biggest</button>
           <button data-right>Plenty of Hindi and Malayalam too</button>
         </div>
         <div class="feedback"></div>
@@ -212,50 +225,45 @@
       <p class="hook">One more kind of token: some don't come from the text at all.</p>
     </section>
 
-    <!-- 6 -->
+    <!-- 7 -->
     <section class="part" data-title="Special tokens">
       <h2>Special tokens</h2>
-      <p class="say">Some tokens don't stand for text. They're <mark>signals</mark> to the model.</p>
+      <p class="say">Some tokens aren't text. They're <mark>signals</mark> to the model.</p>
 
-      <div class="cards">
-        <div class="card">
-          <h3><span class="tk sp">[BOS]</span> <span class="tk sp">[EOS]</span></h3>
-          <p>Begin and end of a sequence. <b>[BOS]</b> tells the model “start writing”. When the model writes <b>[EOS]</b>, it means “I'm done”.</p>
-        </div>
-        <div class="card">
-          <h3><span class="tk unk">[UNK]</span></h3>
-          <p>Unknown: stands in for anything not in the vocabulary. Word pieces make this rare.</p>
-        </div>
-        <div class="card">
-          <h3><span class="tk pad">[PAD]</span></h3>
-          <p>Padding: fills short sequences so a whole batch has the same length. Computers are fastest with neat rectangles of numbers.</p>
-        </div>
-        <div class="card">
-          <h3><span class="tk sp">[USER]</span> <span class="tk sp">[ASSISTANT]</span></h3>
-          <p>Chat models mark who is speaking. Names differ between models; the idea is the same.</p>
-        </div>
+      <div class="activity">
+        <div class="do"><span class="tk unk">[UNK]</span> Unknown, or “out of vocabulary”</div>
+        <p>Say our vocabulary is just <span class="vocab" style="display:inline-flex"><span>teddy</span><span>cute</span><span>bear</span><span>[UNK]</span></span>. Someone misspells teddy:</p>
+        <input class="tokin" id="unkIn" value="tedi bear" maxlength="60" spellcheck="false" aria-label="Text to cut using the small vocabulary">
+        <div class="split"><div class="toks" id="unkToks"></div></div>
+        <p class="note" id="unkNote"></p>
       </div>
 
       <div class="activity">
-        <div class="do">Try it: three sentences go into the model together. Add the special tokens.</div>
+        <div class="do"><span class="tk sp">[BOS]</span> <span class="tk sp">[EOS]</span> Beginning and end of sequence, and <span class="tk pad">[PAD]</span> padding</div>
         <div class="padrows" id="padRows"></div>
         <div class="btnrow">
           <button class="primary" id="padAdd">Add [BOS] and [EOS]</button>
-          <button id="padPad">Pad to the same length</button>
+          <button id="padPad">Pad to length 11</button>
           <button class="reset" id="padReset">↺ Start again</button>
         </div>
         <p class="note" id="padNote"></p>
       </div>
+
+      <ul>
+        <li><b>[BOS]</b> tells the model “start writing”. When the model writes <b>[EOS]</b>, it means “I'm done”.</li>
+        <li><b>[PAD]</b> fills sequences up to the same length, so many can be processed together as a neat rectangle of numbers.</li>
+        <li>There are more, like tokens marking the <b>user</b> and the <b>assistant</b> in a chat. Names vary between models, for example <span style="font-family:var(--mono)">&lt;|end_of_text|&gt;</span> instead of [EOS].</li>
+      </ul>
       <div class="quiz" data-right="Yes. The model writes [EOS] to say it has finished, so we stop asking for more.">
         <div class="q">A chat model is writing an answer. How do we know when to stop?</div>
         <div class="options">
-          <button data-why="[PAD] only fills space in a batch. The model doesn't use it to stop.">It writes [PAD]</button>
+          <button data-why="[PAD] only fills space so sequences line up. It doesn't signal the end of an answer.">It writes [PAD]</button>
           <button data-right>It writes [EOS]</button>
           <button data-why="[BOS] means start. We give it to the model at the beginning.">It writes [BOS]</button>
         </div>
         <div class="feedback"></div>
       </div>
-      <p class="hook">Now every token has a number. But does the number tell the model what the word means?</p>
+      <p class="hook">Now every token has a number. But does that number tell the model what the token means?</p>
     </section>
 
     <!-- coming next -->
@@ -288,35 +296,38 @@
 const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 const tok = (t, cls = "") => `<span class="tk ${cls}">${esc(t)}</span>`;
 
-// ---------- Part 3: words vs letters ----------
+// ---------- Parts 4–5: words and characters ----------
 const splitWords = s => s.match(/[A-Za-z0-9']+|[^\sA-Za-z0-9']/g) || [];
-function drawSplit() {
-  const s = document.getElementById("tokIn").value;
-  const w = splitWords(s), c = Array.from(s);
+function drawWords() {
+  const w = splitWords(document.getElementById("wIn").value);
   document.getElementById("wToks").innerHTML = w.map(x => tok(x)).join("");
-  document.getElementById("cToks").innerHTML = c.map(x => tok(x === " " ? "·" : x)).join("");
-  document.getElementById("wCount").textContent = `${w.length} tokens`;
-  document.getElementById("cCount").textContent = `${c.length} tokens`;
+  document.getElementById("wCount").textContent = `n = ${w.length} tokens`;
 }
-document.getElementById("tokIn").addEventListener("input", drawSplit);
-drawSplit();
+function drawChars() {
+  const s = document.getElementById("cIn").value, c = Array.from(s), w = splitWords(s);
+  document.getElementById("cToks").innerHTML = c.map(x => tok(x === " " ? "_" : x)).join("");
+  document.getElementById("cCount").textContent = `n = ${c.length} tokens`;
+  document.getElementById("cNote").textContent = w.length ? `That's ${c.length} tokens instead of ${w.length} by words: about ${(c.length / w.length).toFixed(1)}× longer.` : "";
+}
+document.getElementById("wIn").addEventListener("input", drawWords);
+document.getElementById("cIn").addEventListener("input", drawChars);
+drawWords(); drawChars();
 
-// ---------- Part 4: unknown words ----------
-const KNOWN = ["a", "the", "little", "robot", "is", "reading", "book", "and", "sleeping", "big", "small", "cat", "dog", "likes"];
-document.getElementById("knownWords").innerHTML = KNOWN.map(w => `<span>${w}</span>`).join("");
+// ---------- Part 7: [UNK] with a tiny vocabulary ----------
+const SMALL_V = ["teddy", "cute", "bear"];
 function drawUnk() {
   const w = splitWords(document.getElementById("unkIn").value.toLowerCase());
-  const unknown = w.filter(x => !KNOWN.includes(x));
-  document.getElementById("unkToks").innerHTML = w.map(x => KNOWN.includes(x) ? tok(x) : tok("[UNK]", "unk")).join("");
+  const unknown = w.filter(x => !SMALL_V.includes(x));
+  document.getElementById("unkToks").innerHTML = w.map(x => SMALL_V.includes(x) ? tok(x) : tok("[UNK]", "unk")).join("");
   document.getElementById("unkNote").innerHTML = unknown.length
-    ? `The model never sees <b>${esc(unknown.join(", "))}</b>. It only gets [UNK], so that meaning is lost.`
-    : "Every word is known, so nothing is lost.";
+    ? `<b>${esc(unknown.join(", "))}</b> isn't in the vocabulary, so it becomes [UNK]. The model never sees what was actually written.`
+    : "Every word is in the vocabulary, so nothing is lost.";
 }
 document.getElementById("unkIn").addEventListener("input", drawUnk);
 drawUnk();
 
 // ---------- Part 5: BPE, the real algorithm on a tiny text ----------
-const BPE_TEXT = { read: 6, reads: 3, reading: 5, reader: 2, robot: 4, robots: 3, rob: 2, ready: 2 };
+const BPE_TEXT = { read: 6, reads: 3, reading: 5, reader: 2, bear: 4, bears: 3, teddy: 2, ready: 2 };
 let bpe, vocab, added;
 function bpeReset() {
   bpe = Object.entries(BPE_TEXT).map(([w, n]) => ({ n, parts: Array.from(w) }));
@@ -362,18 +373,18 @@ document.getElementById("bpeAll").onclick = () => { for (let i = 0; i < 5; i++) 
 document.getElementById("bpeReset").onclick = bpeReset;
 bpeReset();
 
-// ---------- Part 6: special tokens and padding ----------
-const PAD_SENTS = [["the", "robot", "reads"], ["a", "little", "robot", "is", "reading", "a", "book"], ["hello"]];
+// ---------- Part 7: [BOS], [EOS] and [PAD] ----------
+const PAD_SENT = ["What", "a", "cute", "teddy", "bear", "!"];
 let padState = 0;
 function drawPad() {
-  let rows = PAD_SENTS.map(s => s.map(w => ({ t: w, c: "" })));
-  if (padState >= 1) rows = rows.map(r => [{ t: "[BOS]", c: "sp" }, ...r, { t: "[EOS]", c: "sp" }]);
-  if (padState >= 2) { const L = Math.max(...rows.map(r => r.length)); rows = rows.map(r => r.concat(Array(L - r.length).fill({ t: "[PAD]", c: "pad" }))); }
-  document.getElementById("padRows").innerHTML = rows.map(r => `<div class="toks">${r.map(x => tok(x.t, x.c)).join("")}</div>`).join("");
+  let row = PAD_SENT.map(w => ({ t: w, c: "" }));
+  if (padState >= 1) row = [{ t: "[BOS]", c: "sp" }, ...row, { t: "[EOS]", c: "sp" }];
+  if (padState >= 2) row = row.concat(Array(11 - row.length).fill({ t: "[PAD]", c: "pad" }));
+  document.getElementById("padRows").innerHTML = `<div class="toks">${row.map(x => tok(x.t, x.c)).join("")}</div>`;
   document.getElementById("padNote").textContent = [
-    "Three sentences, three different lengths.",
-    "Now the model knows where each sentence starts and ends.",
-    "Now they make a neat rectangle: every row has the same length.",
+    "“What a cute teddy bear!” as 6 tokens.",
+    "Now the model knows exactly where the sentence starts and ends.",
+    "Now it has length 11, the same as the other sequences in its batch.",
   ][padState];
   document.getElementById("padAdd").disabled = padState >= 1;
   document.getElementById("padPad").disabled = padState !== 1;
