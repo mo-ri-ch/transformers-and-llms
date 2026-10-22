@@ -804,7 +804,7 @@ function tieNote(pc) {
   return ` <span class="tie" data-peek="${esc(list)} ${names.length === 2 ? "both" : "all"} sit side by side ${pc[0][1]} times. Merge takes the first one, ${esc(names[0])}. ${names.length === 2 ? "The other one comes" : "The others come"} next, so it ends the same way.">It's a tie</span>`;
 }
 function drawBpe() {
-  document.getElementById("bpeBack").disabled = !bpeHistory.length;
+  document.getElementById("bpeBack").hidden = !bpeHistory.length;
   const done = !pairCounts().length;   // nothing left to glue: only Back and Start again make sense
   // At the end the merge buttons step aside for one clear "Start again"
   document.getElementById("bpeMerge").hidden = done;
@@ -851,8 +851,8 @@ function drawPad() {
     "Now the model knows exactly where the sentence starts and ends.",
     "Now it has length 11, the same as the other sequences in its batch.",
   ][padState];
-  document.getElementById("padAdd").disabled = padState >= 1;
-  document.getElementById("padPad").disabled = padState !== 1;
+  document.getElementById("padAdd").hidden = padState >= 1;
+  document.getElementById("padPad").hidden = padState !== 1;
 }
 document.getElementById("padAdd").onclick = () => { padState = 1; drawPad(); };
 document.getElementById("padPad").onclick = () => { padState = 2; drawPad(); };
@@ -949,8 +949,8 @@ drawPad();
     ["netTarget", "netOut", "netHid", "netIn"].forEach((id, r) => document.getElementById(id).parentElement.classList.toggle("dim", !s.rows.includes(r)));
     document.getElementById("netSent").innerHTML = W.slice(0, 5).map((w, i) => `<span class="tk ${i === s.now ? "now" : i === s.goal ? "goal" : ""}">${w}</span>`).join("");
     document.getElementById("netSays").innerHTML = s.says;
-    document.getElementById("netBack").disabled = at === 0;
-    document.getElementById("netNext").disabled = at === STEPS.length - 1;
+    document.getElementById("netBack").hidden = at === 0;
+    document.getElementById("netNext").hidden = at === STEPS.length - 1;
   }
   addReset("netBox", () => { at = 0; draw(); });
   document.getElementById("netBack").onclick = () => { at--; draw(); };
@@ -1052,8 +1052,8 @@ drawPad();
     }).join("");
     const mem = IN.slice(0, at + 1).join(" ");
     document.getElementById("rnnSays").innerHTML = `Step ${at + 1}: read <b>${IN[at]}</b>. The memory now holds “${mem}”, squeezed into a few numbers. Guess: <b>${OUT[at]}</b>.`;
-    document.getElementById("rnnBack").disabled = at === 0;
-    document.getElementById("rnnNext").disabled = at === IN.length - 1;
+    document.getElementById("rnnBack").hidden = at === 0;
+    document.getElementById("rnnNext").hidden = at === IN.length - 1;
   }
   addReset("rnnRow", () => { at = 0; draw(); });
   document.getElementById("rnnBack").onclick = () => { at--; draw(); };
@@ -1081,7 +1081,7 @@ function memoryDemo(rowsId, addId, resetId, saysId, keepBoxId) {
     document.getElementById(saysId).innerHTML = keep !== undefined && keepBoxId
       ? (keep ? `The gate keeps <b>teddy bear</b> at ${tb.toFixed(0)}%, however many words come after it.` : `Without the gate, <b>teddy bear</b> is down to ${tb.toFixed(0)}%.`)
       : (n <= 3 ? "Early words are still strong." : `By “${WORDS[n - 1]}”, <b>teddy bear</b> is down to ${tb.toFixed(0)}% of the newest word's strength.`);
-    document.getElementById(addId).disabled = n >= WORDS.length;
+    document.getElementById(addId).hidden = n >= WORDS.length;
   }
   document.getElementById(addId).onclick = () => { n++; draw(); };
   document.getElementById(resetId).onclick = () => { n = 2; draw(); };
@@ -1103,7 +1103,7 @@ memoryDemo("lstmRows", "lstmAdd", "lstmReset", "lstmSays", "lstmKeep");
     document.getElementById("attSays").innerHTML = looked
       ? "The writer looks back at all the English words and puts most of its attention on <b>reading</b>. So it writes <b>lit</b> (French for “reads”)."
       : "Using only its squeezed memory, the writer may have lost which verb came at the end.";
-    document.getElementById("attLook").disabled = looked;
+    document.getElementById("attLook").hidden = looked;
   }
   document.getElementById("attLook").onclick = () => { looked = true; draw(); };
   document.getElementById("attReset").onclick = () => { looked = false; draw(); };
