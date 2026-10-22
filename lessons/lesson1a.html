@@ -153,6 +153,11 @@
   .gm-a { stroke: var(--pen); stroke-width: 2.5; marker-end: url(#gmHead); }
   .gm-o { font-family: var(--mono); font-size: 15px; fill: var(--ink); }
   .gm-n { fill: var(--pen); font-weight: 700; }
+  .eq { margin-top: 8px; font-family: var(--mono); font-size: 0.9rem; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .frac { display: inline-flex; flex-direction: column; text-align: center; vertical-align: middle; }
+  .frac > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 4px 2px; }
+  .frac > span:last-child { padding: 2px 4px 0; }
+  .eq sup { font-size: 0.75em; }
   .gmwrap { position: relative; max-width: 560px; }
   .gm-k { fill: var(--paper); stroke: var(--on-hl); stroke-width: 1.5; }
   .gm-kp { stroke: var(--on-hl); stroke-width: 2.5; stroke-linecap: round; }
@@ -525,7 +530,13 @@
 
     <section class="part" data-title="Quick basics: scores → chances">
       <h2>✏️ Quick basics: scores → chances</h2>
-      <p class="say">The last step turns scores into <b>chances</b> that add up to 100%. It's called <mark data-peek="Softmax: raise e to the power of each score, then divide each one by the total. That makes every chance positive, and they all add up to 100%.">softmax</mark>.</p>
+      <p class="say">The last step turns scores into <b>chances</b> that add up to 100%. It's called <mark data-peek-from="softmaxPeek">softmax</mark>.</p>
+      <div hidden id="softmaxPeek"><b>Softmax</b>, with the scores 2.0, 0.5, 0.1:
+        <div class="eq">chance(cute) = <span class="frac"><span>e<sup>2.0</sup></span><span>e<sup>2.0</sup> + e<sup>0.5</sup> + e<sup>0.1</sup></span></span></div>
+        <div class="eq">= <span class="frac"><span>7.39</span><span>7.39 + 1.65 + 1.11</span></span> = <b>73%</b></div>
+        <div style="margin-top:8px">Top: <i>e</i> to cute's score. Bottom: the same for every word, added up. So the chances always add up to 100%.</div>
+        <div style="margin-top:4px"><i>e</i> is a fixed number, about 2.72. It makes every score positive.</div>
+      </div>
       <div class="activity">
         <div class="do">Try it: drag the sliders to change each word's score, and watch the chances.</div>
         <div class="sm" id="smRows"></div>
@@ -541,7 +552,13 @@
     <section class="part" data-title="Quick basics: learning from a mistake">
       <h2>✏️ Quick basics: learning from a mistake</h2>
       <p class="say">The real next word was <b>“cute”</b>, but the network gave it only a small chance.</p>
-      <p class="say">How wrong it was is called the <mark data-peek="Loss = −log(chance of the right answer). A 100% chance gives a loss of 0. The smaller the chance, the bigger the loss.">loss</mark>. Learning means nudging the weights a little so the loss shrinks. That's <mark>training</mark>.</p>
+      <p class="say">How wrong it was is called the <mark data-peek-from="lossPeek">loss</mark>. Learning means nudging the weights a little so the loss shrinks. That's <mark>training</mark>.</p>
+      <div hidden id="lossPeek"><b>Loss</b>
+        <div class="eq">loss = −log( chance of the right word )</div>
+        <div class="eq">now: −log(0.08) = <b>2.49</b></div>
+        <div class="eq">perfect: −log(1) = <b>0</b></div>
+        <div style="margin-top:8px">The smaller the chance of “cute”, the bigger the loss.</div>
+      </div>
       <div class="activity">
         <div class="do">Try it: press Learn a little, again and again. Watch the scores change.</div>
         <button class="doubt" type="button" data-peek-from="nudgePeek" aria-label="How does it know which way to nudge?">🤔</button>
