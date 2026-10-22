@@ -213,11 +213,13 @@
         <div class="split"><h4>By words <span class="count" id="wCount"></span></h4><div class="toks" id="wToks"></div></div>
       </div>
       <div class="cards">
-        <div class="card"><h3 class="good">🙂 Good</h3><ul><li>Simple</li><li>Easy to read: each token is a real word</li></ul></div>
+        <div class="card"><h3 class="good">🙂 Good</h3><ul>
+          <li><b>Simple.</b> Just cut at the spaces.</li>
+          <li><b>Easy to read.</b> Every token is a real word, like “teddy” or “reading”.</li></ul></div>
         <div class="card"><h3 class="bad">😢 Not so good</h3><ul>
-          <li><b>Huge vocabulary:</b> bear, bears, bear's… each needs its own token</li>
-          <li><b>Ignores word roots:</b> “bear” and “bears” look unrelated</li>
-          <li><b>Out-of-vocabulary:</b> a word never seen in training has no token at all</li></ul></div>
+          <li><b>Huge vocabulary.</b> “bear”, “bears” and “bear's” each need their own token. Across a whole language, that's hundreds of thousands of words.</li>
+          <li><b>Related words look unrelated.</b> The model sees “bear” and “bears” as two different tokens, and doesn't know they're about the same animal.</li>
+          <li><b>New words get lost.</b> A word the model never saw in training, like a typo “tedi”, has no token. It becomes [UNK] (unknown).</li></ul></div>
       </div>
       <p class="hook">What if we cut smaller instead?</p>
     </section>
@@ -233,11 +235,11 @@
       </div>
       <div class="cards">
         <div class="card"><h3 class="good">🙂 Good</h3><ul>
-          <li><b>Small vocabulary:</b> about 100 characters</li>
-          <li><b>Copes with odd capitals and typos:</b> “TEDDY” or “tedi” is still just letters, so nothing is out-of-vocabulary</li></ul></div>
+          <li><b>Small vocabulary.</b> The model only needs about 100 symbols: a–z, A–Z, 0–9 and punctuation. By words, it would need hundreds of thousands.</li>
+          <li><b>Typos are fine.</b> By words, “tedi” isn't in the list, so it becomes [UNK] (unknown). By letters, t, e, d, i are all known, so nothing is ever unknown.</li></ul></div>
         <div class="card"><h3 class="bad">😢 Not so good</h3><ul>
-          <li><b>Much slower:</b> sequences get several times longer, and the work grows with length</li>
-          <li><b>Hard to interpret:</b> a single letter like “e” means very little</li></ul></div>
+          <li><b>Much slower.</b> “teddy” is 1 token as a word, but 5 tokens as letters. The model works on every token, so more tokens = slower.</li>
+          <li><b>Letters mean little.</b> The word “teddy” means something. The letter “e” is in thousands of words, so alone it tells the model almost nothing.</li></ul></div>
       </div>
       <p class="hook">Words are too big, letters too small. Is there something in between?</p>
     </section>
@@ -252,8 +254,12 @@
       <p class="note">## means “this piece glues onto the one before it”: ted + ##dy = teddy.</p>
 
       <div class="cards">
-        <div class="card"><h3 class="good">🙂 Good</h3><ul><li><b>Uses word roots:</b> read, reads and reading all share “read”</li><li><b>Learned from data:</b> the pieces come from real text</li></ul></div>
-        <div class="card"><h3 class="bad">😢 Not so good</h3><ul><li><b>Extra work:</b> we must learn the pieces first</li><li><b>Depends on the training text:</b> pieces fit the text they were learned from</li></ul></div>
+        <div class="card"><h3 class="good">🙂 Good</h3><ul>
+          <li><b>Related words share pieces.</b> “read”, “reads” and “reading” all contain the piece “read”, so the model can see they're related.</li>
+          <li><b>Pieces come from real text.</b> Common words stay whole, and rare words are built from common pieces, so nothing is unknown.</li></ul></div>
+        <div class="card"><h3 class="bad">😢 Not so good</h3><ul>
+          <li><b>Extra work.</b> Before training the model, we first have to learn which pieces to use.</li>
+          <li><b>Pieces fit their text.</b> Pieces learned from English text cut other languages into many small bits, which is slower.</li></ul></div>
       </div>
       <p class="say">This is what almost every LLM uses today. The most common method is <mark>BPE</mark> (byte pair encoding), with one rule:</p>
       <p class="say"><b>Find the two pieces that appear side by side most often. Glue them into one new piece. Repeat.</b></p>
