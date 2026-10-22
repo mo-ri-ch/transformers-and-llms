@@ -72,7 +72,7 @@
   ol.steps { padding-left: 1.3em; display: grid; gap: 6px; }
   /* Softmax sliders */
   .sm { display: grid; gap: 8px; max-width: 560px; }
-  .smrow { display: grid; grid-template-columns: 6.5em 9em 1fr 3.5em; gap: 10px; align-items: center; font-family: var(--mono); font-size: 0.9rem; }
+  .smrow { display: grid; grid-template-columns: 6.5em 12em 1fr 3.5em; gap: 10px; align-items: center; font-family: var(--mono); font-size: 0.9rem; }
   .smrow input { width: 100%; accent-color: var(--pen); }
   .smrow .track { height: 18px; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
   .smrow .fill { display: block; height: 100%; background: var(--hl-yellow); border-right: 2px solid var(--ink); }
@@ -96,7 +96,7 @@
   .corpus { font-size: 0.85rem; color: var(--pencil); columns: 2; margin: 0 0 10px; }
   .embplot text { font-family: var(--mono); font-size: 11px; fill: var(--ink); }
   .embplot circle { stroke: var(--ink); stroke-width: 1; }
-  @media (max-width: 640px) { .vecwrap { grid-template-columns: 1fr; } .net-row { grid-template-columns: 1fr; gap: 0; } .smrow { grid-template-columns: 5.5em 1fr 3em; } .smrow input { grid-column: 1 / -1; } .corpus { columns: 1; } }
+  @media (max-width: 640px) { .vecwrap { grid-template-columns: 1fr; } .net-row { grid-template-columns: 1fr; gap: 0; } .smrow { grid-template-columns: 5.5em 1fr 3em; } .smrow input { grid-column: 1 / -1; } .smrow .scorecell { grid-column: 1 / -1; order: 5; } .smrow.smhead { display: none; } .corpus { columns: 1; } }
   /* RNN */
   .rnn { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 6px 0 10px; }
   .rcell { display: grid; justify-items: center; gap: 6px; }
@@ -159,6 +159,10 @@
   .wrongbar .track { height: 18px; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
   .wrongbar .fill { display: block; height: 100%; background: var(--hl-pink); border-right: 2px solid var(--ink); transition: width .25s; }
   .wrongbar b { font-family: var(--mono); text-align: right; }
+  .smrow.smhead { font-family: var(--head); font-size: 0.95rem; color: var(--pencil); }
+  .scorecell { display: flex; align-items: center; gap: 8px; }
+  .scorecell input { flex: 1; min-width: 0; }
+  .scv { min-width: 2.6em; text-align: right; color: var(--pen); }
   @media (max-width: 560px) { .timeline li { grid-template-columns: 1fr; gap: 4px; } }
 </style>
 </head>
@@ -512,7 +516,7 @@
       <h2>✏️ Quick basics: scores → chances</h2>
       <p class="say">The last step turns scores into <b>chances</b> that add up to 100%. It's called <mark data-peek="Softmax: raise e to the power of each score, then divide each one by the total. That makes every chance positive, and they all add up to 100%.">softmax</mark>.</p>
       <div class="activity">
-        <div class="do">Try it: move the scores and watch the chances.</div>
+        <div class="do">Try it: drag the sliders to change each word's score, and watch the chances.</div>
         <div class="sm" id="smRows"></div>
         <p class="note" id="smSays"></p>
       </div>
@@ -1000,12 +1004,13 @@ function overlayArrows(box, links, opts = {}) {
 const smWords = ["cute", "teddy bear", "is"];
 const smChances = sc => { const e = sc.map(Math.exp), t = e.reduce((a, b) => a + b, 0); return e.map(x => x / t); };
 function smRowsHTML(id, scores, editable, right) {
-  return smWords.map((w, i) => `<div class="smrow${i === right ? " right" : ""}"><span>${w}${i === right ? " ✓" : ""}</span>` +
-    (editable ? `<input type="range" min="-3" max="3" step="0.1" value="${scores[i]}" data-i="${i}" aria-label="Score for ${w}">` : `<span class="mono sc">weight ${scores[i].toFixed(1)}</span>`) +
+  const head = `<div class="smrow smhead"><span></span><span>${editable ? "score" : "weight"}</span><span>chance</span><span></span></div>`;
+  return head + smWords.map((w, i) => `<div class="smrow${i === right ? " right" : ""}"><span>${w}${i === right ? " ✓" : ""}</span>` +
+    (editable ? `<span class="scorecell"><input type="range" min="-3" max="3" step="0.1" value="${scores[i]}" data-i="${i}" aria-label="Score for ${w}"><b class="mono scv">${scores[i].toFixed(1)}</b></span>` : `<span class="mono sc">${scores[i].toFixed(1)}</span>`) +
     `<span class="track"><span class="fill"></span></span><span class="pct"></span></div>`).join("");
 }
 function smFill(box, p) {
-  box.querySelectorAll(".smrow").forEach((row, i) => {
+  box.querySelectorAll(".smrow:not(.smhead)").forEach((row, i) => {
     row.querySelector(".fill").style.width = (p[i] * 100).toFixed(1) + "%";
     row.querySelector(".pct").textContent = Math.round(p[i] * 100) + "%";
   });
@@ -1016,9 +1021,13 @@ function smFill(box, p) {
   function draw() {
     const p = smChances(scores); smFill(box, p);
     const top = p.indexOf(Math.max(...p));
-    document.getElementById("smSays").innerHTML = `Right now the network's best guess is <b>${smWords[top]}</b> (${Math.round(p[top] * 100)}%).`;
+    document.getElementById("smSays").innerHTML = `Right now the network's best guess is <b>“${smWords[top]}”</b> (${Math.round(p[top] * 100)}%).`;
   }
-  box.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => { scores[Number(inp.dataset.i)] = Number(inp.value); draw(); }));
+  box.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => {
+    scores[Number(inp.dataset.i)] = Number(inp.value);
+    inp.nextElementSibling.textContent = Number(inp.value).toFixed(1);
+    draw();
+  }));
   draw();
 })();
 
