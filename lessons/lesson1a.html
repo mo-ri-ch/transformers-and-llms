@@ -94,6 +94,30 @@
   .embplot text { font-family: var(--mono); font-size: 11px; fill: var(--ink); }
   .embplot circle { stroke: var(--ink); stroke-width: 1; }
   @media (max-width: 640px) { .vecwrap { grid-template-columns: 1fr; } .net-row { grid-template-columns: 1fr; gap: 0; } .smrow { grid-template-columns: 5.5em 1fr 3em; } .smrow input { grid-column: 1 / -1; } .corpus { columns: 1; } }
+  /* RNN */
+  .rnn { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 6px 0 10px; }
+  .rcell { display: grid; justify-items: center; gap: 6px; }
+  .rbox { width: 6.2em; padding: 10px 4px; text-align: center; border: 2px solid var(--ink); border-radius: 8px; background: var(--note-blue); color: var(--on-hl); font-family: var(--head); line-height: 1.1; }
+  .rcell.past { opacity: 0.45; } .rcell.later { opacity: 0.2; }
+  .rcell.now .rbox { outline: 3px solid var(--pen); }
+  .rarrow { font-size: 1.6rem; color: var(--pen); } .rarrow.later { opacity: 0.2; }
+  .cards.three { grid-template-columns: repeat(3, 1fr); }
+  .small { font-size: 0.85rem; }
+  /* Fading memory */
+  .fade { display: grid; gap: 5px; max-width: 560px; margin-bottom: 6px; }
+  .frow { display: grid; grid-template-columns: 7.5em 1fr 3em; gap: 10px; align-items: center; font-family: var(--mono); font-size: 0.88rem; }
+  .frow .track { height: 16px; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .frow .fill { display: block; height: 100%; background: var(--hl-yellow); border-right: 2px solid var(--ink); }
+  .frow.tb .fill { background: var(--hl-pink); } .frow.tb span:first-child { font-weight: 700; }
+  .frow .pct { text-align: right; color: var(--pencil); }
+  .keep { display: flex; gap: 8px; align-items: center; margin: 0 0 10px; }
+  /* Attention, 2014 */
+  .att2014 { display: grid; gap: 14px; margin: 6px 0; }
+  .arow { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .alabel { font-family: var(--head); font-size: 1.05rem; width: 9em; color: var(--pencil); }
+  .tk.aw { background: color-mix(in srgb, var(--hl-yellow) calc(var(--w) * 100%), var(--paper)) !important; color: var(--ink) !important; display: inline-grid; justify-items: center; }
+  .tk.aw small { font-size: 0.7rem; color: var(--pencil); }
+  @media (max-width: 760px) { .cards.three { grid-template-columns: 1fr; } }
   @media (max-width: 560px) { .timeline li { grid-template-columns: 1fr; gap: 4px; } }
 </style>
 </head>
@@ -490,16 +514,150 @@
       <p class="hook">We need models that read the whole sentence, in order.</p>
     </section>
 
-    <!-- coming next -->
-    <section class="part" data-title="Coming next">
-      <h2>Coming next</h2>
-      <p class="say">So far: text → tokens → embeddings that capture meaning. ✓</p>
-      <p class="say">But each word still ignores the sentence around it, and word order is lost.</p>
+    <!-- 15 -->
+    <section class="part" data-title="RNNs">
+      <h2>Recurrent neural networks (RNNs)</h2>
+      <p class="say">An <mark>RNN</mark> reads a sentence <b>one token at a time, in order</b>, the way you read.</p>
+      <p class="say">It carries a small <mark>memory</mark> (called the <b>hidden state</b>) from each step to the next. At every step it mixes the new token into the memory, then uses the memory to guess the next token.</p>
+      <div class="activity">
+        <div class="do">Try it: step through the sentence.</div>
+        <div class="rnn" id="rnnRow"></div>
+        <p class="note" id="rnnSays"></p>
+        <div class="btnrow">
+          <button id="rnnBack">← Back</button>
+          <button class="primary" id="rnnNext">Next token →</button>
+        </div>
+      </div>
+      <p class="say">Because the memory is built in order, <b>word order now matters</b>: “the child hugs the teddy bear” and “the teddy bear hugs the child” leave different memories.</p>
+      <p class="note">RNNs date back to the 1980s. The same box (the same weights) is reused at every step.</p>
+      <p class="hook">In the 2010s, RNNs did most language tasks. Which ones?</p>
+    </section>
+
+    <!-- 16 -->
+    <section class="part" data-title="What RNNs were used for">
+      <h2>What RNNs were used for</h2>
+      <p class="say">The same reading-in-order idea, with different outputs:</p>
+      <div class="cards three">
+        <div class="card">
+          <h3>Classification</h3>
+          <p>Read everything, give <b>one</b> answer at the end.</p>
+          <p class="mono small">“Loved this teddy bear!” → <span class="tk sp">😊 positive</span></p>
+          <p class="note">Example: sentiment.</p>
+        </div>
+        <div class="card">
+          <h3>A label for every token</h3>
+          <p>Give an answer <b>at every step</b>.</p>
+          <p class="mono small"><span class="tk">Priya</span><span class="tk">visited</span><span class="tk">Kochi</span><br>person · – · place</p>
+          <p class="note">Example: finding names and places.</p>
+        </div>
+        <div class="card">
+          <h3>Generation</h3>
+          <p>Read the input, then <b>write</b> new text, one token at a time.</p>
+          <p class="mono small">A cute teddy bear is reading → Un ours en peluche mignon lit</p>
+          <p class="note">Example: translation.</p>
+        </div>
+      </div>
+      <p class="hook">RNNs worked, but they had a serious memory problem.</p>
+    </section>
+
+    <!-- 17 -->
+    <section class="part" data-title="RNNs forget">
+      <h2>The problem: RNNs forget</h2>
+      <p class="say">The whole sentence has to squeeze into <b>one small memory</b>, and every new token overwrites part of it.</p>
+      <div class="activity">
+        <div class="do">Try it: keep adding words. How much of the first word is still in the memory?</div>
+        <div class="fade" id="fadeRows"></div>
+        <div class="btnrow">
+          <button class="primary" id="fadeAdd">Add a word</button>
+          <button class="reset" id="fadeReset">↺ Start again</button>
+        </div>
+        <p class="note" id="fadeSays"></p>
+      </div>
+      <p class="note">This is a simplified picture: each step keeps 60% of the old memory. Real RNNs learn how much to keep, but the effect is the same.</p>
+      <ul>
+        <li><b>Long-range dependencies are hard.</b> In “My teddy bear, which I got as a child from my grandmother in Kerala, <mark>is</mark> still soft”, the RNN must remember “teddy bear” across many words to know what “is” refers to.</li>
+        <li><b>Training has the same problem.</b> When the network learns, the signal telling early steps how to change also fades as it travels back. This is called the <mark>vanishing gradient</mark> problem.</li>
+        <li><b>It's slow.</b> Step 5 needs the memory from step 4, which needs step 3… Nothing can run in parallel, so training on huge text takes very long.</li>
+      </ul>
+      <p class="hook">Could we give the memory a smarter way to keep what matters?</p>
+    </section>
+
+    <!-- 18 -->
+    <section class="part" data-title="LSTMs">
+      <h2>LSTMs: memory with switches</h2>
+      <p class="say">The <mark>LSTM</mark> (long short-term memory, 1997) adds a second, longer-lasting memory called the <b>cell state</b>, plus <mark>gates</mark>: learned switches that decide what to do with it.</p>
+      <div class="cards three">
+        <div class="card"><h3>Forget gate</h3><p>What to <b>erase</b> from the cell state.</p></div>
+        <div class="card"><h3>Update gate</h3><p>What new information to <b>write in</b>.</p></div>
+        <div class="card"><h3>Output gate</h3><p>What to <b>show</b> to the next step.</p></div>
+      </div>
+      <div class="activity">
+        <div class="do">Try it: tell the forget gate to keep “teddy bear”. Then add words.</div>
+        <label class="keep"><input type="checkbox" id="lstmKeep" checked> Forget gate: keep “teddy bear” in the cell state</label>
+        <div class="fade" id="lstmRows"></div>
+        <div class="btnrow">
+          <button class="primary" id="lstmAdd">Add a word</button>
+          <button class="reset" id="lstmReset">↺ Start again</button>
+        </div>
+        <p class="note" id="lstmSays"></p>
+      </div>
+      <p class="say">LSTMs remember much longer than plain RNNs. But everything still passes through one memory, one step at a time: long sentences still get lost, and it's still slow.</p>
+      <p class="hook">Let's compare what we have so far.</p>
+    </section>
+
+    <!-- 19 -->
+    <section class="part" data-title="Summary so far">
+      <h2>Summary so far</h2>
+      <table class="compare">
+        <tr><th>Method</th><th>Good</th><th>Not so good</th></tr>
+        <tr><td><b>Word2vec</b><br><span class="note">CBOW, skip-gram</span></td>
+          <td class="good">Simple and powerful<br>Embeddings that make sense</td>
+          <td class="bad">Ignores word order<br>One meaning per word, whatever the sentence</td></tr>
+        <tr><td><b>RNNs</b><br><span class="note">plain RNN, LSTM</span></td>
+          <td class="good">Word order matters<br>Best results of their time</td>
+          <td class="bad">Forget long-ago words (vanishing gradient)<br>Slow: one step at a time</td></tr>
+      </table>
+      <div class="quiz" data-right="Right. Each step needs the memory from the step before, so the steps can't run at the same time.">
+        <div class="q">Why is an RNN slow to train on lots of text?</div>
+        <div class="options">
+          <button data-why="RNNs can be small. The problem is the order of the work, not the size.">It has too many weights</button>
+          <button data-right>Each step must wait for the step before it</button>
+          <button data-why="Word2vec uses embeddings too and trains fast. Embeddings aren't the issue.">It uses embeddings</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+      <p class="hook">In 2014, translation researchers found a way around the memory problem.</p>
+    </section>
+
+    <!-- 20 -->
+    <section class="part" data-title="2014: attention">
+      <h2>2014: the idea of attention</h2>
+      <p class="say">Translation models then had two RNNs: one <b>reads</b> the English sentence into a memory, the other <b>writes</b> the French from that memory.</p>
+      <p class="say">For long sentences, the writer had already “forgotten” what the reader saw.</p>
+      <p class="say">The fix, called <mark>attention</mark>: let the writer <b>look straight back</b> at every input word, and learn which ones matter right now.</p>
+      <div class="activity">
+        <div class="do">Try it: the writer has written “Un ours en peluche mignon”. What next? Press Look back.</div>
+        <div class="att2014" id="att2014"></div>
+        <div class="btnrow">
+          <button class="primary" id="attLook">Look back</button>
+          <button class="reset" id="attReset">↺ Start again</button>
+        </div>
+        <p class="note" id="attSays"></p>
+      </div>
+      <p class="say">No more squeezing everything into one memory: the important word is always one direct look away.</p>
+      <p class="hook">Attention was added on top of RNNs. Then came a bolder idea.</p>
+    </section>
+
+    <!-- 21 -->
+    <section class="part" data-title="What's next?">
+      <h2>What's next?</h2>
+      <p class="say">In this lesson: text → tokens → embeddings → RNNs that read in order → attention that looks straight back. ✓</p>
       <div class="open-question">
         <div>This leaves a question</div>
-        <div class="big">How can a model read a sentence word by word, in order, and remember what came before?</div>
-        <div>The next parts of this lesson answer it: RNNs and LSTMs. Coming soon.</div>
+        <div class="big">What if every word could look directly at every other word, and we dropped the RNN altogether?</div>
+        <div>Lesson 1b answers it: self-attention and the Transformer. Coming soon.</div>
       </div>
+      <p><button class="done-toggle" data-done="1">Mark lesson as done</button></p>
     </section>
   </main>
 </div>
@@ -792,6 +950,78 @@ drawPad();
   };
   document.getElementById("embReset").onclick = reset;
   reset();
+})();
+
+// ---------- Part 15: an RNN reads in order ----------
+(function rnn() {
+  const IN = ["A", "cute", "teddy bear", "is"], OUT = ["cute", "teddy bear", "is", "reading"];
+  let at = 0;
+  function draw() {
+    document.getElementById("rnnRow").innerHTML = IN.map((w, i) => {
+      const state = i < at ? "past" : i === at ? "now" : "later";
+      return `<div class="rcell ${state}">
+        <div class="rout"><span class="tk">${i <= at ? OUT[i] : "?"}</span></div>
+        <div class="rbox">memory<br><small>a${i + 1}</small></div>
+        <div class="rin"><span class="tk">${w}</span></div>
+      </div>${i < IN.length - 1 ? `<div class="rarrow ${i < at ? "past" : "later"}">→</div>` : ""}`;
+    }).join("");
+    const mem = IN.slice(0, at + 1).join(" ");
+    document.getElementById("rnnSays").innerHTML = `Step ${at + 1}: read <b>${IN[at]}</b>. The memory now holds “${mem}”, squeezed into a few numbers. Guess: <b>${OUT[at]}</b>.`;
+    document.getElementById("rnnBack").disabled = at === 0;
+    document.getElementById("rnnNext").disabled = at === IN.length - 1;
+  }
+  document.getElementById("rnnBack").onclick = () => { at--; draw(); };
+  document.getElementById("rnnNext").onclick = () => { at++; draw(); };
+  draw();
+})();
+
+// ---------- Parts 17–18: how much of each word is left in the memory ----------
+function memoryDemo(rowsId, addId, resetId, saysId, keepBoxId) {
+  const WORDS = ["My", "teddy bear", "which", "I", "got", "as", "a", "child", "from", "my", "grandmother", "is", "still", "soft"];
+  const KEEP = 0.6;
+  let n = 2;
+  function draw() {
+    const keep = keepBoxId && document.getElementById(keepBoxId).checked;
+    const shares = WORDS.slice(0, n).map((w, i) => {
+      if (keep && w === "teddy bear") return 0.9;
+      return Math.pow(KEEP, n - 1 - i);
+    });
+    const max = Math.max(...shares);
+    document.getElementById(rowsId).innerHTML = WORDS.slice(0, n).map((w, i) => {
+      const pct = Math.min(100, shares[i] / max * 100);
+      return `<div class="frow${w === "teddy bear" ? " tb" : ""}"><span>${w}</span><span class="track"><span class="fill" style="width:${pct.toFixed(0)}%"></span></span><span class="pct">${pct.toFixed(0)}%</span></div>`;
+    }).join("");
+    const tb = shares[1] / max * 100;
+    document.getElementById(saysId).innerHTML = keep !== undefined && keepBoxId
+      ? (keep ? `The gate keeps <b>teddy bear</b> at ${tb.toFixed(0)}%, however many words come after it.` : `Without the gate, <b>teddy bear</b> is down to ${tb.toFixed(0)}%.`)
+      : (n <= 3 ? "Early words are still strong." : `By “${WORDS[n - 1]}”, <b>teddy bear</b> is down to ${tb.toFixed(0)}% of the newest word's strength.`);
+    document.getElementById(addId).disabled = n >= WORDS.length;
+  }
+  document.getElementById(addId).onclick = () => { n++; draw(); };
+  document.getElementById(resetId).onclick = () => { n = 2; draw(); };
+  if (keepBoxId) document.getElementById(keepBoxId).onchange = draw;
+  draw();
+}
+memoryDemo("fadeRows", "fadeAdd", "fadeReset", "fadeSays");
+memoryDemo("lstmRows", "lstmAdd", "lstmReset", "lstmSays", "lstmKeep");
+
+// ---------- Part 20: attention in translation (2014) ----------
+(function attention2014() {
+  const EN = ["A", "cute", "teddy bear", "is", "reading"], W = [0.03, 0.05, 0.07, 0.1, 0.75];
+  const FR = ["Un", "ours en peluche", "mignon"];
+  let looked = false;
+  function draw() {
+    document.getElementById("att2014").innerHTML = `
+      <div class="arow"><span class="alabel">Writer (French)</span>${FR.map(w => `<span class="tk">${w}</span>`).join("")}<span class="tk ${looked ? "sp" : "unk"}">${looked ? "lit" : "?"}</span></div>
+      <div class="arow"><span class="alabel">Reader (English)</span>${EN.map((w, i) => `<span class="tk aw" style="--w:${looked ? W[i] / 0.75 : 0}">${w}${looked ? `<small>${Math.round(W[i] * 100)}%</small>` : ""}</span>`).join("")}</div>`;
+    document.getElementById("attSays").innerHTML = looked
+      ? "The writer looks back at all the English words and puts most of its attention on <b>reading</b>. So it writes <b>lit</b> (French for “reads”)."
+      : "Using only its squeezed memory, the writer may have lost which verb came at the end.";
+    document.getElementById("attLook").disabled = looked;
+  }
+  document.getElementById("attLook").onclick = () => { looked = true; draw(); };
+  document.getElementById("attReset").onclick = () => { looked = false; draw(); };
+  draw();
 })();
 </script>
 </body>
