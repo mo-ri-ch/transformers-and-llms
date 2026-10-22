@@ -300,6 +300,7 @@
         <div>Which two pieces sit side by side most often?</div>
         <div class="pairs" id="bpePairs"></div>
         <div class="btnrow">
+          <button id="bpeBack">← Back one merge</button>
           <button class="primary" id="bpeMerge">Merge the top pair</button>
           <button id="bpeAll">Merge 5 more</button>
           <button class="reset" id="bpeReset">↺ Start again</button>
@@ -754,7 +755,9 @@ const BPE_TEXT = {};
 BPE_PILE.split(" ").forEach(w => { BPE_TEXT[w] = (BPE_TEXT[w] || 0) + 1; });
 document.getElementById("bpePile").innerHTML = BPE_PILE.split(" ").map(w => `<span>${w}</span>`).join(" ");
 let bpe, vocab, added;
+let bpeHistory = [];
 function bpeReset() {
+  bpeHistory = [];
   bpe = Object.entries(BPE_TEXT).map(([w, n]) => ({ n, parts: Array.from(w) }));
   vocab = [...new Set(Object.keys(BPE_TEXT).join(""))].sort();
   added = null;
@@ -768,6 +771,7 @@ function pairCounts() {
 }
 function bpeMerge() {
   const top = pairCounts()[0];
+  if (top) bpeHistory.push({ bpe: JSON.stringify(bpe), vocab: vocab.slice(), added, note: document.getElementById("bpeNote").innerHTML });
   if (!top) { document.getElementById("bpeNote").textContent = "Every word is one piece now. Nothing left to merge."; return false; }
   const [a, b] = top[0].split("\u0001"), joined = a + b;
   bpe.forEach(w => {
@@ -795,6 +799,7 @@ function pieceColor(p) {
 }
 const ptok = (p, cls = "") => `<span class="tk ${cls}" style="${pieceColor(p)}">${esc(p)}</span>`;
 function drawBpe() {
+  document.getElementById("bpeBack").disabled = !bpeHistory.length;
   document.getElementById("bpeWords").innerHTML = bpe.map(w =>
     `<div class="bpe-word"><span class="times">×${w.n}</span><span class="toks">${w.parts.map(p => ptok(p, p === added ? "new" : "")).join("")}</span></div>`).join("");
   const pc = pairCounts().slice(0, 4);
@@ -812,6 +817,13 @@ function drawBpe() {
 }
 document.getElementById("bpeMerge").onclick = bpeMerge;
 document.getElementById("bpeAll").onclick = () => { for (let i = 0; i < 5; i++) if (!bpeMerge()) break; };
+document.getElementById("bpeBack").onclick = () => {
+  const last = bpeHistory.pop();
+  if (!last) return;
+  bpe = JSON.parse(last.bpe); vocab = last.vocab; added = last.added;
+  document.getElementById("bpeNote").innerHTML = last.note;
+  drawBpe();
+};
 document.getElementById("bpeReset").onclick = bpeReset;
 bpeReset();
 
