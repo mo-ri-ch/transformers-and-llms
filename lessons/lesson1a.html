@@ -292,8 +292,8 @@
         <div class="pile" id="bpePile"></div>
         <p class="note" style="margin-top:6px">Below, the same words are grouped and counted: “read” is in the pile 4 times, so it shows ×4. Every word starts as single letters.</p>
         <div class="bpe-stats">
-          <span>Pieces in our list: <b id="bpeVocab"></b> <small>(grows)</small></span>
-          <span>Tokens for the whole text: <b id="bpeLen"></b> <small>(shrinks)</small></span>
+          <span>Vocabulary: <b id="bpeVocab"></b> pieces <small>(each merge adds one)</small></span>
+          <span>The whole pile: <b id="bpeLen"></b> tokens <small>(fewer, bigger pieces)</small></span>
         </div>
         <div class="bpe-words" id="bpeWords"></div>
         <div>Which two pieces sit side by side most often?</div>
@@ -304,7 +304,7 @@
           <button class="reset" id="bpeReset">↺ Start again</button>
         </div>
         <p class="note" id="bpeNote"></p>
-        <div style="margin-top:10px">Our list of pieces <small>(new ones in green)</small>:</div>
+        <div style="margin-top:10px">The vocabulary <small>(new pieces in green)</small>:</div>
         <div class="vocab" id="bpeVocabList" aria-label="Vocabulary"></div>
       </div>
       <p class="say">Each merge adds one piece and makes the text shorter. We stop at the vocabulary size we want. Today's LLMs stop at <b>hundreds of thousands of pieces</b>, from many languages.</p>
