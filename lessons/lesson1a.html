@@ -269,7 +269,21 @@
         </ul>
       </details>
 
-      <p class="say">This is what almost every LLM uses today. The most common method is <mark>BPE</mark> (byte pair encoding), with one rule:</p>
+      <div class="cards">
+        <div class="card"><h3 class="good">🙂 Good</h3><ul>
+          <li><b>Related words stay connected.</b> “reads” = read + ##s, and “reading” = read + ##ing. Both share “read”, so the model can tell they're about reading.</li>
+          <li><b>No word is ever unknown.</b> A word that isn't in the list is built from smaller pieces, down to single letters if needed: “Kochi” → K ##o ##c ##h ##i.</li></ul></div>
+        <div class="card"><h3 class="bad">😢 Not so good</h3><ul>
+          <li><b>An extra step first.</b> Before training the model, we must make the list of pieces. The next slide shows how.</li>
+          <li><b>The list fits its text.</b> Pieces learned from English chop Malayalam into many tiny pieces. More pieces = more work = slower.</li></ul></div>
+      </div>
+      <p class="hook">So how is the list of pieces made?</p>
+    </section>
+
+    <!-- 6b -->
+    <section class="part" data-title="How pieces are learned: BPE">
+      <h2>How pieces are learned: BPE</h2>
+      <p class="say">Almost every LLM learns its pieces with <mark>BPE</mark> (byte pair encoding). It has one rule:</p>
       <p class="say"><b>Find the two pieces that appear side by side most often. Glue them into one new piece. Repeat.</b></p>
 
       <div class="activity">
@@ -290,14 +304,6 @@
         <div class="vocab" id="bpeVocabList" aria-label="Vocabulary"></div>
       </div>
       <p class="say">Each merge adds one piece and makes the text shorter. We stop at the vocabulary size we want. Today's LLMs stop at <b>hundreds of thousands of pieces</b>, from many languages.</p>
-      <div class="cards">
-        <div class="card"><h3 class="good">🙂 Good</h3><ul>
-          <li><b>Related words stay connected.</b> “reads” = read + ##s, and “reading” = read + ##ing. Both share “read”, so the model can tell they're about reading.</li>
-          <li><b>No word is ever unknown.</b> A word that isn't in the list is built from smaller pieces, down to single letters if needed: “Kochi” → K ##o ##c ##h ##i.</li></ul></div>
-        <div class="card"><h3 class="bad">😢 Not so good</h3><ul>
-          <li><b>An extra step first.</b> Before training the model, we must make the list of pieces, with the merging you just did.</li>
-          <li><b>The list fits its text.</b> Pieces learned from English chop Malayalam into many tiny pieces. More pieces = more work = slower.</li></ul></div>
-      </div>
       <div class="quiz" data-right="Right. BPE learns from the text it's given. Trained only on English, it would cut Hindi or Malayalam into many tiny pieces: slow and costly.">
         <div class="q">You want an LLM that's good at Hindi and Malayalam. What should the BPE training text include?</div>
         <div class="options">
@@ -310,9 +316,9 @@
     </section>
 
     <!-- 7 -->
-    <section class="part" data-title="Special tokens">
-      <h2>Special tokens</h2>
-      <p class="say">Some tokens aren't text. They're <mark>signals</mark> to the model.</p>
+    <section class="part" data-title="Special tokens: [UNK]">
+      <h2>Special tokens: [UNK]</h2>
+      <p class="say">Some tokens don't come from the text at all. They're called <mark>special tokens</mark>. The first one stands in for words the model doesn't know.</p>
 
       <div class="activity">
         <div class="do"><span class="tk unk">[UNK]</span> Unknown, or “out of vocabulary”</div>
@@ -322,6 +328,13 @@
         <p class="note" id="unkNote"></p>
       </div>
 
+      <p class="hook">Other special tokens aren't about unknown words. They're signals.</p>
+    </section>
+
+    <!-- 7b -->
+    <section class="part" data-title="Special tokens: [BOS] [EOS] [PAD]">
+      <h2>Special tokens: [BOS] [EOS] [PAD]</h2>
+      <p class="say">These are <mark>signals</mark> to the model: where a sentence starts, where it ends, and what is just filler.</p>
       <div class="activity">
         <div class="do"><span class="tk sp">[BOS]</span> <span class="tk sp">[EOS]</span> Beginning and end of sequence, and <span class="tk pad">[PAD]</span> padding</div>
         <div class="padrows" id="padRows"></div>
