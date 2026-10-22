@@ -260,7 +260,8 @@
         <button class="doubt" type="button" data-peek-from="spacesPeek" aria-label="What about spaces?">🤔</button>
         <input class="tokin" id="sIn" value="A cute teddy bear is reading." maxlength="100" spellcheck="false" aria-label="Text to cut into word pieces">
         <div class="split"><div class="toks" id="sToks"></div></div>
-        <p class="bpe-stats" style="margin:12px 0 0"><span>Words: <b id="sW"></b></span><span>Letters: <b id="sC"></b></span><span><span data-peek="This box uses a small practice vocabulary. Real LLMs know 100,000+ pieces.">Pieces</span>: <b id="sP"></b></span></p>
+        <p class="bpe-stats" style="margin:12px 0 0"><span data-peek-from="sWPeek">Words: <b id="sW"></b></span><span data-peek-from="sCPeek">Letters: <b id="sC"></b></span><span data-peek-from="sPPeek">Pieces: <b id="sP"></b></span></p>
+        <div hidden id="sWPeek"></div><div hidden id="sCPeek"></div><div hidden id="sPPeek"></div>
         <p class="note">Try “unbelievable”, “playfully” or “readers”.</p>
       </div>
       <div hidden id="spacesPeek"><b>🤔 What about spaces?</b><ul style="margin:6px 0 0">
@@ -1130,6 +1131,12 @@ memoryDemo("lstmRows", "lstmAdd", "lstmReset", "lstmSays", "lstmKeep");
     document.getElementById("sW").textContent = words.length;
     document.getElementById("sC").textContent = Array.from(s).length;
     document.getElementById("sP").textContent = all.length;
+    // What each count counted, shown on hover or tap
+    const row = list => `<div class="toks" style="margin-top:6px">${list.join("")}</div>`;
+    document.getElementById("sWPeek").innerHTML = `<b>${words.length} words</b> (punctuation counts as a word)` + row(words.map(w => tok(w)));
+    document.getElementById("sCPeek").innerHTML = `<b>${Array.from(s).length} letters</b> (spaces shown as _)` + row(Array.from(s).map(c => tok(c === " " ? "_" : c)));
+    document.getElementById("sPPeek").innerHTML = `<b>${all.length} pieces</b>` + row(all.map(t => tok(t, t === "[UNK]" ? "unk" : ""))) +
+      `<div style="margin-top:6px">This box uses a small practice vocabulary. Real LLMs know 100,000+ pieces.</div>`;
   }
   document.getElementById("sIn").addEventListener("input", draw);
   draw();
