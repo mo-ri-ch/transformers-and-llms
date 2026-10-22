@@ -18,6 +18,63 @@
   .map .part-label { font-family: var(--hand); color: var(--redpen); font-size: 1.05rem; margin: 14px 0 6px; }
   .map .part-label:first-of-type { margin-top: 0; }
   .companion { font-size: 0.9rem; color: var(--pencil); max-width: 60ch; margin: 0 0 40px; }
+  /* ---------- Demo: follow one sentence through an LLM ---------- */
+  .journey-intro { max-width: 52ch; color: var(--pencil); font-size: 1.15rem; margin-bottom: 18px; }
+  .journey { padding: 40px 26px 22px; margin: 0 0 64px; max-width: 900px; }
+  .journey [data-status] { color: var(--pencil); }
+  .journey [data-status].bad { color: var(--redpen); }
+  .journey:not(.ready) .jbody { display: none; }
+  .jdots { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 18px; padding: 0; list-style: none; }
+  .jdot { font-size: 0.85rem; padding: 4px 10px; border-radius: 20px; border-width: 1.5px; background: var(--card); }
+  .jdot.on { background: var(--ink); color: var(--paper); }
+  .jdot .ln { opacity: 0.65; margin-left: 4px; font-size: 0.78rem; }
+  .jinput { display: grid; gap: 8px; margin-bottom: 18px; }
+  .jinput input { font-family: var(--mono); font-size: 1.1rem; padding: 8px 12px; border: 2px solid var(--ink); border-radius: 8px; background: var(--paper); color: var(--ink); width: 100%; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { font-family: var(--mono); font-size: 0.85rem; padding: 3px 11px; border-radius: 20px; border-width: 1.5px; }
+  .chip.on { background: var(--hl-yellow); color: var(--on-hl); }
+  .stage h3 { font-size: 1.6rem; margin: 0 0 4px; }
+  .stage .tag { font-family: var(--hand); color: var(--redpen); font-size: 1.05rem; margin: 0 0 10px; }
+  .stage .what { margin: 0 0 14px; max-width: 62ch; }
+  .tokens, .attn { display: flex; flex-wrap: wrap; gap: 4px; font-family: var(--mono); }
+  .tok { display: grid; justify-items: center; min-width: 2em; padding: 4px 4px 2px; border: 1.5px solid var(--ink); border-radius: 6px; background: var(--card); }
+  .tok:nth-child(5n+1) { background: var(--note-yellow); } .tok:nth-child(5n+2) { background: var(--note-pink); }
+  .tok:nth-child(5n+3) { background: var(--note-blue); } .tok:nth-child(5n+4) { background: var(--note-green); }
+  .tok:nth-child(5n) { background: var(--note-orange); }
+  .tok b { font-weight: 600; color: var(--on-hl); } .tok small { font-size: 0.7rem; color: var(--on-hl); opacity: 0.65; }
+  .att { min-width: 1.5em; text-align: center; padding: 6px 3px; border-radius: 4px; font-size: 1.05rem;
+    background: color-mix(in srgb, var(--hl-yellow) calc(var(--w) * 100%), transparent); }
+  .att.me { outline: 2px solid var(--pen); }
+  .layers { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 12px 0 4px; font-size: 0.9rem; color: var(--pencil); }
+  .layers button { padding: 2px 10px; font-size: 0.85rem; }
+  .layers button.on { background: var(--ink); color: var(--paper); }
+  .small { font-size: 0.88rem; color: var(--pencil); margin: 10px 0 0; }
+  .bars { display: grid; gap: 6px; margin: 4px 0 14px; max-width: 520px; }
+  .bar { display: grid; grid-template-columns: 5.5em 1fr 3em; align-items: center; gap: 10px; font-family: var(--mono); font-size: 0.9rem; }
+  .bar .track { height: 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .bar .fill { display: block; height: 100%; background: var(--hl-yellow); border-right: 2px solid var(--ink); }
+  .bar .pct { text-align: right; color: var(--pencil); }
+  .temp { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .temp input { width: 200px; accent-color: var(--pen); }
+  .written { font-family: var(--mono); white-space: pre-wrap; word-break: break-word; min-height: 3em; padding: 8px 12px; margin-top: 10px; background: var(--paper); border: 2px solid var(--ink); border-radius: 8px; }
+  .written:empty { display: none; }
+  .written .start, .answer .start { color: var(--pencil); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+  .answer { text-align: left; font-family: var(--mono); font-weight: 400; font-size: 0.88rem; white-space: pre-wrap; word-break: break-word; padding: 10px 12px; background: var(--paper); line-height: 1.45; }
+  .answer .which { display: block; font-family: var(--head); font-size: 1.05rem; margin-bottom: 6px; }
+  .answer .new { background: var(--hl-yellow); color: var(--on-hl); }
+  .answer:hover, .answer.picked { background: var(--paper); color: var(--ink); }
+  .answer.picked { outline: 3px solid var(--good); }
+  .agent { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .agent > div { padding: 10px 12px; border: 2px solid var(--ink); border-radius: 8px; background: var(--paper); }
+  .agent h4 { font-family: var(--head); font-weight: 400; font-size: 1.15rem; margin: 0 0 6px; }
+  .agent .out { font-family: var(--mono); min-height: 1.5em; }
+  .agent .bad-x { color: var(--redpen); } .agent .good-x { color: var(--good); }
+  .agent:not(.shown) .verdict { visibility: hidden; }
+  .call { background: var(--note-blue); color: var(--on-hl); padding: 1px 5px; border-radius: 3px; }
+  .jnav { display: flex; justify-content: space-between; gap: 10px; margin-top: 22px; padding-top: 14px; border-top: 1.5px dashed var(--rule); }
+  .journey-end { font-family: var(--hand); color: var(--redpen); font-size: 1.25rem; margin: 18px 0 0; }
+  @media (max-width: 640px) { .pair, .agent { grid-template-columns: 1fr; } .journey { padding: 36px 16px 18px; } }
 </style>
 </head>
 <body>
@@ -35,7 +92,8 @@
         <h1>How LLMs <span class="swash">really</span> work.</h1>
         <p class="say">ChatGPT, Claude and Gemini are all built on one idea: <b>the Transformer.</b> Follow it from the first paper to today's reasoning models and agents, one question at a time.</p>
         <div class="actions">
-          <a class="btn primary" href="#path">See the path</a>
+          <a class="btn primary" href="#demo">Try the demo</a>
+          <a class="btn" href="#path">See the path</a>
           <button data-note="needNote" aria-expanded="false" aria-controls="needNote">What you need</button>
           <button data-note="howNote" aria-expanded="false" aria-controls="howNote">How to use</button>
         </div>
@@ -110,6 +168,89 @@
       </div>
     </section>
 
+    <h2 id="demo">Follow one sentence through an LLM</h2>
+    <p class="journey-intro">Type a sentence and watch what a language model does with it, step by step.
+      <b>By the end of the course, you'll understand every step of this.</b></p>
+
+    <div class="activity journey" id="journey">
+      <p data-status>Loading Neo…</p>
+      <div class="jbody">
+        <ol class="jdots" aria-label="Steps">
+          <li><button class="jdot">1 Tokens<span class="ln">L1</span></button></li>
+          <li><button class="jdot">2 Attention<span class="ln">L1</span></button></li>
+          <li><button class="jdot">3 Next word<span class="ln">L2</span></button></li>
+          <li><button class="jdot">4 Preferences<span class="ln">L3–4</span></button></li>
+          <li><button class="jdot">5 Tools<span class="ln">L6</span></button></li>
+        </ol>
+
+        <div class="jinput">
+          <label for="jText" class="small" style="margin:0">Your sentence (Neo read fairy tales, so story sentences work best):</label>
+          <input id="jText" maxlength="60" autocomplete="off" spellcheck="false">
+          <div class="chips" id="jChips" role="group" aria-label="Pick a start"></div>
+        </div>
+
+        <section class="stage">
+          <h3>1 · Split it into tokens</h3>
+          <p class="tag">You'll learn this in Lesson 1</p>
+          <p class="what">A model can't read text, only numbers. So first the sentence is cut into <b>tokens</b>, and each token gets a number.</p>
+          <div class="tokens" id="jTokens"></div>
+          <p class="small"><span id="jTokCount"></span>. Neo cuts text into single letters. Big LLMs like ChatGPT cut it into word pieces, so the same sentence takes far fewer tokens.</p>
+        </section>
+
+        <section class="stage" hidden>
+          <h3>2 · Let the tokens look at each other</h3>
+          <p class="tag">You'll learn this in Lesson 1</p>
+          <p class="what">This is <b>attention</b>, the heart of the Transformer. Each token decides which earlier tokens help it understand the sentence.</p>
+          <div class="attn" id="jAttn"></div>
+          <div class="layers">Layer:
+            <button data-layer="0">1</button><button data-layer="1">2</button><button data-layer="2">3</button><button data-layer="3">4</button>
+          </div>
+          <p class="small" id="jAttnNote"></p>
+        </section>
+
+        <section class="stage" hidden>
+          <h3>3 · Guess what comes next</h3>
+          <p class="tag">You'll learn this in Lesson 2</p>
+          <p class="what">After all the layers, the model gives a chance to every possible next token. <b>Temperature</b> decides how boldly it picks.</p>
+          <div class="bars" id="jBars"></div>
+          <div class="temp">
+            <label for="jTempSlider">Temperature <b id="jTemp">0.8</b></label>
+            <input type="range" id="jTempSlider" min="0.2" max="2" step="0.1" value="0.8">
+            <span class="small" style="margin:0" id="jTempWord"></span>
+          </div>
+          <button class="primary" id="jWrite">▶ Let Neo keep writing</button>
+          <div class="written" id="jWritten" aria-live="polite"></div>
+        </section>
+
+        <section class="stage" hidden>
+          <h3>4 · Learn which answers people prefer</h3>
+          <p class="tag">You'll learn this in Lessons 3 and 4</p>
+          <p class="what">Neo wrote two endings for your sentence. Pick the one you think is better. Real LLMs are tuned using millions of choices like this.</p>
+          <div class="pair" id="jPair"></div>
+          <button id="jNewPair">↺ Two new answers</button>
+          <p class="small" id="jPrefNote" aria-live="polite"></p>
+        </section>
+
+        <section class="stage" hidden>
+          <h3>5 · Use a tool instead of guessing</h3>
+          <p class="tag">You'll learn this in Lesson 6</p>
+          <p class="what">A language model only guesses the next token, so it's bad at exact math. An <b>agent</b> knows when to call a tool instead.</p>
+          <button class="primary" id="jAsk">Ask: 37 × 24 = ?</button>
+          <div class="agent">
+            <div><h4>Neo guesses</h4><div class="out" id="jGuess"></div><div class="verdict bad-x">✗ Just letters that look likely</div></div>
+            <div><h4>An agent uses a calculator</h4><div class="out" id="jTool"></div><div class="verdict good-x">✓ Exactly right</div></div>
+          </div>
+          <p class="small">Neo can't really call tools. This step shows the idea, using Neo's real guess.</p>
+        </section>
+
+        <div class="jnav">
+          <button id="jBack">← Back</button>
+          <button class="primary" id="jNext">Next step →</button>
+        </div>
+      </div>
+      <p class="small">Neo is the small Transformer you build in <a href="https://mo-ri-ch.github.io/build-an-llm-from-scratch/">Build a Tiny LLM</a>, running right here in your browser. Steps 1–3 show its real tokens, attention and guesses. ChatGPT works the same way, just millions of times bigger.</p>
+    </div>
+
     <h2 id="path">The path</h2>
     <p class="path-intro">Each lesson ends with a question. The next lesson answers it.</p>
     <ol class="path" id="pathList"></ol>
@@ -125,5 +266,6 @@
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/common.js"></script>
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/pen.js"></script>
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/home.js"></script>
+<script src="assets/demo.js"></script>
 </body>
 </html>
