@@ -5,7 +5,7 @@ Interactive notebook-style lessons, one question at a time.
 
 **Live site:** https://mo-ri-ch.github.io/transformers-and-llms/
 
-An independent study companion, written in my own words. It follows the order of Stanford's public
+An independent study companion, written in my own words. It follows the order of the Autumn 2026 lectures in Stanford's public
 [CME295 syllabus](https://cme295.stanford.edu/syllabus/). Not affiliated with or endorsed by Stanford.
 
 ## How the site is built
