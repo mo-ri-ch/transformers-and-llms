@@ -144,6 +144,20 @@
   .netpic .n.goal { stroke: var(--good); stroke-width: 3.5; }
   .netpic .nv { font-family: var(--mono); font-size: 7.5px; text-anchor: middle; fill: var(--on-hl); }
   .netpic .nl { font-family: var(--mono); font-size: 9px; text-anchor: middle; fill: var(--pencil); }
+  /* Quick basics: the guessing machine picture and the "how wrong?" bar */
+  .guessmac { width: 100%; max-width: 560px; margin: 4px 0 10px; }
+  .gm-in { fill: var(--note-yellow); stroke: var(--ink); stroke-width: 1.5; }
+  .gm-box { fill: var(--note-blue); stroke: var(--ink); stroke-width: 1.5; }
+  .gm-t { font-family: var(--head); font-size: 20px; text-anchor: middle; fill: var(--on-hl); }
+  .gm-s { font-family: var(--hand); font-size: 13px; text-anchor: middle; fill: var(--on-hl); }
+  .gm-a { stroke: var(--pen); stroke-width: 2.5; marker-end: url(#gmHead); }
+  .gm-o { font-family: var(--mono); font-size: 15px; fill: var(--ink); }
+  .gm-n { fill: var(--pen); font-weight: 700; }
+  .smrow .sc { color: var(--pencil); font-size: 0.85rem; }
+  .wrongbar { display: grid; grid-template-columns: 6.5em 1fr 3.5em; gap: 10px; align-items: center; margin: 12px 0 4px; max-width: 560px; font-family: var(--head); }
+  .wrongbar .track { height: 18px; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .wrongbar .fill { display: block; height: 100%; background: var(--hl-pink); border-right: 2px solid var(--ink); transition: width .25s; }
+  .wrongbar b { font-family: var(--mono); text-align: right; }
   @media (max-width: 560px) { .timeline li { grid-template-columns: 1fr; gap: 4px; } }
 </style>
 </head>
@@ -475,22 +489,54 @@
     </section>
 
     <!-- 10 -->
-    <section class="part" data-title="Quick basics: a tiny neural network">
-      <h2>✏️ Quick basics: a tiny neural network</h2>
-      <p class="say">A <mark>neural network</mark> turns numbers into new numbers, in layers:</p>
-      <ol class="steps">
-        <li><b>Multiply and add.</b> Each layer multiplies its input by a table of numbers called <mark>weights</mark>.</li>
-        <li><b>Scores → chances.</b> At the end, <mark>softmax</mark> turns raw scores into chances that add up to 100%.</li>
-        <li><b>Measure the mistake.</b> The <mark>loss</mark> is big when the right answer got a small chance.</li>
-        <li><b>Nudge the weights</b> so the loss gets a bit smaller. Repeat thousands of times. That's <mark>training</mark>.</li>
-      </ol>
+    <section class="part" data-title="Quick basics: a guessing machine">
+      <h2>✏️ Quick basics: a guessing machine</h2>
+      <p class="say">A <mark>neural network</mark> is a machine that guesses. A word goes in, and out come <b>scores</b> for what might come next.</p>
+      <svg class="guessmac" viewBox="0 0 520 170" aria-label="The word A goes into the network, which gives scores to cute, teddy bear and is">
+        <defs><marker id="gmHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
+        <rect x="8" y="64" width="64" height="40" rx="6" class="gm-in"/><text x="40" y="90" class="gm-t">A</text>
+        <rect x="150" y="34" width="150" height="100" rx="12" class="gm-box"/>
+        <text x="225" y="78" class="gm-t">network</text><text x="225" y="100" class="gm-s">multiplies by its weights</text>
+        <line x1="72" y1="84" x2="146" y2="84" class="gm-a"/>
+        <line x1="300" y1="60" x2="372" y2="30" class="gm-a"/><line x1="300" y1="84" x2="372" y2="84" class="gm-a"/><line x1="300" y1="108" x2="372" y2="138" class="gm-a"/>
+        <text x="380" y="35" class="gm-o">cute <tspan class="gm-n">2.0</tspan></text>
+        <text x="380" y="89" class="gm-o">teddy bear <tspan class="gm-n">0.5</tspan></text>
+        <text x="380" y="143" class="gm-o">is <tspan class="gm-n">0.1</tspan></text>
+      </svg>
+      <p class="say">Inside, the network multiplies by a lot of numbers called <mark>weights</mark>. Different weights give different scores.</p>
+      <p class="say">A higher score means: “I think this word is more likely.”</p>
+      <p class="hook">But scores like 2.0 or 0.5 are hard to read. How do they become chances?</p>
+    </section>
+
+    <section class="part" data-title="Quick basics: scores → chances">
+      <h2>✏️ Quick basics: scores → chances</h2>
+      <p class="say">The last step turns scores into <b>chances</b> that add up to 100%. It's called <mark data-peek="Softmax: raise e to the power of each score, then divide each one by the total. That makes every chance positive, and they all add up to 100%.">softmax</mark>.</p>
       <div class="activity">
-        <div class="do">Try it: move the scores. Softmax turns them into chances. The right answer is “cute”.</div>
+        <div class="do">Try it: move the scores and watch the chances.</div>
         <div class="sm" id="smRows"></div>
-        <p class="mono" id="smLoss"></p>
         <p class="note" id="smSays"></p>
       </div>
-      <p class="hook">Training means: change the weights until the right answers get high chances. Now let's use this to learn embeddings.</p>
+      <ul>
+        <li>A bigger score always gets a bigger chance.</li>
+        <li>The chances always add up to 100%: if one goes up, the others go down.</li>
+      </ul>
+      <p class="hook">The network makes a guess. But what if the guess is wrong?</p>
+    </section>
+
+    <section class="part" data-title="Quick basics: learning from a mistake">
+      <h2>✏️ Quick basics: learning from a mistake</h2>
+      <p class="say">The real next word was <b>“cute”</b>, but the network gave it only a small chance.</p>
+      <p class="say">How wrong it was is called the <mark data-peek="Loss = −log(chance of the right answer). A 100% chance gives a loss of 0. The smaller the chance, the bigger the loss.">loss</mark>. Learning means nudging the weights a little so the loss shrinks. That's <mark>training</mark>.</p>
+      <div class="activity">
+        <div class="do">Try it: press Learn a little, again and again.</div>
+        <div class="sm" id="trainRows"></div>
+        <div class="wrongbar"><span>How wrong?</span><span class="track"><span class="fill" id="trainLoss"></span></span><b id="trainLossN"></b></div>
+        <div class="btnrow">
+          <button class="primary" id="trainStep">Learn a little</button>
+        </div>
+        <p class="note" id="trainSays"></p>
+      </div>
+      <p class="hook">Real networks do this millions of times, on millions of examples. Now let's use it to learn embeddings.</p>
     </section>
 
     <!-- 11 -->
@@ -944,26 +990,57 @@ function overlayArrows(box, links, opts = {}) {
   draw();
 })();
 
-// ---------- Part 10: softmax and loss ----------
+// ---------- Quick basics: scores → chances (softmax), with three words ----------
+const smWords = ["cute", "teddy bear", "is"];
+const smChances = sc => { const e = sc.map(Math.exp), t = e.reduce((a, b) => a + b, 0); return e.map(x => x / t); };
+function smRowsHTML(id, scores, editable, right) {
+  return smWords.map((w, i) => `<div class="smrow${i === right ? " right" : ""}"><span>${w}${i === right ? " ✓" : ""}</span>` +
+    (editable ? `<input type="range" min="-3" max="3" step="0.1" value="${scores[i]}" data-i="${i}" aria-label="Score for ${w}">` : `<span class="mono sc">score ${scores[i].toFixed(1)}</span>`) +
+    `<span class="track"><span class="fill"></span></span><span class="pct"></span></div>`).join("");
+}
+function smFill(box, p) {
+  box.querySelectorAll(".smrow").forEach((row, i) => {
+    row.querySelector(".fill").style.width = (p[i] * 100).toFixed(1) + "%";
+    row.querySelector(".pct").textContent = Math.round(p[i] * 100) + "%";
+  });
+}
 (function softmaxDemo() {
-  const WORDS = ["A", "cute", "teddy bear", "is", "reading", "."], RIGHT = 1;
-  const scores = [0.5, 1.2, 0.3, 0.1, 0.2, 0.1];
-  const box = document.getElementById("smRows");
-  box.innerHTML = WORDS.map((w, i) => `<div class="smrow${i === RIGHT ? " right" : ""}"><span>${w}${i === RIGHT ? " ✓" : ""}</span>
-    <input type="range" min="-3" max="3" step="0.1" value="${scores[i]}" data-i="${i}" aria-label="Score for ${w}">
-    <span class="track"><span class="fill"></span></span><span class="pct"></span></div>`).join("");
+  const box = document.getElementById("smRows"), scores = [2.0, 0.5, 0.1];
+  box.innerHTML = smRowsHTML("smRows", scores, true, -1);
   function draw() {
-    const ex = scores.map(Math.exp), sum = ex.reduce((a, b) => a + b, 0), p = ex.map(e => e / sum);
-    box.querySelectorAll(".smrow").forEach((row, i) => {
-      row.querySelector(".fill").style.width = (p[i] * 100).toFixed(1) + "%";
-      row.querySelector(".pct").textContent = Math.round(p[i] * 100) + "%";
-    });
-    const loss = -Math.log(p[RIGHT]);
-    document.getElementById("smLoss").innerHTML = `<span data-peek="Loss = −log(chance of the right answer). 100% gives loss 0; small chances give big losses.">Loss</span> = −log(${p[RIGHT].toFixed(2)}) = <b>${loss.toFixed(2)}</b>`;
-    document.getElementById("smSays").textContent = p[RIGHT] > 0.8 ? "Great guess: the loss is small." : p[RIGHT] > 0.4 ? "Not bad. Raise cute's score to shrink the loss." : "Bad guess: “cute” gets a small chance, so the loss is big. Training would raise its score.";
+    const p = smChances(scores); smFill(box, p);
+    const top = p.indexOf(Math.max(...p));
+    document.getElementById("smSays").innerHTML = `Right now the network's best guess is <b>${smWords[top]}</b> (${Math.round(p[top] * 100)}%).`;
   }
   box.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => { scores[Number(inp.dataset.i)] = Number(inp.value); draw(); }));
   draw();
+})();
+
+// ---------- Quick basics: learning from a mistake (training lowers the loss) ----------
+(function learning() {
+  const box = document.getElementById("trainRows"), RIGHT = 0, START = [-0.5, 1.5, 0.8];
+  let scores, steps;
+  function reset() { scores = START.slice(); steps = 0; draw(); }
+  function draw() {
+    box.innerHTML = smRowsHTML("trainRows", scores, false, RIGHT);
+    const p = smChances(scores); smFill(box, p);
+    const loss = -Math.log(p[RIGHT]);
+    document.getElementById("trainLoss").style.width = Math.min(100, loss / 2.6 * 100) + "%";
+    document.getElementById("trainLossN").textContent = loss.toFixed(2);
+    document.getElementById("trainSays").innerHTML = steps === 0
+      ? "“cute” only gets " + Math.round(p[RIGHT] * 100) + "%. The network was quite wrong."
+      : p[RIGHT] > 0.9 ? `After ${steps} small steps, “cute” gets ${Math.round(p[RIGHT] * 100)}%. The network has learned this example.`
+      : `Step ${steps}: “cute” went up to ${Math.round(p[RIGHT] * 100)}%, and the loss went down.`;
+    document.getElementById("trainStep").hidden = p[RIGHT] > 0.9;
+  }
+  // One small step: raise the right word's score, lower the others (what training does to the weights)
+  document.getElementById("trainStep").onclick = () => {
+    const p = smChances(scores);
+    scores = scores.map((sc, i) => sc + 1.6 * ((i === RIGHT ? 1 : 0) - p[i]));
+    steps++; draw();
+  };
+  addReset("trainRows", reset);
+  reset();
 })();
 
 // ---------- Part 11: CBOW and skip-gram ----------
