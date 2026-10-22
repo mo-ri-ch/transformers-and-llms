@@ -287,13 +287,14 @@
       <p class="say"><b>Find the two pieces that appear side by side most often. Glue them into one new piece. Repeat.</b></p>
 
       <div class="activity">
-        <div class="do">Try it: our training text has these words. Press Merge and watch the pieces grow.</div>
+        <div class="do">Try it: imagine our whole training text is just these words. Every word starts as single letters.</div>
+        <p class="note" style="margin-top:0">×6 means the word appears 6 times in the text.</p>
         <div class="bpe-stats">
-          <span>Vocabulary: <b id="bpeVocab"></b> pieces</span>
-          <span>All words together: <b id="bpeLen"></b> tokens</span>
+          <span>Pieces in our list: <b id="bpeVocab"></b> <small>(grows)</small></span>
+          <span>Tokens for the whole text: <b id="bpeLen"></b> <small>(shrinks)</small></span>
         </div>
         <div class="bpe-words" id="bpeWords"></div>
-        <div>Most common pairs right now:</div>
+        <div>Which two pieces sit side by side most often?</div>
         <div class="pairs" id="bpePairs"></div>
         <div class="btnrow">
           <button class="primary" id="bpeMerge">Merge the top pair</button>
@@ -301,6 +302,7 @@
           <button class="reset" id="bpeReset">↺ Start again</button>
         </div>
         <p class="note" id="bpeNote"></p>
+        <div style="margin-top:10px">Our list of pieces <small>(new ones in green)</small>:</div>
         <div class="vocab" id="bpeVocabList" aria-label="Vocabulary"></div>
       </div>
       <p class="say">Each merge adds one piece and makes the text shorter. We stop at the vocabulary size we want. Today's LLMs stop at <b>hundreds of thousands of pieces</b>, from many languages.</p>
@@ -750,7 +752,7 @@ function bpeReset() {
   bpe = Object.entries(BPE_TEXT).map(([w, n]) => ({ n, parts: Array.from(w) }));
   vocab = [...new Set(Object.keys(BPE_TEXT).join(""))].sort();
   added = null;
-  document.getElementById("bpeNote").textContent = "We start with single letters.";
+  document.getElementById("bpeNote").innerHTML = "Press <b>Merge the top pair</b>: the two pieces that sit side by side most often get glued into one new piece.";
   drawBpe();
 }
 function pairCounts() {
@@ -770,7 +772,9 @@ function bpeMerge() {
     w.parts = out;
   });
   vocab.push(joined); added = joined;
-  document.getElementById("bpeNote").innerHTML = `<b>${esc(a)}</b> + <b>${esc(b)}</b> appeared side by side <b>${top[1]}</b> times, so they became one new piece: <b>${esc(joined)}</b>.`;
+  const eg = bpe.find(w => w.parts.includes(joined));
+  document.getElementById("bpeNote").innerHTML = `<b>${esc(a)}</b> and <b>${esc(b)}</b> sat side by side <b>${top[1]}</b> times, so we glued them into one new piece: <b>${esc(joined)}</b>. ` +
+    `Now “${eg.parts.join("")}” is ${eg.parts.map(esc).join(" · ")}: ${eg.parts.length} piece${eg.parts.length === 1 ? "" : "s"}.`;
   drawBpe();
   return true;
 }
@@ -779,7 +783,7 @@ function drawBpe() {
     `<div class="bpe-word"><span class="times">×${w.n}</span><span class="toks">${w.parts.map(p => tok(p, p === added ? "new" : "")).join("")}</span></div>`).join("");
   const pc = pairCounts().slice(0, 4);
   document.getElementById("bpePairs").innerHTML = pc.length
-    ? pc.map(([k, n], i) => `<span class="${i ? "" : "top"}">${esc(k.replace("\u0001", " + "))} : ${n}</span>`).join("")
+    ? pc.map(([k, n], i) => `<span class="${i ? "" : "top"}">${esc(k.replace("\u0001", " + "))} → ${n} times</span>`).join("")
     : "<span>none</span>";
   document.getElementById("bpeVocab").textContent = vocab.length;
   document.getElementById("bpeLen").textContent = bpe.reduce((s, w) => s + w.parts.length * w.n, 0);
