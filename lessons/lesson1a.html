@@ -517,7 +517,6 @@
       </svg>
       <p class="say">Each arrow has a number called a <mark>weight</mark>. The score is just <b>input × weight</b>: 1 × 2.0 = 2.0 for “cute”.</p>
       <p class="say">Change the weights, and the scores change. A higher score means: “I think this word is more likely.”</p>
-      <p class="say">Where do the weights come from? The network <b>learns</b> them. We’ll see how in 2 slides.</p>
       <p class="say">Real networks chain many of these steps, called <mark data-peek-from="layersPeek">layers</mark>, with many inputs and millions of weights. But each step is this simple.</p>
       <div hidden id="layersPeek"><div>Each layer is the picture above: numbers in, <b>× weights</b>, new numbers out. Chain two:</div>
         <svg class="ly-pic" viewBox="0 0 350 172" aria-label="Two layers: A goes through layer 1 to three new numbers, then through layer 2 to the scores">
