@@ -45,8 +45,9 @@
   .bpe-word { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .bpe-word .times { font-family: var(--mono); font-size: 0.8rem; color: var(--pencil); min-width: 2.6em; }
   .pairs { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 4px; font-family: var(--mono); font-size: 0.9rem; }
-  .pairs span { padding: 2px 8px; border-radius: 12px; border: 1.5px solid var(--rule); }
-  .pairs span.top { background: var(--hl-yellow); color: var(--on-hl); border-color: var(--ink); }
+  .pairs > span { padding: 3px 8px; border-radius: 12px; border: 1.5px solid var(--rule); display: inline-flex; gap: 4px; align-items: center; }
+  .pairs .tk { padding: 0 5px; }
+  .pairs > span.top { background: var(--hl-yellow); color: var(--on-hl); border-color: var(--ink); }
   .bpe-stats { display: flex; gap: 22px; flex-wrap: wrap; font-family: var(--head); font-size: 1.15rem; margin: 10px 0; }
   .bpe-stats b { color: var(--pen); }
   .tk.new { outline: 3px solid var(--hl-green); }
@@ -304,7 +305,7 @@
           <button class="reset" id="bpeReset">↺ Start again</button>
         </div>
         <p class="note" id="bpeNote"></p>
-        <div style="margin-top:10px">The vocabulary <small>(new pieces in green)</small>:</div>
+        <div style="margin-top:10px">The vocabulary <small>(the newest piece is outlined)</small>:</div>
         <div class="vocab" id="bpeVocabList" aria-label="Vocabulary"></div>
       </div>
       <p class="say">Each merge adds one piece and makes the text shorter. We stop at the vocabulary size we want. Today's LLMs stop at <b>hundreds of thousands of pieces</b>, from many languages.</p>
@@ -783,16 +784,23 @@ function bpeMerge() {
   drawBpe();
   return true;
 }
+// Each piece gets its own colour (the same everywhere), so you can follow it through the merges
+function pieceColor(p) {
+  const i = vocab.indexOf(p);
+  const hue = Math.round((i * 137.508) % 360);   // the golden angle spreads the colours apart
+  return `background:hsl(${hue} 75% 86%);color:#1D2238;border-color:hsl(${hue} 45% 45%)`;
+}
+const ptok = (p, cls = "") => `<span class="tk ${cls}" style="${pieceColor(p)}">${esc(p)}</span>`;
 function drawBpe() {
   document.getElementById("bpeWords").innerHTML = bpe.map(w =>
-    `<div class="bpe-word"><span class="times">×${w.n}</span><span class="toks">${w.parts.map(p => tok(p, p === added ? "new" : "")).join("")}</span></div>`).join("");
+    `<div class="bpe-word"><span class="times">×${w.n}</span><span class="toks">${w.parts.map(p => ptok(p, p === added ? "new" : "")).join("")}</span></div>`).join("");
   const pc = pairCounts().slice(0, 4);
   document.getElementById("bpePairs").innerHTML = pc.length
-    ? pc.map(([k, n], i) => `<span class="${i ? "" : "top"}">${esc(k.replace("\u0001", " + "))} → ${n} times</span>`).join("")
+    ? pc.map(([k, n], i) => { const [x, y] = k.split("\u0001"); return `<span class="${i ? "" : "top"}">${ptok(x)} + ${ptok(y)} → ${n} times</span>`; }).join("")
     : "<span>none</span>";
   document.getElementById("bpeVocab").textContent = vocab.length;
   document.getElementById("bpeLen").textContent = bpe.reduce((s, w) => s + w.parts.length * w.n, 0);
-  document.getElementById("bpeVocabList").innerHTML = vocab.map(v => `<span class="${v.length > 1 ? "added" : ""}">${esc(v)}</span>`).join("");
+  document.getElementById("bpeVocabList").innerHTML = vocab.map(v => ptok(v, v === added ? "new" : "")).join("");
 }
 document.getElementById("bpeMerge").onclick = bpeMerge;
 document.getElementById("bpeAll").onclick = () => { for (let i = 0; i < 5; i++) if (!bpeMerge()) break; };
