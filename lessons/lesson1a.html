@@ -257,19 +257,17 @@
 
       <div class="activity">
         <div class="do">Try it: type anything and watch it split into pieces.</div>
+        <button class="doubt" type="button" data-peek-from="spacesPeek" aria-label="What about spaces?">🤔</button>
         <input class="tokin" id="sIn" value="A cute teddy bear is reading." maxlength="100" spellcheck="false" aria-label="Text to cut into word pieces">
         <div class="split"><div class="toks" id="sToks"></div></div>
         <p class="bpe-stats" style="margin:12px 0 0"><span>Words: <b id="sW"></b></span><span>Letters: <b id="sC"></b></span><span><span data-peek="This box uses a small practice vocabulary. Real LLMs know 100,000+ pieces.">Pieces</span>: <b id="sP"></b></span></p>
         <p class="note">Try “unbelievable”, “playfully” or “readers”.</p>
       </div>
-      <details class="unclear">
-        <summary>🤔 What about spaces?</summary>
-        <ul>
+      <div hidden id="spacesPeek"><b>🤔 What about spaces?</b><ul style="margin:6px 0 0">
           <li><b>By words:</b> spaces are just where we cut. They don't become tokens.</li>
           <li><b>By letters:</b> every space is a token, shown as _. That's one reason that version is so long.</li>
-          <li><b>By pieces:</b> no separate space tokens, but nothing is lost. In the ## style, a piece without ## starts a new word, so the space is understood. GPT-style models glue the space onto the next word: “ cute” (with its space) is a single token.</li>
-        </ul>
-      </details>
+          <li><b>By pieces:</b> no separate space tokens, but nothing is lost. A piece without ## starts a new word. (GPT-style models glue the space onto the next word instead: “ cute” is one token.)</li>
+        </ul></div>
 
       <div class="cards">
         <div class="card"><h3 class="good">🙂 Good</h3><ul>
