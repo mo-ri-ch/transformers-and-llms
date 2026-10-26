@@ -3,7 +3,7 @@
 How modern LLMs work, from the Transformer to reasoning models and agents.
 Interactive notebook-style lessons, one question at a time.
 
-**Live site:** https://mo-ri-ch.github.io/transformers-and-llms/
+**Live site:** https://gradlabs.in/learn/transformers/
 
 An independent study companion, written in my own words. It follows the order of the Autumn 2026 lectures in Stanford's public
 [CME295 syllabus](https://cme295.stanford.edu/syllabus/). Not affiliated with or endorsed by Stanford.
