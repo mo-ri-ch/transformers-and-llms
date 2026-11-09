@@ -130,7 +130,7 @@
   .tr3d .lbl { font-family: var(--hand); font-size: 15px; }
   /* Pictures drawn over boxes: arrows between words */
   svg.links { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
-  .w2vwrap { position: relative; padding-top: 52px; }
+  .w2vwrap { position: relative; padding: 6px 0 2px; }
   .att2014 { position: relative; }
   .att2014.looked { row-gap: 64px; }
   /* The network picture in Inside word2vec */
@@ -180,6 +180,7 @@
   .scorecell input { flex: 1; min-width: 0; }
   .scv { min-width: 2.6em; text-align: right; color: var(--pen); }
   @media (max-width: 560px) { .timeline li { grid-template-columns: 1fr; gap: 4px; } }
+  .w2v .tk.blank { outline: none; background: var(--paper); border: 2px dashed var(--pen); color: var(--pen); font-weight: 700; min-width: 3.2em; }
 </style>
 </head>
 <body data-pen="blue">
@@ -592,10 +593,10 @@
     <!-- 11 -->
     <section class="part" data-title="Word2vec">
       <h2>Word2vec</h2>
-      <p class="say"><mark>Word2vec</mark> (2013) learns embeddings with a trick: train a small network on a <mark>proxy task</mark>, a practice task we don't actually care about.</p>
-      <p class="say">The task: guess words from their neighbours, over billions of words of text. To do it well, the network must learn what words mean.</p>
+      <p class="say"><mark>Word2vec</mark> (2013) learns embeddings with a trick: train a small network on a <mark data-peek="It practises on billions of words of text.">proxy task</mark>, a practice task: <b>guess a hidden word from its neighbours</b>.</p>
+      <p class="say">To guess well, it must learn what words mean. We don't need its guesses: we keep what it learned along the way, the <b>embeddings</b>.</p>
       <div class="activity">
-        <div class="do">Two versions of the practice task. Pick one, then click a word.</div>
+        <div class="do">Two versions of the practice task. Pick one, then click any word to move the blank.</div>
         <div class="btnrow" style="margin:0 0 10px">
           <button class="on" id="w2vCbow">CBOW</button>
           <button id="w2vSkip">Skip-gram</button>
@@ -603,10 +604,6 @@
         <div class="w2vwrap"><div class="toks w2v" id="w2vToks"></div></div>
         <p class="note" id="w2vSays"></p>
       </div>
-      <ul>
-        <li><b data-peek="Continuous bag of words: the neighbours are thrown into a “bag”, without their order.">CBOW</b>: the neighbours guess the middle word.</li>
-        <li><b>Skip-gram</b>: the middle word guesses its neighbours.</li>
-      </ul>
       <p class="hook">Let's look inside the network, using the simplest task: guess the next word.</p>
     </section>
 
@@ -1098,23 +1095,21 @@ function smFill(box, p) {
   reset();
 })();
 
-// ---------- Part 11: CBOW and skip-gram ----------
+// ---------- Part 11: CBOW and skip-gram (fill in the blank) ----------
 (function contexts() {
   const T = ["A", "cute", "teddy bear", "is", "reading"];
   let mode = "cbow", mid = 2;
   const box = document.getElementById("w2vToks");
+  const near = i => i !== mid && Math.abs(i - mid) <= 2;
   function draw() {
-    box.innerHTML = T.map((t, i) => `<button class="tk ${i === mid ? "mid" : Math.abs(i - mid) <= 2 ? "ctx" : "far"}" data-i="${i}">${t}</button>`).join("");
+    // CBOW hides the middle word; skip-gram hides its neighbours
+    const hidden = i => mode === "cbow" ? i === mid : near(i);
+    box.innerHTML = T.map((t, i) => `<button class="tk ${hidden(i) ? "blank" : i === mid ? "mid" : near(i) ? "ctx" : "far"}" data-i="${i}" aria-label="${t}">${hidden(i) ? "?" : t}</button>`).join("");
     box.querySelectorAll("button").forEach(b => b.onclick = () => { mid = Number(b.dataset.i); draw(); });
-    // Arrows show who guesses whom: neighbours → middle (CBOW), or middle → neighbours (skip-gram)
-    const btns = Array.from(box.querySelectorAll("button"));
-    const links = btns.map((b, i) => ({ b, i })).filter(x => x.i !== mid && Math.abs(x.i - mid) <= 2)
-      .map(x => mode === "cbow" ? { from: x.b, to: btns[mid] } : { from: btns[mid], to: x.b });
-    requestAnimationFrame(() => overlayArrows(box.parentElement, links, { id: "w2vHead" }));
-    const ctx = T.filter((_, i) => i !== mid && Math.abs(i - mid) <= 2).map(t => `“${t}”`).join(", ");
+    const ctx = T.filter((_, i) => near(i)).map(t => `“${t}”`).join(", ");
     document.getElementById("w2vSays").innerHTML = mode === "cbow"
-      ? `<b>CBOW:</b> from ${ctx}, guess the middle word <b>“${T[mid]}”</b>.`
-      : `<b>Skip-gram:</b> from <b>“${T[mid]}”</b>, guess each neighbour: ${ctx}.`;
+      ? `<b data-peek="Continuous bag of words: the neighbours go into a “bag”, without their order.">CBOW</b>: it sees ${ctx}, and must fill the blank. Answer: <b>“${T[mid]}”</b>.`
+      : `<b>Skip-gram</b>: it sees only <b>“${T[mid]}”</b>, and must fill each blank. Answers: ${ctx}.`;
     document.getElementById("w2vCbow").classList.toggle("on", mode === "cbow");
     document.getElementById("w2vSkip").classList.toggle("on", mode === "skip");
   }
