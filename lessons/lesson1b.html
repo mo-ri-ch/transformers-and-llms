@@ -192,8 +192,38 @@
         <div style="margin-top:6px">Titles that match your search best get most of your reading time.</div>
       </div>
       <p class="say">Score = <span data-peek="Query · key: multiply matching numbers, then add, like in Lesson 1a. A big score means a good match.">query · key</span>. Softmax turns the scores into shares. The new vector is the weighted average of the values.</p>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 1b.1">
+      <h2>✏️ Practice 1b.1</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">weighted average = share₁ × value₁ + share₂ × value₂ + …</b> (the shares add up to 1)<br><b class="eqbox">score = query · key</b> (multiply matching numbers, then add)<br><b class="eqbox">share = e<sup>score</sup> ÷ (sum of all e<sup>score</sup>)</b><br>The new vector is the weighted average of the values.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="12.5" data-tol="0.01" data-hint="Multiply each value by its share, then add." data-work="0.75 × 10 + 0.25 × 20 = 7.5 + 5 = 12.5.">
+          <div class="pq-q">Two values, <b>10</b> and <b>20</b>, get shares <b>75%</b> and <b>25%</b>. What is the weighted average?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.2" data-tol="0.005" data-hint="The shares always add up to 1." data-work="1 − 0.5 − 0.3 = 0.2.">
+          <div class="pq-q">Three shares are <b>0.5</b>, <b>0.3</b> and one more. What is the third?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.5" data-tol="0.005" data-hint="score = query · key: multiply first by first, second by second, add." data-work="1 × 0.5 + 0 × 2 = 0.5.">
+          <div class="pq-q">Query [1, 0], key [0.5, 2]. What is the score?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="2.92" data-tol="0.02" data-hint="First the shares with softmax: e¹ ÷ (e¹ + e⁰). Then the weighted average of 4 and 0." data-work="Shares: 2.718 ÷ 3.718 = 0.731 and 0.269. New value: 0.731 × 4 + 0.269 × 0 = 2.92.">
+          <div class="pq-q">A query gets scores <b>1.0</b> and <b>0.0</b> from two keys. Their values are <b>4</b> and <b>0</b>. What is the new value?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">Where do these three vectors come from? First, one more tool.</p>
     </section>
+
 
     <!-- 4 -->
     <section class="part" data-title="Quick basics: matrices">
@@ -232,8 +262,43 @@
         <div class="agrid" id="fmGrid"></div>
         <p class="note" id="fmSays"></p>
       </div>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 1b.2">
+      <h2>✏️ Practice 1b.2</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">each new number = vector · one column of the matrix</b><br>A vector of a numbers × an a × b matrix gives b numbers.<br>Attention divides every score by <b>√d<sub>k</sub></b>, where d<sub>k</sub> is how many numbers each key has.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="7" data-tol="0.01" data-hint="Use the second column: 1 and 3. Multiply with [1, 2] and add." data-work="Second column = (1, 3). 1 × 1 + 2 × 3 = 7.">
+          <div class="pq-q"><span class="mat" style="grid-template-columns:repeat(2,auto)"><span>1</span><span>2</span></span> × <span class="mat" style="grid-template-columns:repeat(2,auto)"><span>2</span><span>1</span><span>0</span><span>3</span></span>. What is the <b>second</b> number of the answer?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="6" data-tol="0.01" data-hint="The third column is (2, 0)." data-work="3 × 2 + 1 × 0 = 6.">
+          <div class="pq-q"><span class="mat" style="grid-template-columns:repeat(2,auto)"><span>3</span><span>1</span></span> × <span class="mat" style="grid-template-columns:repeat(3,auto)"><span>1</span><span>0</span><span>2</span><span>3</span><span>1</span><span>0</span></span>. What is the <b>third</b> number?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="64" data-tol="0.01" data-hint="a numbers × an a × b matrix gives b numbers." data-work="512 × (512 × 64) → 64 numbers.">
+          <div class="pq-q">An embedding of <b>512</b> numbers × W<sub>Q</sub> of size <b>512 × 64</b>. How many numbers are in the query?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="3" data-tol="0.01" data-hint="√64 = 8." data-work="24 ÷ 8 = 3.">
+          <div class="pq-q">d<sub>k</sub> = <b>64</b>. A query · key score is <b>24</b>. What is it after dividing by √d<sub>k</sub>?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="3" data-tol="0.01" data-hint="√16 = 4." data-work="12 ÷ 4 = 3.">
+          <div class="pq-q">d<sub>k</sub> = <b>16</b>. A score is <b>12</b>. After dividing?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">That's self-attention. Now, the machine built around it.</p>
     </section>
+
 
     <!-- 7 -->
     <section class="part" data-title="The Transformer">
@@ -338,8 +403,38 @@
         <li><mark data-peek="A small network that works on each token by itself. It makes the vector bigger (2,048 numbers in the paper), then small again. Most of the model's weights live here.">Feed-forward network</mark>: each token then thinks it over on its own.</li>
       </ul>
       <p class="say">What comes out: a vector per token that knows its <b>context</b>.</p>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 1b.3">
+      <h2>✏️ Practice 1b.3</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br>The embedding table has <b>V rows × d<sub>model</sub> columns</b>: one row per token.<br><b class="eqbox">encoder input = embedding + position vector</b> (add matching numbers)<br>The encoder repeats its pair of layers (self-attention, then feed-forward) <b>6 times</b>.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="15360000" data-tol="0.5" data-hint="Rows × columns." data-work="30,000 × 512 = 15,360,000 numbers, all learned.">
+          <div class="pq-q">A vocabulary of <b>30,000</b> tokens and d<sub>model</sub> = <b>512</b>. How many numbers are in the embedding table?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.4" data-tol="0.005" data-hint="Add the third numbers: watch the minus." data-work="0.9 + (−0.5) = 0.4.">
+          <div class="pq-q">Embedding [0.5, 0.2, 0.9] + position vector [0.0, 1.0, −0.5]. What is the <b>third</b> number?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="6" data-tol="0.01" data-hint="Each copy of the pair has one self-attention layer." data-work="6 copies × 1 = 6.">
+          <div class="pq-q">How many self-attention layers does each English token pass through in the encoder?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="4" data-tol="0.01" data-hint="Divide 2,048 by 512." data-work="2,048 ÷ 512 = 4.">
+          <div class="pq-q">The feed-forward network makes each 512-number vector <b>2,048</b> numbers big, then small again. How many times bigger is it at its widest?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">The English is understood. Now the decoder has to write.</p>
     </section>
+
 
     <!-- 12 -->
     <section class="part" data-title="The decoder">
@@ -406,8 +501,38 @@
         <p class="note" id="mkSays"></p>
       </div>
       <p class="say">That's why it's called <b>masked</b> (or <mark data-peek="“Causal” because each word can only depend on what came before it, like causes before effects.">causal</mark>) self-attention.</p>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 1b.4">
+      <h2>✏️ Practice 1b.4</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b>Masking:</b> each token sees itself and the tokens before it, never later ones.<br><b class="eqbox">chance = e<sup>score</sup> ÷ (sum of all e<sup>score</sup>)</b><br>The decoder writes one token per round, until it writes [EOS].</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="4" data-tol="0.01" data-hint="Itself and the ones before it." data-work="Tokens 1, 2, 3 and itself: 4.">
+          <div class="pq-q">A French sentence has 6 tokens. With masking, how many tokens can token <b>4</b> look at?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="21" data-tol="0.01" data-hint="Row 1 sees 1 token, row 2 sees 2, … row 6 sees 6. Add them up." data-work="1 + 2 + 3 + 4 + 5 + 6 = 21 (out of 36).">
+          <div class="pq-q">In the 6 × 6 attention grid with masking, how many cells are <b>not</b> masked?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.665" data-tol="0.01" data-hint="e² ≈ 7.389, e¹ ≈ 2.718, e⁰ = 1." data-work="7.389 ÷ (7.389 + 2.718 + 1) = 7.389 ÷ 11.107 = 0.665.">
+          <div class="pq-q">A tiny vocabulary of 3 words gets scores <b>2.0</b>, <b>1.0</b> and <b>0.0</b>. What is the chance of the top word?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="8" data-tol="0.01" data-hint="One token per round, and [EOS] is a token too." data-work="7 + 1 = 8 rounds.">
+          <div class="pq-q">The decoder writes 7 French tokens, then [EOS]. How many rounds does it run?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">Next trick: why look just one way, when you can look several ways at once?</p>
     </section>
+
 
     <!-- 15 -->
     <section class="part" data-title="Trick: multi-head attention">
@@ -463,8 +588,38 @@
         <div class="bars" id="lsBars"></div>
         <p class="note" id="lsSays"></p>
       </div>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 1b.5">
+      <h2>✏️ Practice 1b.5</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b>Multi-head:</b> each head gives its own vector; they're glued end to end.<br><b class="eqbox">residual: output = x + f(x)</b><br><b>Label smoothing:</b> ask for 90% on the right word, and share the other 10% equally.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="512" data-tol="0.01" data-hint="8 × 64." data-work="8 × 64 = 512: back to d&lt;sub&gt;model&lt;/sub&gt;.">
+          <div class="pq-q">8 heads each give a vector of <b>64</b> numbers. Glued end to end, how many numbers?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1.5" data-tol="0.005" data-hint="output = x + f(x). Add the second numbers." data-work="2.0 + (−0.5) = 1.5.">
+          <div class="pq-q">x = [1.0, 2.0] and the layer gives f(x) = [0.5, −0.5]. What is the <b>second</b> number of the output?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="3" data-tol="0.01" data-hint="x + 0 = x." data-work="3 + 0 = 3. The input passes straight through, so nothing is lost.">
+          <div class="pq-q">A layer has learned nothing useful yet: f(x) = [0, 0]. x = [3, 4]. What is the first number of the output?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.025" data-tol="0.001" data-hint="The rest is 10% = 0.1, shared by 4." data-work="0.1 ÷ 4 = 0.025 (2.5%) each.">
+          <div class="pq-q">With label smoothing, the right word gets 90%, and 4 other words share the rest equally. What does each of them get?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">We have every piece. Let's run the whole thing on our sentence.</p>
     </section>
+
 
     <!-- 18 -->
     <section class="part" data-title="End to end: the encoder">
@@ -506,8 +661,38 @@
         <div style="margin-top:6px">So d<sub>q</sub> = d<sub>k</sub> (64 in the paper).</div>
       </div>
       <p class="say">Same shape in and out means layers can be stacked as high as we like.</p>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 1b.6">
+      <h2>✏️ Practice 1b.6</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br>X is <b>n × 512</b>, W<sub>Q</sub> is <b>512 × 64</b>, Q is <b>n × 64</b>, the attention grid Q K<sup>T</sup> is <b>n × n</b>, and the output is <b>n × 512</b>.<br>A matrix of r rows and c columns holds r × c numbers.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="100" data-tol="0.01" data-hint="The grid is n × n." data-work="10 × 10 = 100.">
+          <div class="pq-q">n = <b>10</b> tokens. How many cells in the attention grid?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="4" data-tol="0.01" data-hint="Work out 20 × 20, then compare with 100." data-work="400 ÷ 100 = 4. Double the tokens, 4 times the grid.">
+          <div class="pq-q">n = <b>20</b>. How many times bigger is the grid than for 10 tokens?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="640" data-tol="0.01" data-hint="Q is n × 64." data-work="10 × 64 = 640.">
+          <div class="pq-q">n = <b>10</b>. How many numbers are in Q?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="5120" data-tol="0.5" data-hint="The output is n × 512." data-work="10 × 512 = 5,120, the same as went in.">
+          <div class="pq-q">n = <b>10</b>. How many numbers come out of the layer?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">The English is encoded. Now let's watch the decoder write.</p>
     </section>
+
 
     <!-- 20 -->
     <section class="part" data-title="End to end: the decoder">
@@ -547,6 +732,140 @@
       <p class="hook">2017 was only the start.</p>
     </section>
 
+
+    <section class="part" data-title="Lesson test">
+      <h2>Lesson 1b test</h2>
+      <p class="say">14 questions, one for each idea in this lesson. Answer them all right to pass. A wrong answer tells you why, and which page to look at again.</p>
+      <div class="test" data-test="2">
+        <div class="quiz" data-page="lesson1b.html#1" data-topic="2017: drop the RNN" data-right="Right. Every token looks directly at every other token: one step, however far.">
+          <div class="q"><small>1. Compare</small>In a 10-word sentence, how does word 10 reach word 1 with self-attention?</div>
+          <div class="options">
+            <button data-right>In one direct look</button>
+            <button data-why="That&#x27;s an RNN. Self-attention has no chain of memory.">Through 9 steps of memory</button>
+            <button data-why="Distance doesn&#x27;t matter in self-attention.">It can't: too far away</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#2" data-topic="Quick basics: weighted average" data-right="Right. 0.8 × 0 + 0.2 × 100 = 20.">
+          <div class="q"><small>2. Work it out</small>Values <b>0</b> and <b>100</b> get shares <b>80%</b> and <b>20%</b>. The weighted average?</div>
+          <div class="options">
+            <button data-right>20</button>
+            <button data-why="That&#x27;s the plain average. Here the shares aren&#x27;t equal.">50</button>
+            <button data-why="80 is a share, not the result. Multiply each value by its share.">80</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#3" data-topic="Query, key, value" data-right="Right. That key gets almost all the share, so the new vector is mostly that token&#x27;s value.">
+          <div class="q"><small>3. Predict</small>One token's query matches one key far better than all the others. What is its new vector like?</div>
+          <div class="options">
+            <button data-right>Mostly that token's value</button>
+            <button data-why="Equal mixes only happen when the scores are equal.">An equal mix of all values</button>
+            <button data-why="The new vector is a mix of values, not queries.">Its own query</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#5" data-topic="Quick basics: matrices" data-right="Right. Column 1: 1 × 2 + 1 × 1 = 3. Column 2: 1 × 0 + 1 × 3 = 3.">
+          <div class="q"><small>4. Work it out</small><span class="mat" style="grid-template-columns:repeat(2,auto)"><span>1</span><span>1</span></span> × <span class="mat" style="grid-template-columns:repeat(2,auto)"><span>2</span><span>0</span><span>1</span><span>3</span></span> = ?</div>
+          <div class="options">
+            <button data-right>[3, 3]</button>
+            <button data-why="Each number is the vector · a whole column. Column 1 is (2, 1).">[2, 3]</button>
+            <button data-why="Check column 2: (0, 3). 1 × 0 + 1 × 3 = 3.">[3, 4]</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#7" data-topic="The attention formula" data-right="Right. Long vectors give big dot products, and softmax would then give one word nearly 100%.">
+          <div class="q"><small>5. Explain</small>Why divide the scores by √d<sub>k</sub>?</div>
+          <div class="options">
+            <button data-right>To keep softmax from giving one word almost everything</button>
+            <button data-why="The vectors stay the same. Only the scores are scaled.">To make the vectors shorter</button>
+            <button data-why="Softmax already does that.">To make the shares add up to 1</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#11" data-topic="Self-attention ignores order" data-right="Right. Self-attention mixes the same words the same way, whatever the order.">
+          <div class="q"><small>6. Predict</small>Without position vectors, what happens with “dog bites man” and “man bites dog”?</div>
+          <div class="options">
+            <button data-right>Each word gets the same new vector in both</button>
+            <button data-why="Nothing in self-attention alone tells it which word came first.">The model sees who bit whom</button>
+            <button data-why="It runs fine. It just can&#x27;t tell the order.">It won't run</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#12" data-topic="Position vectors" data-right="Right. The hands keep turning for any position, even longer than any text seen in training.">
+          <div class="q"><small>7. Explain</small>Why use turning “clock hands” instead of learning one vector per position?</div>
+          <div class="options">
+            <button data-right>They work even for positions never seen in training</button>
+            <button data-why="They aren&#x27;t learned at all: they&#x27;re worked out from the position.">They are learned faster</button>
+            <button data-why="They&#x27;re added to the embedding, same size.">They make the embeddings smaller</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#15" data-topic="The decoder" data-right="Right. The French token asks (query); the English embeddings answer (keys and values).">
+          <div class="q"><small>8. Explain</small>In encoder–decoder attention, where do the keys and values come from?</div>
+          <div class="options">
+            <button data-right>From the encoder's English embeddings</button>
+            <button data-why="That&#x27;s the decoder&#x27;s masked self-attention.">From the French written so far</button>
+            <button data-why="Position vectors are added at the start, not used as keys.">From the position vectors</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#17" data-topic="Trick: masking" data-right="Right. Token 5 comes later, so it&#x27;s hidden: token 3 sees only tokens 1 to 3.">
+          <div class="q"><small>9. Predict</small>In training with masking, can French token 3 look at token 5?</div>
+          <div class="options">
+            <button data-why="That would be peeking at a word it hasn&#x27;t written yet.">Yes</button>
+            <button data-right>No</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#19" data-topic="Trick: multi-head attention" data-right="Right. Each head has its own W_Q, W_K, W_V, so each can learn to look for a different thing.">
+          <div class="q"><small>10. Explain</small>Why use several heads?</div>
+          <div class="options">
+            <button data-right>Each can learn to look for something different</button>
+            <button data-why="Every head sees the same tokens.">To read more tokens</button>
+            <button data-why="Each head uses softmax the same way.">Because one head can't use softmax</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#20" data-topic="Tricks: residuals and layer norm" data-right="Right. x + 0 = x: the input passes through unchanged.">
+          <div class="q"><small>11. Predict</small>With a residual connection, a layer gives f(x) = 0. What comes out?</div>
+          <div class="options">
+            <button data-right>x, unchanged</button>
+            <button data-why="Without the residual it would. With it, x is added back.">All zeros</button>
+            <button data-why="Only f(x) is added, and it&#x27;s 0.">Twice x</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#21" data-topic="Tricks: dropout and label smoothing" data-right="Right. Many words can fit, so the model shouldn&#x27;t be pushed to be completely sure.">
+          <div class="q"><small>12. Explain</small>Why ask for 90% on the right word instead of 100%?</div>
+          <div class="options">
+            <button data-right>Language often has several good answers</button>
+            <button data-why="It&#x27;s about being too sure, not speed.">To make training faster</button>
+            <button data-why="It can; we just don&#x27;t want it.">Because 100% can't be written down</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#24" data-topic="Keeping track of sizes" data-right="Right. It&#x27;s n × n, so 2n × 2n is 4 times as many cells.">
+          <div class="q"><small>13. Predict</small>Double the number of tokens n. What happens to the attention grid?</div>
+          <div class="options">
+            <button data-why="Both the rows and the columns double.">2× bigger</button>
+            <button data-right>4× bigger</button>
+            <button data-why="It depends on n, twice.">Stays the same</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1b.html#26" data-topic="End to end: the decoder" data-right="Right. Everything written so far, now with the new token, plus the English. That&#x27;s autoregressive.">
+          <div class="q"><small>14. Explain</small>After the decoder picks a token, what goes in for the next round?</div>
+          <div class="options">
+            <button data-right>The tokens written so far, plus the new one</button>
+            <button data-why="It reads everything it has written, not just the last token.">Only the new token</button>
+            <button data-why="Then it would write the same first word forever.">Only [BOS] again</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+      </div>
+      <p class="hook">Did it all make sense? Then on to where it went next.</p>
+    </section>
+
     <!-- 22 -->
     <section class="part" data-title="Where we go from here">
       <h2>Where we go from here</h2>
@@ -579,6 +898,7 @@
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/common.js"></script>
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/pen.js"></script>
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/guide.js"></script>
+<script src="../assets/practice.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const pct = x => Math.round(x * 100) + "%";
