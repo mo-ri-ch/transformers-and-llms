@@ -198,6 +198,10 @@
     .exgrid { grid-template-columns: repeat(24, 1fr); }
     .bub { max-width: 92%; }
   }
+  .tfwide { max-width: 330px; margin: 0 auto 6px; }
+  .yrwrap { display: grid; grid-template-columns: 1fr 190px; gap: 16px; align-items: center; }
+  #yrTable tr.pick { cursor: pointer; } #yrTable tr.sel td { outline: 2px solid var(--redpen); outline-offset: -2px; }
+  @media (max-width: 640px) { .yrwrap { grid-template-columns: 1fr 120px; gap: 8px; } }
 </style>
 </head>
 <body data-pen="blue">
@@ -225,12 +229,7 @@
           <button id="famEnc">Encoder only</button>
           <button id="famDec">Decoder only</button>
         </div>
-        <svg class="pic" id="famPic" viewBox="0 0 620 190" aria-label="An encoder box on the left, a decoder box on the right, and an arrow from the encoder to the decoder.">
-          <defs><marker id="hdF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
-          <g id="famE"><rect x="40" y="40" width="220" height="100" rx="12" class="bx"/><text x="150" y="86" class="t">ENCODER</text><text x="150" y="112" class="ts">builds meaningful embeddings</text></g>
-          <path id="famA" d="M262,90 L354,90" class="ar" style="marker-end:url(#hdF)"/>
-          <g id="famD"><rect x="360" y="40" width="220" height="100" rx="12" class="bx y"/><text x="470" y="86" class="t">DECODER</text><text x="470" y="112" class="ts">writes the next token</text></g>
-        </svg>
+        <div class="tfwide" id="famPic"></div>
         <p class="note" id="famSays"></p>
       </div>
       <p class="hook">Let's start with the encoder on its own.</p>
@@ -437,16 +436,7 @@
       <p class="say"><b>Large</b>: billions of parameters or more, trained on hundreds of billions of tokens or more, on many GPUs.</p>
       <div class="activity">
         <div class="do">Try it: remove the encoder from the Transformer.</div>
-        <svg class="pic" viewBox="0 0 620 250" aria-label="Encoder on the left, decoder on the right with three layers: masked self-attention, cross-attention and feed-forward.">
-          <defs><marker id="hdL" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
-          <g id="llmEnc"><rect x="30" y="60" width="170" height="140" rx="12" class="bx"/><text x="115" y="136" class="t">ENCODER</text></g>
-          <g id="llmX"><path d="M202,110 L330,110" class="ar" style="marker-end:url(#hdL)"/>
-            <rect x="335" y="88" width="230" height="44" rx="8" class="bx p"/><text x="450" y="116" class="t">cross-attention</text></g>
-          <rect x="320" y="20" width="260" height="215" rx="14" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="6 4"/>
-          <rect x="335" y="160" width="230" height="44" rx="8" class="bx y"/><text x="450" y="188" class="t">causal attention</text>
-          <rect x="335" y="30" width="230" height="44" rx="8" class="bx g"/><text x="450" y="58" class="t">feed-forward network</text>
-          <text x="600" y="130" class="ts" style="text-anchor:end" transform="rotate(90 600 130)">× N layers</text>
-        </svg>
+        <div class="tfwide" id="llmPic"></div>
         <div class="btnrow"><button class="primary" id="llmGo">Remove the encoder</button></div>
         <p class="note" id="llmSays"></p>
       </div>
@@ -482,6 +472,7 @@
     <!-- 13 -->
     <section class="part" data-title="Experts inside the LLM">
       <h2>Experts inside the LLM</h2>
+      <div class="tfmini" data-map="llm" data-variant="today" data-lit="ffn" title="Where this part sits in the LLM"></div>
       <p class="say">Attention is where tokens talk to each other. The feed-forward network is where most of the computing happens. So the experts are feed-forward networks: the MoE layer takes the feed-forward network's place.</p>
       <p class="say">The router chooses <b>for each token</b>, in every layer.</p>
       <div class="activity">
@@ -578,6 +569,7 @@
     <!-- 16 -->
     <section class="part" data-title="Positions as waves">
       <h2>Positions as waves</h2>
+      <div class="tfmini" data-map="llm" data-variant="2017" data-lit="pos" title="Where this part sits in the LLM"></div>
       <p class="say">Attention links tokens directly, so word order is lost unless we add positions. Learned position vectors stop at the longest text seen in training.</p>
       <p class="say">The fix was fixed waves, from fast to slow, like clock hands. The nice part: how similar two positions m and n are depends only on how far apart they are:</p>
       <div class="eq bigeq">PE(m) · PE(n) = Σ<sub>i</sub> cos( ω<sub>i</sub> (m − n) )</div>
@@ -596,6 +588,7 @@
     <!-- 17 -->
     <section class="part" data-title="Position inside attention">
       <h2>Position inside attention</h2>
+      <div class="tfmini" data-map="llm" data-variant="today" data-lit="att" title="Where this part sits in the LLM"></div>
       <p class="say">Only attention cares about positions: how far apart two tokens are. The feed-forward network doesn't care if a word is 5th or 12th.</p>
       <p class="say">So newer methods leave the embeddings alone and change attention. One way: add a <mark>bias</mark> to each score. <mark data-peek="Attention with Linear Biases (Press and others, 2021). An earlier model, T5, learned one bias per distance instead, which can't go past the distances seen in training.">ALiBi</mark> takes off more, the farther apart:</p>
       <div class="eq bigeq">score = <span class="frac"><span>q · k</span><span>√d</span></span> − s · |m − n|</div>
@@ -630,6 +623,7 @@
     <!-- 19 -->
     <section class="part" data-title="RoPE: turn queries and keys">
       <h2>RoPE: turn queries and keys</h2>
+      <div class="tfmini" data-map="llm" data-variant="today" data-lit="att" title="Where this part sits in the LLM"></div>
       <p class="say"><mark data-peek="Rotary Position Embedding (Su and others, 2021). The usual choice today.">RoPE</mark> turns each token's query and key by an angle set by its position: position m turns by m · θ.</p>
       <p class="say">The score q · k depends on the angle between them. Both turned, so that gap only depends on <b>n − m</b>: how far apart the tokens are, not where they are.</p>
       <div class="activity">
@@ -695,6 +689,7 @@
     <!-- 20 -->
     <section class="part" data-title="Sliding window attention">
       <h2>Sliding window attention</h2>
+      <div class="tfmini" data-map="llm" data-variant="today" data-lit="att" title="Where this part sits in the LLM"></div>
       <p class="say">Looking at every earlier token costs more and more as text grows. With <mark>sliding window attention</mark>, each token only looks at the last w tokens (itself included).</p>
       <p class="say">Isn't that the RNN problem again? No: layers are stacked. A token at layer 2 sees tokens that themselves saw further back. So each layer reaches w − 1 tokens further.</p>
       <div class="activity">
@@ -711,6 +706,7 @@
     <!-- 21 -->
     <section class="part" data-title="Keeping keys and values">
       <h2>Keeping keys and values</h2>
+      <div class="tfmini" data-map="llm" data-variant="today" data-lit="att" title="Where this part sits in the LLM"></div>
       <p class="say">To write each new token, its query is compared with the keys of all tokens before it, then their values are mixed. Those keys and values never change, so they're saved instead of computed again. This store is the <mark>KV cache</mark>.</p>
       <p class="say">It grows with every token, in every head of every layer. Memory fills up.</p>
       <div class="activity">
@@ -726,6 +722,7 @@
     <!-- 22 -->
     <section class="part" data-title="Sharing keys and values">
       <h2>Sharing keys and values between heads</h2>
+      <div class="tfmini" data-map="llm" data-variant="today" data-lit="att" title="Where this part sits in the LLM"></div>
       <p class="say">Each head has its own query, key and value. A query is used once; keys and values are kept. So let heads <b>share</b> keys and values:</p>
       <ul>
         <li><mark data-peek="Multi-Head Attention: the original Transformer's.">MHA</mark>: every head has its own.</li>
@@ -805,6 +802,7 @@
     <!-- 24 -->
     <section class="part" data-title="RMSNorm">
       <h2>RMSNorm: a simpler normalization</h2>
+      <div class="tfmini" data-map="llm" data-variant="today" data-lit="norm1,norm2,fnorm" title="Where this part sits in the LLM"></div>
       <p class="say">Layer norm shifts a token's numbers so they average 0, then scales them. <mark data-peek="Root Mean Square normalization (Zhang and Sennrich, 2019).">RMSNorm</mark> skips the shift. It only divides by the <b>root mean square</b>:</p>
       <div class="eq bigeq">RMS(x) = <span style="font-size:1.3em">√</span><span style="border-top:1.5px solid currentColor;padding:0 4px"><span class="frac"><span>x<sub>1</sub><sup>2</sup> + … + x<sub>d</sub><sup>2</sup></span><span>d</span></span></span> &nbsp; RMSNorm(x) = <span class="frac"><span>x</span><span>RMS(x)</span></span></div>
       <p class="say">Fewer steps, and it works just as well.</p>
@@ -830,7 +828,8 @@
           <button class="on" id="yr17">2017</button>
           <button id="yrNow">Today</button>
         </div>
-        <table class="facts" id="yrTable"></table>
+        <div class="yrwrap"><table class="facts" id="yrTable"></table><div id="yrMap"></div></div>
+        <p class="note small" id="yrSays">Click a row to see where that part sits.</p>
       </div>
       <div class="quiz" data-right="Right. Only attention compares tokens, so only attention needs to know how far apart they are.">
         <div class="q">Why does RoPE change only the attention layer?</div>
@@ -877,6 +876,7 @@
     <!-- 26 -->
     <section class="part" data-title="Greedy and beam search">
       <h2>Greedy and beam search</h2>
+      <div class="tfmini" data-map="llm" data-variant="today" data-lit="linear,softmax,out" title="Where this part sits in the LLM"></div>
       <p class="say">The LLM gives chances for the next token. <mark>Greedy</mark> decoding always takes the most likely one. But the best word now can lead to a worse sentence overall.</p>
       <p class="say"><mark>Beam search</mark> keeps the k most likely sentences so far, where a sentence's chance is its tokens' chances multiplied, and grows each of them.</p>
       <div class="activity">
@@ -913,6 +913,7 @@
     <!-- 28 -->
     <section class="part" data-title="Sampling: top-k and top-p">
       <h2>Sampling: top-k and top-p</h2>
+      <div class="tfmini" data-map="llm" data-variant="today" data-lit="softmax,out" title="Where this part sits in the LLM"></div>
       <p class="say">Instead of always taking the top token, <mark>sample</mark>: draw one at random, following the chances. A 40% token is picked 40% of the time.</p>
       <p class="say">To skip odd picks from the long tail, keep only some tokens, then rescale their chances to add up to 100%:</p>
       <ul>
@@ -938,6 +939,7 @@
     <!-- 29 -->
     <section class="part" data-title="Temperature">
       <h2>Temperature</h2>
+      <div class="tfmini" data-map="llm" data-variant="today" data-lit="softmax,out" title="Where this part sits in the LLM"></div>
       <p class="say">The last layer gives each token a score; softmax turns scores into chances. <mark>Temperature</mark> T divides the scores first:</p>
       <div class="eq bigeq">p<sub>i</sub> = <span class="frac"><span>e<sup>x<sub>i</sub> / T</sup></span><span>Σ<sub>j</sub> e<sup>x<sub>j</sub> / T</sup></span></span></div>
       <p class="say">Small T: sharper, the top token takes almost everything. Big T: flatter, more surprises. T = 1 is plain softmax.</p>
@@ -1357,8 +1359,10 @@
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/pen.js"></script>
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/guide.js"></script>
 <script src="../assets/practice.js"></script>
+<script src="../assets/maps.js"></script>
 <script>
 const $ = id => document.getElementById(id);
+window.LLM_PAGES = { pos: "Positions as waves", att: "RoPE: turn queries and keys", ffn: "Experts inside the LLM", norm1: "RMSNorm", norm2: "RMSNorm", fnorm: "RMSNorm", an1: "Pre-norm instead of post-norm", an2: "Pre-norm instead of post-norm", linear: "Temperature", softmax: "Temperature", out: "Temperature" };
 const pct = x => Math.round(x * 100) + "%";
 const softmax = sc => { const m = Math.max(...sc), e = sc.map(x => Math.exp(x - m)), t = e.reduce((a, b) => a + b, 0); return e.map(x => x / t); };
 const f2 = x => (Math.round(x * 100) / 100).toFixed(2);
@@ -1421,10 +1425,9 @@ const setOn = (pairs, which) => pairs.forEach(([id, v]) => $(id).classList.toggl
     enc: "<b>Encoder only</b>: BERT (2018). It reads text and builds meaningful embeddings, used for other tasks.",
     dec: "<b>Decoder only</b>: GPT (2018). It writes text, one token at a time. Today's LLMs are built this way.",
   };
+  const ENC = ["in-tok", "enc-emb", "enc-pos", "enc-stack"], DEC = ["out-tok", "dec-emb", "dec-pos", "dec-stack", "linear", "softmax", "out"];
   function draw() {
-    $("famE").classList.toggle("faded", mode === "dec");
-    $("famD").classList.toggle("faded", mode === "enc");
-    $("famA").classList.toggle("faded", mode !== "both");
+    tfDraw($("famPic"), mode === "both" ? [] : mode === "enc" ? ENC : DEC, { plain: true, id: "fam", drop: mode === "dec" ? ["dec-xatt", "dec-an2"] : [], onPick: () => {} });
     setOn([["famBoth", "both"], ["famEnc", "enc"], ["famDec", "dec"]], mode);
     $("famSays").innerHTML = SAYS[mode];
   }
@@ -1679,11 +1682,11 @@ const LOSS = (N, D) => 1.69 + 406.4 / N ** 0.34 + 1126 / D ** 0.34;
 (function llm() {
   let gone = false;
   function draw() {
-    $("llmEnc").classList.toggle("gone", gone); $("llmX").classList.toggle("gone", gone);
+    tfDraw($("llmPic"), gone ? ["out-tok", "dec-emb", "dec-pos", "dec-stack", "linear", "softmax", "out"] : [], { plain: true, id: "llmP", drop: ["dec-xatt", "dec-an2"].filter(() => gone), onPick: () => {} });
     $("llmGo").hidden = gone;
     $("llmSays").innerHTML = gone
       ? "Without an encoder, cross-attention has nothing to look at, so it goes too. What's left is an LLM: <b>causal attention</b> (tokens talk, looking back) and a <b>feed-forward network</b> (most of the computing), repeated N times."
-      : "The decoder has three layers. Cross-attention looks at the encoder's embeddings.";
+      : "The full Transformer. In the decoder, cross-attention (encoder–decoder attention) looks at the encoder's embeddings.";
   }
   $("llmGo").onclick = () => { gone = true; draw(); };
   addReset("llmGo", () => { gone = false; draw(); });
@@ -2000,15 +2003,18 @@ const rad = d => d * Math.PI / 180;
     ["Feed-forward", "one network", "often a mixture of experts"],
     ["Normalization", "post-norm, layer norm", "pre-norm, RMSNorm"],
   ];
-  let now = false;
+  const KEYS = [[["pos"], ["att"]], [["att"], ["att"]], [["att"], ["att"]], [["ffn"], ["ffn"]], [["an1", "an2"], ["norm1", "norm2", "fnorm", "skip"]]];
+  let now = false, row = -1;
   function draw() {
     $("yrTable").innerHTML = `<tr><th>Part</th><th>${now ? "Today" : "2017"}</th></tr>` +
-      ROWS.map(r => `<tr class="${now ? "chg" : ""}"><td>${r[0]}</td><td>${now ? r[2] : r[1]}</td></tr>`).join("");
+      ROWS.map((r, i) => `<tr class="${now ? "chg" : ""} pick ${i === row ? "sel" : ""}" data-i="${i}"><td>${r[0]}</td><td>${now ? r[2] : r[1]}</td></tr>`).join("");
+    $("yrTable").querySelectorAll("tr[data-i]").forEach(tr => tr.onclick = () => { row = +tr.dataset.i; draw(); });
+    llmDraw($("yrMap"), row < 0 ? [] : KEYS[row][now ? 1 : 0], { variant: now ? "today" : "2017", id: "yrM", onPick: () => {} });
     setOn([["yr17", false], ["yrNow", true]], now);
   }
   $("yr17").onclick = () => { now = false; draw(); };
   $("yrNow").onclick = () => { now = true; draw(); };
-  addReset("yrTable", () => { now = false; draw(); });
+  addReset("yrTable", () => { now = false; row = -1; draw(); });
   draw();
 })();
 
