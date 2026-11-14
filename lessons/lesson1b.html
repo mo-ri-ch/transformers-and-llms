@@ -125,6 +125,38 @@
     .agrid { font-size: 0.66rem; }
     .agrid .c { min-width: 2.2em; padding: 4px 1px; }
   }
+  /* ---- The Transformer map (our own drawing) ---- */
+  .tfmap { width: 100%; display: block; }
+  .tfmap .bx { fill: var(--note-blue); stroke: var(--ink); stroke-width: 1.2; transition: stroke .3s, stroke-width .3s; }
+  .tfmap .bx.y { fill: var(--note-yellow); } .tfmap .bx.g { fill: var(--note-green); } .tfmap .bx.p { fill: var(--note-pink); }
+  .tfmap .bx.o { fill: var(--note-orange); } .tfmap .bx.w { fill: var(--card); } .tfmap .bx.b { fill: var(--note-blue); }
+  .tfmap .bt { font-family: var(--body); font-size: 11.5px; text-anchor: middle; fill: var(--ink); pointer-events: none; }
+  .tfmap .tm { font-family: var(--mono); font-size: 11px; text-anchor: middle; fill: var(--ink); }
+  .tfmap .ts { font-family: var(--hand); font-size: 12px; fill: var(--pencil); }
+  .tfmap .nx { font-family: var(--head); font-size: 16px; fill: var(--pencil); }
+  .tfmap .frame { fill: none; stroke: var(--pencil); stroke-width: 1.2; stroke-dasharray: 5 4; }
+  .tfmap .ar { stroke: var(--pen); stroke-width: 1.6; fill: none; }
+  .tfmap .skip { stroke: var(--pencil); stroke-width: 1.2; fill: none; stroke-dasharray: 3 3; }
+  .tfmap .plus { fill: var(--card); stroke: var(--ink); stroke-width: 1.2; } .tfmap .pl { stroke: var(--ink); stroke-width: 1.5; }
+  .tfmap .faded { opacity: .38; }
+  #tfBig .tfmap .faded { opacity: .16; }
+  .tfmap g, .tfmap path, .tfmap text, .tfmap rect, .tfmap circle { transition: opacity .45s; }
+  .tfmap .lit .bx, .tfmap rect.lit { stroke: var(--redpen); stroke-width: 2.6; }
+  .tfmap .skip:not(.faded) { stroke: var(--redpen); }
+  .tfmap .blk { cursor: pointer; }
+  .tfmap .blk:hover .bx, .tfmap .blk:focus-visible .bx { stroke: var(--pen); stroke-width: 2.6; }
+  .tfmap .flow { stroke: var(--redpen); stroke-width: 2.4; stroke-dasharray: 7 5; animation: tfflow 0.9s linear infinite; }
+  @keyframes tfflow { to { stroke-dashoffset: -24; } }
+  @media (prefers-reduced-motion: reduce) { .tfmap .flow { animation: none; } }
+  .tfmini { float: right; width: 210px; margin: -6px 0 8px 18px; }
+  .tfmini ~ .activity, .tfmini ~ .cards, .tfmini ~ .quiz, .tfmini ~ .eq { clear: both; }
+  .tfbig { display: grid; grid-template-columns: minmax(0, 290px) 1fr; gap: 18px; align-items: center; }
+  .tfbig .note { margin: 0; }
+  @media (max-width: 640px) {
+    .tfmini { width: 140px; margin-left: 10px; }
+    .tfbig { grid-template-columns: 1fr; }
+    .tfbig #tfBig { max-width: 300px; margin: 0 auto; }
+  }
 </style>
 </head>
 <body data-pen="blue">
@@ -304,32 +336,19 @@
     <section class="part" data-title="The Transformer">
       <h2>The Transformer</h2>
       <p class="say">The Transformer was made to <b>translate</b>: “A cute teddy bear is reading.” → “Un ours en peluche mignon lit.”</p>
-      <p class="say">It has two parts:</p>
-      <svg class="pic" viewBox="0 0 620 250" aria-label="The English sentence goes into the encoder. The encoder's output goes to the decoder, which writes the French sentence one token at a time.">
-        <defs><marker id="hd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
-        <rect x="40" y="50" width="220" height="120" rx="12" class="bx"/>
-        <text x="150" y="98" class="t">Encoder</text><text x="150" y="122" class="ts">understands the English</text>
-        <rect x="360" y="50" width="220" height="120" rx="12" class="bx g"/>
-        <text x="460" y="98" class="t">Decoder</text><text x="470" y="122" class="ts">writes the French</text>
-        <path d="M262,110 L356,110" class="ar"/>
-        <text x="310" y="100" class="ts">meaning</text>
-        <text x="150" y="232" class="tm">A cute teddy bear is reading.</text>
-        <path d="M150,214 L150,174" class="ar"/>
-        <text x="470" y="22" class="tm">Un ours en peluche mignon lit.</text>
-        <path d="M470,48 L470,30" class="ar"/>
-        <text x="470" y="232" class="tm">French written so far</text>
-        <path d="M470,214 L470,174" class="ar"/>
-      </svg>
-      <ul>
-        <li>The <mark>encoder</mark> reads the English and builds a meaningful embedding for each token.</li>
-        <li>The <mark>decoder</mark> writes the French, <b>one token at a time</b>, looking at the encoder's embeddings.</li>
-      </ul>
+      <p class="say">The <mark>encoder</mark> (left) reads the English and builds a meaningful embedding for each token. The <mark>decoder</mark> (right) writes the French, <b>one token at a time</b>, looking at the encoder's embeddings.</p>
+      <div class="activity">
+        <div class="do">Try it: build the Transformer, or click any block.</div>
+        <div class="tfbig"><div id="tfBig"></div><div><p class="note" id="tfSays"></p><div class="btnrow"><button class="primary" id="tfPlay">▶ Build it step by step</button></div></div></div>
+      </div>
+      <p class="say small">This map comes back on the next pages, with the part we're on lit up. Click a block on it to jump to that part.</p>
       <p class="hook">Let's walk through it from the bottom: what goes into the encoder?</p>
     </section>
 
     <!-- 8 -->
     <section class="part" data-title="Encoder input: embeddings">
       <h2>Encoder input: one embedding per token</h2>
+      <div class="tfmini" data-lit="in-tok,enc-emb" title="Click a block to jump to it"></div>
       <p class="say">The text is split into tokens. Each token looks up its <b>own row</b> in a learned table: its embedding.</p>
       <div class="activity">
         <div class="do">Try it: click a token to find its row.</div>
@@ -343,6 +362,7 @@
     <!-- 9 -->
     <section class="part" data-title="Self-attention ignores order">
       <h2>Self-attention can't tell word order</h2>
+      <div class="tfmini" data-lit="enc-att" title="Click a block to jump to it"></div>
       <p class="say">Self-attention looks at every word directly, so it never notices which word came first.</p>
       <div class="activity">
         <div class="do">Try it: shuffle the words and watch the new “teddy bear”.</div>
@@ -361,6 +381,7 @@
     <!-- 10 -->
     <section class="part" data-title="Position vectors">
       <h2>Position vectors, like a clock</h2>
+      <div class="tfmini" data-lit="enc-pos,dec-pos" title="Click a block to jump to it"></div>
       <p class="say">A clock tells the time with hands turning at <b>different speeds</b>. Read them together, and you know the exact time.</p>
       <p class="say">A <mark>position vector</mark> works the same way: numbers that turn at different speeds as the position grows. It's <b>added</b> to each token's embedding.</p>
       <div class="activity">
@@ -467,6 +488,7 @@
     <!-- 13 -->
     <section class="part" data-title="Picking the next word">
       <h2>Picking the next word</h2>
+      <div class="tfmini" data-lit="linear,softmax,out" title="Click a block to jump to it"></div>
       <p class="say">The top vector gets a score for <b>every token in the vocabulary</b>. Softmax turns the scores into chances. Then we pick one.</p>
       <div class="activity">
         <div class="do">Try it: the decoder has only <span class="tk sp">[BOS]</span>. Pick the next word.</div>
@@ -489,6 +511,7 @@
     <!-- 14 -->
     <section class="part" data-title="Trick: masking">
       <h2>Trick: masking</h2>
+      <div class="tfmini" data-lit="dec-matt" title="Click a block to jump to it"></div>
       <p class="say">In training, the decoder gets the whole French sentence at once, to learn faster. But it must not peek at words it hasn't “written” yet.</p>
       <p class="say"><mark>Masking</mark> hides every later word, so each token only sees itself and the words before it.</p>
       <div class="activity">
@@ -537,6 +560,7 @@
     <!-- 15 -->
     <section class="part" data-title="Trick: multi-head attention">
       <h2>Trick: multi-head attention</h2>
+      <div class="tfmini" data-lit="enc-att,dec-matt,dec-xatt" title="Click a block to jump to it"></div>
       <p class="say">One attention looks for one kind of thing. <mark>Multi-head attention</mark> runs several at the same time, each with its own W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>.</p>
       <div class="activity">
         <div class="do">Try it: switch heads and see where “teddy bear” looks.</div>
@@ -551,6 +575,7 @@
     <!-- 16 -->
     <section class="part" data-title="Tricks: residuals and layer norm">
       <h2>Tricks: residual connections and layer norm</h2>
+      <div class="tfmini" data-lit="res" title="Click a block to jump to it"></div>
       <p class="say">With 6 layers on top of each other, learning gets hard. Two small tricks help:</p>
       <svg class="pic" viewBox="0 0 620 170" aria-label="x goes into a layer, giving f of x. A skip arrow carries x around the layer, and the two are added: x plus f of x.">
         <defs><marker id="hd4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
@@ -576,6 +601,7 @@
     <!-- 17 -->
     <section class="part" data-title="Tricks: dropout and label smoothing">
       <h2>Tricks: dropout and label smoothing</h2>
+      <div class="tfmini" data-lit="softmax,out" title="Click a block to jump to it"></div>
       <p class="say"><mark>Dropout</mark>: in training, switch off a few random parts of the network each time, so it can't lean too hard on any one of them.</p>
       <p class="say"><mark>Label smoothing</mark>: don't ask for 100% on the right word. Language has many good answers.</p>
       <div class="activity">
@@ -627,6 +653,7 @@
       <p class="say">Our sentence, all the way through the encoder.</p>
       <div class="activity">
         <div class="do">Try it: press Next step.</div>
+        <div class="tfmini" id="e2eMap" style="width:190px"></div>
         <div class="flow">
           <ol id="e2eList"></ol>
           <div class="stage">
@@ -700,6 +727,7 @@
       <p class="say">Each round: the decoder reads what it has written so far (plus the English), picks one token, and adds it to its input.</p>
       <div class="activity">
         <div class="do">Try it: press Write the next token until it stops.</div>
+        <div class="tfmini" id="genMap" style="width:190px"></div>
         <div class="gen" id="genBox"></div>
         <div class="btnrow">
           <button class="primary" id="genGo">Write the next token</button>
@@ -902,6 +930,131 @@
 <script>
 const $ = id => document.getElementById(id);
 const pct = x => Math.round(x * 100) + "%";
+
+// ---------- The Transformer map: our own drawing of the whole model, with parts lit up ----------
+// <div class="tfmini" data-lit="enc-att,enc-ff"></div> draws a small map; clicking a block opens its page.
+const TF_BLOCKS = [
+  // key, label, x, y, w, h, colour class, page it is taught on
+  ["enc-emb", "Input embedding", 20, 452, 140, 26, "y", "Encoder input: embeddings"],
+  ["dec-emb", "Output embedding", 200, 452, 140, 26, "y", "The decoder"],
+  ["enc-att", "Multi-head attention", 30, 370, 120, 26, "p", "Inside the encoder"],
+  ["enc-an1", "Add & Norm", 30, 344, 120, 18, "w", "Tricks: residuals and layer norm"],
+  ["enc-ff", "Feed forward", 30, 300, 120, 26, "g", "Inside the encoder"],
+  ["enc-an2", "Add & Norm", 30, 274, 120, 18, "w", "Tricks: residuals and layer norm"],
+  ["dec-matt", "Masked multi-head att.", 210, 370, 120, 26, "p", "Trick: masking"],
+  ["dec-an1", "Add & Norm", 210, 344, 120, 18, "w", "Tricks: residuals and layer norm"],
+  ["dec-xatt", "Encoder–decoder att.", 210, 300, 120, 26, "o", "The decoder"],
+  ["dec-an2", "Add & Norm", 210, 274, 120, 18, "w", "Tricks: residuals and layer norm"],
+  ["dec-ff", "Feed forward", 210, 230, 120, 26, "g", "The decoder"],
+  ["dec-an3", "Add & Norm", 210, 204, 120, 18, "w", "Tricks: residuals and layer norm"],
+  ["linear", "Linear", 210, 150, 120, 24, "b", "Picking the next word"],
+  ["softmax", "Softmax", 210, 114, 120, 24, "b", "Picking the next word"],
+];
+const TF_SAY = {
+  "in-tok": "<b>Inputs:</b> the English sentence, cut into tokens.",
+  "enc-emb": "<b>Input embedding:</b> each token looks up its own row of 512 learned numbers.",
+  "enc-pos": "<b>Position vectors</b> are added, so each token also says where it is.",
+  "enc-att": "<b>Self-attention</b> (8 heads): each English token mixes in the tokens it needs.",
+  "enc-ff": "<b>Feed forward:</b> each token thinks it over on its own.",
+  "enc-an1": "<b>Add & Norm:</b> keep the input (residual), and keep the numbers a steady size.",
+  "enc-an2": "<b>Add & Norm:</b> keep the input (residual), and keep the numbers a steady size.",
+  "enc-stack": "<b>×6:</b> the encoder's layers are repeated 6 times. Out come context-aware embeddings.",
+  "out-tok": "<b>Outputs so far:</b> the French written up to now, starting with [BOS].",
+  "dec-emb": "<b>Output embedding:</b> each French token gets its own learned row.",
+  "dec-pos": "<b>Position vectors</b> are added to the French tokens too.",
+  "dec-matt": "<b>Masked self-attention:</b> each French token looks only at the French before it.",
+  "dec-xatt": "<b>Encoder–decoder attention:</b> the French asks (queries); the English answers (keys and values).",
+  "dec-ff": "<b>Feed forward:</b> each token thinks it over, as in the encoder.",
+  "dec-an1": "<b>Add & Norm</b>, after every layer of the decoder too.",
+  "dec-an2": "<b>Add & Norm</b>, after every layer of the decoder too.",
+  "dec-an3": "<b>Add & Norm</b>, after every layer of the decoder too.",
+  "dec-stack": "<b>×6:</b> the decoder's layers are repeated 6 times as well.",
+  "linear": "<b>Linear:</b> the top vector gets one score for every token in the vocabulary.",
+  "softmax": "<b>Softmax:</b> the scores become chances. We pick the next token.",
+  "out": "<b>Output chances</b> for the next French token.",
+  "enc-link": "The encoder's output goes into <b>every</b> encoder–decoder attention layer.",
+};
+const TF_GROUPS = { res: ["enc-an1", "enc-an2", "dec-an1", "dec-an2", "dec-an3", "skip"], "enc-stack": ["enc-att", "enc-an1", "enc-ff", "enc-an2", "enc-stack"], "dec-stack": ["dec-matt", "dec-an1", "dec-xatt", "dec-an2", "dec-ff", "dec-an3", "dec-stack"] };
+function tfLitSet(list) {
+  const s = new Set();
+  list.forEach(k => { s.add(k); (TF_GROUPS[k] || []).forEach(x => s.add(x)); });
+  return s;
+}
+function tfMapSVG(lit, opts = {}) {
+  const on = k => !lit.size || lit.has(k);
+  const fade = k => on(k) ? (lit.size ? "lit" : "") : "faded";
+  const id = opts.id || "tfm";
+  let s = `<defs><marker id="${id}H" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>`;
+  const arrow = (d, k) => `<path d="${d}" class="ar ${on(k) ? "" : "faded"}" style="marker-end:url(#${id}H)"/>`;
+  // stack frames
+  s += `<rect x="18" y="262" width="144" height="146" rx="10" class="frame ${fade("enc-stack")}"/><text x="10" y="340" class="nx ${fade("enc-stack")}" text-anchor="end">6×</text>`;
+  s += `<rect x="198" y="192" width="144" height="216" rx="10" class="frame ${fade("dec-stack")}"/><text x="350" y="305" class="nx ${fade("dec-stack")}">×6</text>`;
+  // inputs and outputs
+  s += `<text x="90" y="510" class="tm ${fade("in-tok")}">Inputs (English)</text><text x="270" y="510" class="tm ${fade("out-tok")}">Outputs so far (French)</text>`;
+  s += arrow("M90,496 L90,481", "enc-emb") + arrow("M270,496 L270,481", "dec-emb");
+  s += `<text x="270" y="86" class="tm ${fade("out")}">Output chances</text>` + arrow("M270,112 L270,92", "out");
+  // position ⊕
+  [["enc-pos", 90], ["dec-pos", 270]].forEach(([k, x]) => {
+    s += `<circle cx="${x}" cy="430" r="9" class="plus ${fade(k)}"/><path d="M${x - 5},430 h10 M${x},425 v10" class="pl ${fade(k)}"/>` +
+      `<text x="${x + (x < 180 ? -14 : 14)}" y="434" class="ts ${fade(k)}" text-anchor="${x < 180 ? "end" : "start"}">position</text>`;
+    s += arrow(`M${x},451 L${x},441`, k) + arrow(`M${x},420 L${x},398`, k);
+  });
+  // blocks
+  TF_BLOCKS.forEach(([k, label, x, y, w, h, c]) => {
+    s += `<g class="blk ${fade(k)}" data-k="${k}" tabindex="0" role="button" aria-label="${label}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" class="bx ${c}"/><text x="${x + w / 2}" y="${y + h / 2 + 4}" class="bt">${label}</text></g>`;
+  });
+  // arrows between blocks
+  s += arrow("M90,370 L90,364", "enc-an1") + arrow("M90,344 L90,328", "enc-ff") + arrow("M90,300 L90,294", "enc-an2");
+  s += arrow("M270,370 L270,364", "dec-an1") + arrow("M270,344 L270,328", "dec-xatt") + arrow("M270,300 L270,294", "dec-an2") + arrow("M270,274 L270,258", "dec-ff") + arrow("M270,230 L270,224", "dec-an3") + arrow("M270,204 L270,176", "linear") + arrow("M270,150 L270,140", "softmax");
+  // residual skips
+  const sk = on("skip") ? "skip" : "skip faded";
+  [[30, 404, 353], [30, 334, 283]].forEach(([x, y1, y2]) => s += `<path d="M${x + 60},${y1} h-66 V${y2} h6" class="${sk}"/>`);
+  [[210, 404, 353], [210, 334, 283], [210, 264, 213]].forEach(([x, y1, y2]) => s += `<path d="M${x + 60},${y1} h-66 V${y2} h6" class="${sk}"/>`);
+  // encoder → decoder
+  s += `<path d="M90,262 L90,250 L180,250 L180,313 L206,313" class="ar ${on("enc-link") || on("dec-xatt") ? "" : "faded"} ${lit.has("enc-link") ? "flow" : ""}" style="marker-end:url(#${id}H)"/>`;
+  return s;
+}
+function tfPageOf(k) { const b = TF_BLOCKS.find(x => x[0] === k); return b && b[7]; }
+function tfGoTo(title) {
+  const parts = [...document.querySelectorAll("section.part")], i = parts.findIndex(p => p.dataset.title === title);
+  if (i >= 0) location.hash = "#" + (i + 1);
+}
+function tfDraw(el, keys, opts = {}) {
+  const lit = tfLitSet(keys);
+  el.innerHTML = `<svg class="tfmap" viewBox="0 72 360 446" role="img" aria-label="The Transformer: encoder on the left, decoder on the right${keys.length ? "; lit up: " + keys.join(", ") : ""}">${tfMapSVG(lit, opts)}</svg>`;
+  el.querySelectorAll(".blk").forEach(g => {
+    const go = () => opts.onPick ? opts.onPick(g.dataset.k) : tfPageOf(g.dataset.k) && tfGoTo(tfPageOf(g.dataset.k));
+    g.onclick = go; g.onkeydown = e => { if (e.key === "Enter") go(); };
+  });
+}
+document.querySelectorAll(".tfmini").forEach((el, i) => tfDraw(el, (el.dataset.lit || "").split(",").filter(Boolean), { id: "tfm" + i }));
+const tfReduce = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ---------- The Transformer: the big map, built step by step ----------
+(function bigMap() {
+  const box = $("tfBig"); if (!box) return;
+  const BUILD = [["in-tok"], ["enc-emb"], ["enc-pos"], ["enc-att"], ["enc-an1", "enc-an2", "skip"], ["enc-ff"], ["enc-stack"], ["out-tok"], ["dec-emb", "dec-pos"], ["dec-matt"], ["enc-link", "dec-xatt"], ["dec-ff"], ["dec-stack"], ["linear"], ["softmax", "out"]];
+  let step = -1, pick = null, timer = null;
+  function draw() {
+    const keys = pick ? [pick] : step < 0 || step === BUILD.length - 1 ? [] : BUILD.slice(0, step + 1).flat();
+    tfDraw(box, keys, { id: "tfB", onPick: k => { stop(); pick = k; step = -1; draw(); } });
+    const cur = pick ? [pick] : step >= 0 ? BUILD[step] : null;
+    $("tfSays").innerHTML = cur ? TF_SAY[cur[0]] + (step >= 0 ? ` <span class="small">(step ${step + 1} of ${BUILD.length})</span>` : "") + (step === BUILD.length - 1 ? "<br>That's the whole Transformer." : "") : "The whole Transformer, our own drawing. Click any block, or build it step by step.";
+    $("tfPlay").textContent = timer ? "⏸ Pause" : step >= 0 && step < BUILD.length - 1 ? "▶ Keep building" : "▶ Build it step by step";
+    $("tfPlay").hidden = step === BUILD.length - 1;
+  }
+  const stop = () => { clearInterval(timer); timer = null; };
+  $("tfPlay").onclick = () => {
+    if (timer) { stop(); draw(); return; }
+    pick = null; if (step >= BUILD.length - 1) step = -1;
+    const tick = () => { step++; if (step >= BUILD.length - 1) stop(); draw(); };
+    if (tfReduce()) { step = BUILD.length - 1; draw(); return; }
+    tick(); timer = setInterval(tick, 1600); draw();
+  };
+  addReset("tfBig", () => { stop(); step = -1; pick = null; draw(); });
+  draw();
+})();
+
 const softmax = sc => { const m = Math.max(...sc), e = sc.map(x => Math.exp(x - m)), t = e.reduce((a, b) => a + b, 0); return e.map(x => x / t); };
 const f2 = x => (Math.round(x * 100) / 100).toFixed(2);
 
@@ -1240,6 +1393,7 @@ function overlayArrows(box, links, opts = {}) {
   function draw() {
     $("e2eList").innerHTML = ST.map((x, i) => `<li class="${i === s ? "now" : i < s ? "past" : ""}">${x[0]}</li>`).join("");
     $("e2eToks").innerHTML = S.map(t => `<span class="tk ${t[0] === "[" ? "sp" : ""} ${s >= 1 ? "lit" : ""}" style="${s >= 6 && t === "teddy bear" ? "outline:3px solid var(--redpen)" : ""}">${t}</span>`).join("");
+    tfDraw($("e2eMap"), [["in-tok"], ["enc-emb"], ["enc-pos"], ["enc-att"], ["enc-att"], ["enc-ff"], ["enc-stack"]][s], { id: "tfE" });
     $("e2eShape").innerHTML = ST[s][1];
     $("e2eSays").innerHTML = ST[s][2];
     $("e2eBack").hidden = s === 0; $("e2eNext").hidden = s === ST.length - 1; $("e2eAgain").hidden = s !== ST.length - 1;
@@ -1281,9 +1435,21 @@ function overlayArrows(box, links, opts = {}) {
     $("genSays").innerHTML = k === 0 ? "Only [BOS] so far." : end ? "It wrote <b>[EOS]</b>, so it stops: <b>“Un ours en peluche mignon lit.”</b>" : `Round ${k}: it picked “${last[0]}”. It goes back in as input for the next round.`;
     $("genGo").hidden = end; $("genAgain").hidden = !end;
   }
-  $("genGo").onclick = () => { k++; draw(); };
-  $("genAgain").onclick = () => { k = 0; draw(); };
-  addReset("genBox", () => { k = 0; draw(); });
+  // The map lights the path one round takes, bottom to top
+  const PATH = [["out-tok"], ["dec-emb", "dec-pos"], ["dec-matt"], ["enc-link", "dec-xatt"], ["dec-ff"], ["linear"], ["softmax", "out"]];
+  let at = null;
+  const rest = () => tfDraw($("genMap"), k ? PATH.flat() : ["enc-stack", "enc-link"], { id: "tfG" });
+  function anim() {
+    clearTimeout(at);
+    if (tfReduce()) { rest(); return; }
+    let i = 0;
+    const step = () => { tfDraw($("genMap"), PATH.slice(0, i + 1).flat(), { id: "tfG" }); if (++i < PATH.length) at = setTimeout(step, 320); };
+    step();
+  }
+  $("genGo").onclick = () => { k++; draw(); anim(); };
+  $("genAgain").onclick = () => { k = 0; clearTimeout(at); draw(); rest(); };
+  addReset("genBox", () => { k = 0; clearTimeout(at); draw(); rest(); });
+  rest();
   draw();
 })();
 </script>
