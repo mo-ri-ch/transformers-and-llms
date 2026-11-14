@@ -10,7 +10,7 @@ const COURSE_LESSONS = [
   { n: 2, label: "1b", step: "attention", title: "Attention and the Transformer", file: "lesson1b.html", ready: true, test: 28,
     summary: "Attention, query–key–value, and the Transformer, built up step by step and run end to end.",
     leaves: "The Transformer works. What turns it into a large language model?" },
-  { n: 3, label: "2", step: "LLMs", title: "Large language models", file: "lesson2.html", ready: true,
+  { n: 3, label: "2", step: "LLMs", title: "Large language models", file: "lesson2.html", ready: true, test: 46,
     summary: "Model families, mixture of experts, cheaper attention (MQA, GQA), RoPE, and how temperature and sampling pick each word.",
     leaves: "We know what an LLM is. How does it learn everything it knows?" },
   { part: "Part 2 · How it learns", n: 4, label: "3", step: "training", title: "Training an LLM", file: "lesson3.html", ready: true,

@@ -392,8 +392,43 @@
         <div style="margin-top:6px">Training is paid once. Running the model is paid for every question it answers.</div>
         <div style="margin-top:6px">A smaller model, trained on more tokens, costs less to run. So teams often go well past 20.</div>
       </div>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 2.1">
+      <h2>✏️ Practice 2.1</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">time = FLOPs ÷ (FLOP/s per GPU × number of GPUs)</b> (1 day = 86,400 seconds)<br><b class="eqbox">compute ≈ 6 × parameters × tokens</b><br><b class="eqbox">best: tokens ≈ 20 × parameters</b></p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="11.6" data-tol="0.1" data-hint="First the seconds: 10²⁴ ÷ (10¹⁵ × 1,000). Then divide by 86,400." data-work="10²⁴ ÷ 10¹⁸ = 10⁶ seconds. 1,000,000 ÷ 86,400 ≈ 11.6 days.">
+          <div class="pq-q">Training takes 10<sup>24</sup> FLOPs, on <b>1,000</b> GPUs at 10<sup>15</sup> FLOP/s each. How many <b>days</b>, at full speed?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="200" data-tol="0.5" data-hint="tokens ≈ 20 × parameters." data-work="20 × 10B = 200B tokens.">
+          <div class="pq-q">A model has <b>10 billion</b> parameters. About how many tokens is best, in <b>billions</b>?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1.2" data-tol="0.01" data-hint="6 × 10¹⁰ × 2 × 10¹¹. Multiply the numbers in front, add the powers." data-work="6 × 2 = 12, and 10¹⁰ × 10¹¹ = 10²¹. 12 × 10²¹ = 1.2 × 10²².">
+          <div class="pq-q">Training that 10B model on 200B tokens takes how many FLOPs? Answer in units of 10<sup>22</sup>.</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="20" data-tol="0.01" data-hint="Divide tokens by parameters: 1,400B ÷ 70B." data-work="1,400 ÷ 70 = 20: right at the sweet spot.">
+          <div class="pq-q">A model of <b>70B</b> parameters is trained on <b>1.4T</b> tokens. How many tokens per parameter?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1875" data-tol="1" data-hint="15,000B ÷ 8B." data-work="15,000 ÷ 8 = 1,875: far past 20, to make a small model that&#x27;s cheap to run.">
+          <div class="pq-q">A small model of <b>8B</b> parameters is trained on <b>15T</b> tokens. How many tokens per parameter?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">So what exactly is a “large language model”?</p>
     </section>
+
 
     <!-- 11 -->
     <section class="part" data-title="What is an LLM?">
@@ -497,8 +532,48 @@
         <p class="note" id="mtSays"></p>
       </div>
       <p class="say small">Open models from <span data-peek="MiMo-V2.6 Pro (Xiaomi, Sept 2026), GLM-5 (Feb 2026), DeepSeek V4.1 Flash (Sept 2026), from their own reports.">2026</span>.</p>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 2.2">
+      <h2>✏️ Practice 2.2</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b>Sparse top-k:</b> keep the k biggest router shares, then divide each by their sum, so they add up to 1.<br><b class="eqbox">output = weighted average of the chosen experts' outputs</b><br><b class="eqbox">L<sub>balance</sub> = α · N · Σ f<sub>i</sub> · P<sub>i</sub></b> (smallest, 1 × α, when tokens are spread evenly)</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="0.795" data-tol="0.005" data-hint="Top 2 are maths and physics. Divide 0.70 by their sum." data-work="0.70 ÷ (0.70 + 0.18) = 0.70 ÷ 0.88 = 0.795.">
+          <div class="pq-q">Router shares: maths <b>0.70</b>, physics <b>0.18</b>, biology <b>0.04</b>, language <b>0.08</b>. With top-2, what is maths' new share?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.205" data-tol="0.005" data-hint="0.18 ÷ 0.88." data-work="0.18 ÷ 0.88 = 0.205. The two add up to 1.">
+          <div class="pq-q">Same router. Physics' new share?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="7" data-tol="0.01" data-hint="A weighted average: share × output, added." data-work="0.75 × 8 + 0.25 × 4 = 6 + 1 = 7.">
+          <div class="pq-q">Two chosen experts have shares <b>0.75</b> and <b>0.25</b>, and give outputs <b>8</b> and <b>4</b>. What is the output?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1" data-tol="0.01" data-hint="Four terms of 0.25 × 0.25, then times 4." data-work="4 × (4 × 0.0625) = 4 × 0.25 = 1: as low as it goes.">
+          <div class="pq-q">N = 4 experts. Every expert gets f = 0.25 of the tokens and P = 0.25 of the router's share. What is N · Σ f · P?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="3.6" data-tol="0.01" data-hint="Only expert 1&#x27;s term isn&#x27;t zero." data-work="4 × (1 × 0.9) = 3.6: much higher, so the loss pushes back.">
+          <div class="pq-q">Collapsed: expert 1 gets every token (f = 1) and P = 0.9; the others get f = 0. What is N · Σ f · P, with N = 4?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="9" data-tol="0.01" data-hint="Routed ones plus the shared one." data-work="8 + 1 = 9 of 256: about 3.5%.">
+          <div class="pq-q">GLM-5 has <b>256</b> experts per layer: <b>8</b> routed and <b>1</b> shared run for each token. How many experts run per token?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">Next: changes inside the layers, starting with word positions.</p>
     </section>
+
 
     <!-- 16 -->
     <section class="part" data-title="Positions as waves">
@@ -574,8 +649,48 @@
         <div style="margin-top:6px">Split them into pairs, and turn each pair like this arrow. Each pair turns at its own speed θ, from fast to slow, like the clock hands.</div>
         <div style="margin-top:6px">A bonus: scores tend to get smaller as tokens get farther apart.</div>
       </div>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 2.3">
+      <h2>✏️ Practice 2.3</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">ALiBi: score = q · k / √d − s · |m − n|</b><br>Turning (x, y) by φ gives <b>(x cos φ − y sin φ, x sin φ + y cos φ)</b>.<br><b>RoPE:</b> position m turns by m · θ, so the score depends only on how far apart the tokens are.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="0.5" data-tol="0.005" data-hint="Take off s × distance." data-work="2.0 − 0.5 × 3 = 0.5.">
+          <div class="pq-q">q · k / √d = <b>2.0</b>, slope s = <b>0.5</b>, and the tokens are <b>3</b> apart. What is the ALiBi score?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="-0.5" data-tol="0.005" data-hint="The distance is |2 − 9| = 7." data-work="3.0 − 0.5 × 7 = 3.0 − 3.5 = −0.5.">
+          <div class="pq-q">q · k / √d = <b>3.0</b>, s = <b>0.5</b>, tokens at positions <b>2</b> and <b>9</b>. The score?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1" data-tol="0.01" data-hint="cos 90° = 0, sin 90° = 1. y = x sin φ + y cos φ." data-work="1 × 1 + 0 × 0 = 1. The arrow now points straight up: (0, 1).">
+          <div class="pq-q">Turn the arrow (1, 0) by <b>90°</b>. What is the new y?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.5" data-tol="0.005" data-hint="cos 60° = 0.5. x = x cos φ − y sin φ." data-work="1 × 0.5 − 0 × sin 60° = 0.5.">
+          <div class="pq-q">Turn (1, 0) by <b>60°</b>. What is the new x?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="60" data-tol="0.01" data-hint="m × θ." data-work="3 × 20° = 60°.">
+          <div class="pq-q">θ = <b>20°</b>. By how many degrees is the query at position <b>3</b> turned?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="80" data-tol="0.01" data-hint="Each is turned by its position × 20°. Subtract." data-work="17 × 20 − 13 × 20 = 4 × 20 = 80°: the same as positions 3 and 7, since only the gap matters.">
+          <div class="pq-q">θ = 20°. The query is at position <b>13</b> and the key at <b>17</b>. What is the angle between them, in degrees?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">Next: does every token need to look at every earlier token?</p>
     </section>
+
 
     <!-- 20 -->
     <section class="part" data-title="Sliding window attention">
@@ -627,8 +742,48 @@
         <div class="heads" id="shHeads"></div>
         <div class="eqline" id="shEq"></div>
       </div>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 2.4">
+      <h2>✏️ Practice 2.4</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">sliding window reach = L × (w − 1)</b><br>KV cache, one layer: <b>tokens × heads × 2</b> vectors (a key and a value each).<br>Kept per token, per layer: <b>2 × (number of key–value groups) × 128</b> numbers.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="12" data-tol="0.01" data-hint="L × (w − 1)." data-work="3 × 4 = 12 tokens.">
+          <div class="pq-q">w = <b>5</b> and L = <b>3</b> layers. How far back can the last token reach?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="131040" data-tol="1" data-hint="32 × 4,095." data-work="32 × 4,095 = 131,040 tokens, from windows of only 4,096.">
+          <div class="pq-q">w = <b>4,096</b> and L = <b>32</b>. The reach?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1600" data-tol="0.5" data-hint="tokens × heads × 2." data-work="100 × 8 × 2 = 1,600.">
+          <div class="pq-q"><b>100</b> tokens, <b>8</b> heads, one layer. How many vectors are in the KV cache?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="96000" data-tol="1" data-hint="60 times the one-layer number." data-work="1,600 × 60 = 96,000.">
+          <div class="pq-q">Same, but the model has <b>60</b> layers. How many vectors?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="512" data-tol="0.5" data-hint="2 × groups × 128." data-work="2 × 2 × 128 = 512. MHA would keep 2,048: 4 times more.">
+          <div class="pq-q">8 heads with GQA in <b>2</b> groups. How many numbers are kept per token, per layer?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="256" data-tol="0.5" data-hint="One group." data-work="2 × 1 × 128 = 256.">
+          <div class="pq-q">With MQA (all heads share one key and value)?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">Last change: where the normalization goes.</p>
     </section>
+
 
     <!-- 23 -->
     <section class="part" data-title="Pre-norm instead of post-norm">
@@ -686,8 +841,38 @@
         </div>
         <div class="feedback"></div>
       </div>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 2.5">
+      <h2>✏️ Practice 2.5</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">RMS(x) = √((x₁² + … + x<sub>d</sub>²) ÷ d)</b><br><b class="eqbox">RMSNorm(x) = x ÷ RMS(x)</b><br>Layer norm first shifts the numbers so they average 0; RMSNorm skips that.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="3.536" data-tol="0.01" data-hint="Square, average, then square root: (9 + 16) ÷ 2, then √." data-work="√(25 ÷ 2) = √12.5 = 3.536.">
+          <div class="pq-q">x = [3, 4]. What is RMS(x)?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.2" data-tol="0.005" data-hint="RMS = √((1 + 49) ÷ 2). Then 1 ÷ RMS." data-work="√25 = 5, so 1 ÷ 5 = 0.2 (and 7 ÷ 5 = 1.4).">
+          <div class="pq-q">x = [1, 7]. What is the first number of RMSNorm(x)?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1" data-tol="0.005" data-hint="RMS of four 2s." data-work="RMS = √(16 ÷ 4) = 2, so 2 ÷ 2 = 1.">
+          <div class="pq-q">x = [2, 2, 2, 2]. What is the first number of RMSNorm(x)?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="-3" data-tol="0.01" data-hint="The average is (3 + 9 + 6) ÷ 3. Subtract it." data-work="Average 6, so 3 − 6 = −3.">
+          <div class="pq-q">Layer norm's first step on [3, 9, 6]: shift so they average 0. What does 3 become?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">The model is built. Now: how does it pick each word?</p>
     </section>
+
 
     <!-- 26 -->
     <section class="part" data-title="Greedy and beam search">
@@ -762,8 +947,43 @@
         <div class="bars" id="tpBars"></div>
         <div class="eqline" id="tpEq"></div>
       </div>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 2.6">
+      <h2>✏️ Practice 2.6</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">a sentence's chance = its tokens' chances multiplied</b><br><b>Top-k:</b> keep the k most likely. <b>Top-p:</b> keep the fewest top tokens adding up to at least p. Then divide by their sum.<br><b class="eqbox">p<sub>i</sub> = e<sup>x<sub>i</sub>/T</sup> ÷ Σ e<sup>x<sub>j</sub>/T</sup></b></p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="0.36" data-tol="0.005" data-hint="Multiply." data-work="0.4 × 0.9 = 0.36.">
+          <div class="pq-q">A path picks “The” (0.4), then “teddy” (0.9). What is its chance?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.615" data-tol="0.005" data-hint="Keep 40% and 25%, then 0.40 ÷ their sum." data-work="0.40 ÷ 0.65 = 0.615.">
+          <div class="pq-q">Chances: 40%, 25%, 15%, 10%, 6%, 4%. With top-k, k = 2, what is the top token's new chance?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="3" data-tol="0.01" data-hint="Add from the top until you reach 75%." data-work="40 + 25 = 65% (not yet), + 15 = 80% ≥ 75%. 3 tokens.">
+          <div class="pq-q">Same chances, top-p with p = <b>0.75</b>. How many tokens are kept?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.731" data-tol="0.005" data-hint="Divide the scores by 2 first: 1.0 and 0.0. Then softmax." data-work="e¹ ÷ (e¹ + e⁰) = 2.718 ÷ 3.718 = 0.731 (at T = 1 it was 0.881: flatter).">
+          <div class="pq-q">Two tokens with scores <b>2.0</b> and <b>0.0</b>, at T = <b>2</b>. The top token's chance?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.982" data-tol="0.005" data-hint="Scores ÷ 0.5: 4.0 and 0.0." data-work="e⁴ ÷ (e⁴ + 1) = 54.6 ÷ 55.6 = 0.982: sharper.">
+          <div class="pq-q">Same scores at T = <b>0.5</b>?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">So with T near 0, is the answer always the same? Almost.</p>
     </section>
+
 
     <!-- 30 -->
     <section class="part" data-title="Why outputs can still differ">
@@ -823,8 +1043,38 @@
         <p class="note" id="hbSays"></p>
       </div>
       <p class="say">More isn't always better. With a very long context, the model has a harder time finding one fact in it: <mark data-peek="Tested with a “needle in a haystack”: hide one fact in a long text and ask for it. The longer the text, the more often models miss it. That's why starting a fresh chat helps.">context rot</mark>.</p>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 2.7">
+      <h2>✏️ Practice 2.7</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br>The context must hold <b>the prompt and the answer</b>.<br><b class="eqbox">1 token ≈ 0.75 words</b> <b class="eqbox">1 page ≈ 500 tokens</b></p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="750000" data-tol="1" data-hint="Multiply by 0.75." data-work="1,000,000 × 0.75 = 750,000 words.">
+          <div class="pq-q">About how many words is <b>1,000,000</b> tokens?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="2000" data-tol="1" data-hint="Divide by 500." data-work="1,000,000 ÷ 500 = 2,000 pages.">
+          <div class="pq-q">And how many pages?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="150000" data-tol="1" data-hint="300 × 500." data-work="300 × 500 = 150,000 tokens.">
+          <div class="pq-q">A <b>300</b>-page book: about how many tokens?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="8000" data-tol="1" data-hint="The prompt and the answer share the context." data-work="128,000 − 120,000 = 8,000 tokens.">
+          <div class="pq-q">A model's context holds <b>128,000</b> tokens. Your prompt is <b>120,000</b>. At most how many tokens can the answer have?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">The prompt can also teach the model.</p>
     </section>
+
 
     <!-- 34 -->
     <section class="part" data-title="In-context learning">
@@ -873,8 +1123,33 @@
         <p class="note" id="scSays"></p>
       </div>
       <p class="say">More reliable, but you pay for every answer.</p>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 2.8">
+      <h2>✏️ Practice 2.8</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b>Few-shot:</b> the examples go in the prompt, so they count as tokens.<br><b>Self-consistency:</b> several answers, then a majority vote. You pay for every answer.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="140" data-tol="0.5" data-hint="3 × 40, plus the question." data-work="120 + 20 = 140 tokens.">
+          <div class="pq-q">A prompt has <b>3</b> examples of <b>40</b> tokens each, then a question of <b>20</b> tokens. How many prompt tokens?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="6" data-tol="0.01" data-hint="The answer most chains agree on." data-work="6 appears 3 times out of 5: it wins the vote.">
+          <div class="pq-q">Five chains of thought end in <b>6, 6, 7, 6, 5</b>. Which answer does self-consistency give?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1000" data-tol="0.5" data-hint="Every chain counts." data-work="5 × 200 = 1,000 tokens, against 200 for one answer.">
+          <div class="pq-q">Each of those 5 chains is <b>200</b> tokens long. How many output tokens do you pay for?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">That was a lot. What matters most?</p>
     </section>
+
 
     <!-- 37 -->
     <section class="part" data-title="What matters most">
@@ -895,6 +1170,158 @@
         <div class="feedback"></div>
       </div>
       <p class="hook">Where does this leave us?</p>
+    </section>
+
+
+    <section class="part" data-title="Lesson test">
+      <h2>Lesson 2 test</h2>
+      <p class="say">16 questions, one for each idea in this lesson. Answer them all right to pass. A wrong answer tells you why, and which page to look at again.</p>
+      <div class="test" data-test="3">
+        <div class="quiz" data-page="lesson2.html#2" data-topic="BERT: the encoder alone" data-right="Right. An encoder looks both ways, so it uses the words before and after the blank.">
+          <div class="q"><small>1. Choose</small>You need to fill a blank in the <b>middle</b> of a sentence, using words on both sides. Which design fits best?</div>
+          <div class="options">
+            <button data-right>Encoder only, like BERT</button>
+            <button data-why="A decoder only looks back, so it can&#x27;t use the words after the blank.">Decoder only, like GPT</button>
+            <button data-why="BERT&#x27;s first practice game is exactly this.">Neither can</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#6" data-topic="GPT: the decoder alone" data-right="Right. The task is written as text, and the model continues it.">
+          <div class="q"><small>2. Explain</small>How does a GPT-style model do a new task without being retrained?</div>
+          <div class="options">
+            <button data-right>The task is written as text, and it continues it</button>
+            <button data-why="That&#x27;s BERT-style fine-tuning.">A new layer is added for each task</button>
+            <button data-why="Writing tasks as text is exactly what made GPT so flexible.">It can't</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#7" data-topic="Encoder-decoder or decoder-only?" data-right="Right. Input and output are one sequence, and every token looks only back.">
+          <div class="q"><small>3. Predict</small>In a decoder-only model, can a token of the <b>prompt</b> look at a later prompt token?</div>
+          <div class="options">
+            <button data-why="That&#x27;s the encoder in an encoder-decoder.">Yes, the prompt looks both ways</button>
+            <button data-right>No, every token looks only back</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#9" data-topic="Quick basics: FLOPs" data-right="Right. 10²⁵ ÷ 10¹⁹ = 10⁶ seconds, about 12 days.">
+          <div class="q"><small>4. Work it out</small>10<sup>25</sup> FLOPs on <b>10,000</b> GPUs at 10<sup>15</sup> FLOP/s each. About how long, at full speed?</div>
+          <div class="options">
+            <button data-right>About 12 days</button>
+            <button data-why="10⁶ seconds is much more than an hour (3,600 s).">About 1 hour</button>
+            <button data-why="That&#x27;s one GPU&#x27;s 10⁹ seconds ÷ 10. Use all 10,000.">About 3 years</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#10" data-topic="Chinchilla: the sweet spot" data-right="Right. 20 × 50B = 1T tokens.">
+          <div class="q"><small>5. Work it out</small>About how many tokens is best for a <b>50B</b>-parameter model?</div>
+          <div class="options">
+            <button data-right>1T</button>
+            <button data-why="That&#x27;s 1 token per parameter: undertrained.">50B</button>
+            <button data-why="It&#x27;s 20 times the parameters, not a twentieth.">2.5B</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#13" data-topic="Mixture of experts" data-right="Right. 0.6 ÷ (0.6 + 0.3) = 0.67.">
+          <div class="q"><small>6. Work it out</small>Router shares 0.6, 0.3 and 0.1. With top-2, what is the top expert's share?</div>
+          <div class="options">
+            <button data-right>0.67</button>
+            <button data-why="After dropping the third expert, the two kept shares are rescaled to add up to 1.">0.6</button>
+            <button data-why="That&#x27;s the sum of the two kept shares.">0.9</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#15" data-topic="Routing collapse" data-right="Right. Without it, one expert can take almost every token and the others never learn.">
+          <div class="q"><small>7. Explain</small>Why add a balancing term to the loss?</div>
+          <div class="options">
+            <button data-right>To stop one expert taking all the tokens</button>
+            <button data-why="It doesn&#x27;t change their size.">To make each expert smaller</button>
+            <button data-why="That would be dense MoE: what sparse MoE avoids.">To run all experts on every token</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#21" data-topic="RoPE: turn queries and keys" data-right="Right. Both turn 5θ more, so the angle between them, and the score, stay the same.">
+          <div class="q"><small>8. Predict</small>With RoPE, a query and a key both move <b>5</b> positions later. What happens to their score?</div>
+          <div class="options">
+            <button data-right>It stays the same</button>
+            <button data-why="Only the gap matters, and the gap didn&#x27;t change.">It gets smaller</button>
+            <button data-why="Only the gap matters, and the gap didn&#x27;t change.">It gets bigger</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#23" data-topic="Sliding window attention" data-right="Right. 4 × (3 − 1) = 8.">
+          <div class="q"><small>9. Work it out</small>Window w = 3 and 4 layers. How far back can the last token reach?</div>
+          <div class="options">
+            <button data-right>8</button>
+            <button data-why="Each layer adds w − 1, not w: the window includes the token itself.">12</button>
+            <button data-why="Stacked layers reach further than one window.">3</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#25" data-topic="Sharing keys and values" data-right="Right. 2 groups instead of 8 keys and values: 4 times less.">
+          <div class="q"><small>10. Compare</small>8 heads. GQA with 2 groups keeps how much KV memory, compared with MHA?</div>
+          <div class="options">
+            <button data-right>4× less</button>
+            <button data-why="MHA has 8 key–value sets; GQA here has 2.">2× less</button>
+            <button data-why="Sharing is the whole point.">The same</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#28" data-topic="RMSNorm" data-right="Right. RMS = 2, and each 2 ÷ 2 = 1.">
+          <div class="q"><small>11. Work it out</small>RMSNorm of [2, 2, 2, 2] = ?</div>
+          <div class="options">
+            <button data-right>[1, 1, 1, 1]</button>
+            <button data-why="That&#x27;s what shifting to average 0 would give: layer norm, not RMSNorm.">[0, 0, 0, 0]</button>
+            <button data-why="RMSNorm divides by the RMS, which is 2.">[2, 2, 2, 2]</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#31" data-topic="Greedy and beam search" data-right="Right. 0.4 × 0.9 = 0.36 beats 0.5 × 0.4 = 0.20. Beam search can find it; greedy can&#x27;t.">
+          <div class="q"><small>12. Compare</small>Greedy goes “A” (0.5) then “cute” (0.4). Another path is “The” (0.4) then “teddy” (0.9). Which sentence is more likely?</div>
+          <div class="options">
+            <button data-right>“The teddy”</button>
+            <button data-why="Its first word is better, but 0.5 × 0.4 = 0.20 &lt; 0.36.">“A cute”</button>
+            <button data-why="Multiply each path&#x27;s chances.">Equal</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#33" data-topic="Sampling: top-k and top-p" data-right="Right. 40% isn&#x27;t enough; 40 + 25 = 65% ≥ 50%. 2 tokens.">
+          <div class="q"><small>13. Work it out</small>Chances 40%, 25%, 15%, … With top-p, p = 0.5, how many tokens are kept?</div>
+          <div class="options">
+            <button data-why="40% is below 50%.">1</button>
+            <button data-right>2</button>
+            <button data-why="Stop as soon as you reach p: 65% already does.">3</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#34" data-topic="Temperature" data-right="Right. Dividing by a bigger T flattens them: less likely tokens get picked more often.">
+          <div class="q"><small>14. Predict</small>You raise the temperature from 1 to 2. What happens to the chances?</div>
+          <div class="options">
+            <button data-right>Flatter: more surprises</button>
+            <button data-why="That&#x27;s lowering T.">Sharper: the top token takes more</button>
+            <button data-why="Only T = 1 leaves them as they are.">No change</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#38" data-topic="Context window" data-right="Right. The answer shares the context with the prompt: 10,000 tokens.">
+          <div class="q"><small>15. Work it out</small>A 200,000-token context and a 190,000-token prompt. At most how long can the answer be?</div>
+          <div class="options">
+            <button data-right>10,000 tokens</button>
+            <button data-why="The prompt is already using most of the context.">200,000 tokens</button>
+            <button data-why="That&#x27;s today&#x27;s output limit, but here the context runs out first.">100,000 tokens</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson2.html#43" data-topic="Self-consistency" data-right="Right. Every extra answer is more tokens to pay for and wait for.">
+          <div class="q"><small>16. Explain</small>What's the cost of self-consistency?</div>
+          <div class="options">
+            <button data-right>You pay for every answer</button>
+            <button data-why="Each chain of thought is written in full.">Nothing: it's free</button>
+            <button data-why="It&#x27;s only a way of prompting.">The model must be retrained</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+      </div>
+      <p class="hook">Did it all make sense? Then let's look back, and ahead.</p>
     </section>
 
     <!-- 38 -->
@@ -929,6 +1356,7 @@
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/common.js"></script>
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/pen.js"></script>
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/guide.js"></script>
+<script src="../assets/practice.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const pct = x => Math.round(x * 100) + "%";
