@@ -246,10 +246,11 @@ const STAGES = [["pre", "Pretraining"], ["mid", "Midtraining"], ["sft", "Fine-tu
 })();
 function stageDraw() {
   document.querySelectorAll(".stagemap[data-stage]").forEach(el => {
-    const now = el.dataset.stage.split(","), first = STAGES.findIndex(s => now.includes(s[0]));
-    el.setAttribute("aria-label", "Training stages; this page: " + STAGES.filter(s => now.includes(s[0])).map(s => s[1]).join(", "));
-    el.innerHTML = STAGES.map(([k, name], i) => `<button type="button" class="sg ${now.includes(k) ? "now" : i < first ? "past" : ""}" data-k="${k}" title="${name}">${name}</button>`).join('<span class="ar">→</span>');
-    el.querySelectorAll(".sg").forEach(b => b.onclick = () => { const p = (window.STAGE_PAGES || {})[b.dataset.k]; if (p) tfGoTo(p); });
+    const L = window.STAGE_LIST || STAGES;
+    const now = el.dataset.stage.split(","), first = L.findIndex(s => now.includes(s[0]));
+    el.setAttribute("aria-label", "Where we are; this page: " + L.filter(s => now.includes(s[0])).map(s => s[1]).join(", "));
+    el.innerHTML = L.map(([k, name], i) => `<button type="button" class="sg ${now.includes(k) ? "now" : i < first ? "past" : ""}" data-k="${k}" title="${name}">${name}</button>`).join('<span class="ar">→</span>');
+    el.querySelectorAll(".sg").forEach(b => b.onclick = () => { const p = (window.STAGE_PAGES || {})[b.dataset.k]; if (p) { if (p.includes(".html")) location.href = p; else tfGoTo(p); } });
   });
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", stageDraw); else stageDraw();

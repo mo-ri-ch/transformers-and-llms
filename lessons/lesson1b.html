@@ -143,6 +143,7 @@
     <!-- 1 -->
     <section class="part" data-title="2017: drop the RNN">
       <h2>2017: let every word look at every word</h2>
+      <div class="stagemap" data-stage="att"></div>
       <p class="say">An RNN reads one word at a time and passes a memory along. Far-away words fade.</p>
       <p class="say">In 2017, the paper <mark data-peek="“Attention Is All You Need”, by Vaswani and others at Google, 2017. It was made for translation, and beat every model of its time.">Attention Is All You Need</mark> dropped the RNN. Every token looks <b>directly</b> at every other token. This is <mark>self-attention</mark>.</p>
       <div class="activity">
@@ -160,6 +161,7 @@
     <!-- 2 -->
     <section class="part" data-title="Quick basics: weighted average">
       <h2>✏️ Quick basics: a weighted average</h2>
+      <div class="stagemap" data-stage="att"></div>
       <p class="say">A <mark>weighted average</mark> mixes things, giving each one a <b>share</b>. The shares add up to 100%.</p>
       <p class="say">Think of paint: more of one colour, and the mix looks more like it.</p>
       <div class="activity">
@@ -176,6 +178,7 @@
     <!-- 3 -->
     <section class="part" data-title="Query, key, value">
       <h2>Query, key, value</h2>
+      <div class="stagemap" data-stage="att"></div>
       <p class="say">Each token gets three vectors: a <mark>query</mark> (what am I looking for?), a <mark>key</mark> (what do I offer?) and a <mark>value</mark> (what I pass on).</p>
       <div class="activity">
         <div class="do">Try it: click a word to make it ask. Each value is shown as a colour.</div>
@@ -228,6 +231,7 @@
     <!-- 4 -->
     <section class="part" data-title="Quick basics: matrices">
       <h2>✏️ Quick basics: multiplying by a matrix</h2>
+      <div class="stagemap" data-stage="att"></div>
       <p class="say">A <mark>matrix</mark> is a table of numbers. Multiplying a vector by a matrix gives a new vector.</p>
       <p class="say">Each new number is a dot product: the vector · one column.</p>
       <div class="activity">
@@ -241,6 +245,7 @@
     <!-- 5 -->
     <section class="part" data-title="Where Q, K, V come from">
       <h2>Where queries, keys and values come from</h2>
+      <div class="stagemap" data-stage="att"></div>
       <p class="say">Each token's embedding is multiplied by three matrices: <b>W<sub>Q</sub></b> gives its query, <b>W<sub>K</sub></b> its key, <b>W<sub>V</sub></b> its value.</p>
       <div class="activity">
         <div class="do">Try it: pick a token and see its three vectors.</div>
@@ -254,6 +259,7 @@
     <!-- 6 -->
     <section class="part" data-title="The attention formula">
       <h2>The attention formula</h2>
+      <div class="stagemap" data-stage="att"></div>
       <p class="say">Put all the queries in one matrix Q, all keys in K, all values in V. Then one line does everything:</p>
       <div class="eq bigeq">Attention(Q, K, V) = softmax( <span class="frac"><span>Q <span data-peek="T means “transpose”: K flipped on its side, so each key becomes a column. Then Q × Kᵀ gives every query · every key at once.">K<sup>T</sup></span></span><span data-peek="dₖ is how many numbers each key has (here 4, so √dₖ = 2). Longer vectors give bigger dot products. Dividing keeps them small, so softmax doesn't give one word 100%.">√d<sub>k</sub></span></span> ) V</div>
       <div class="activity">
@@ -303,6 +309,7 @@
     <!-- 7 -->
     <section class="part" data-title="The Transformer">
       <h2>The Transformer</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <p class="say">The Transformer was made to <b>translate</b>: “A cute teddy bear is reading.” → “Un ours en peluche mignon lit.”</p>
       <p class="say">The <mark>encoder</mark> (left) reads the English and builds a meaningful embedding for each token. The <mark>decoder</mark> (right) writes the French, <b>one token at a time</b>, looking at the encoder's embeddings.</p>
       <div class="activity">
@@ -316,6 +323,7 @@
     <!-- 8 -->
     <section class="part" data-title="Encoder input: embeddings">
       <h2>Encoder input: one embedding per token</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <div class="tfmini" data-lit="in-tok,enc-emb" title="Click a block to jump to it"></div>
       <p class="say">The text is split into tokens. Each token looks up its <b>own row</b> in a learned table: its embedding.</p>
       <div class="activity">
@@ -330,6 +338,7 @@
     <!-- 9 -->
     <section class="part" data-title="Self-attention ignores order">
       <h2>Self-attention can't tell word order</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <div class="tfmini" data-lit="enc-att" title="Click a block to jump to it"></div>
       <p class="say">Self-attention looks at every word directly, so it never notices which word came first.</p>
       <div class="activity">
@@ -349,6 +358,7 @@
     <!-- 10 -->
     <section class="part" data-title="Position vectors">
       <h2>Position vectors, like a clock</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <div class="tfmini" data-lit="enc-pos,dec-pos" title="Click a block to jump to it"></div>
       <p class="say">A clock tells the time with hands turning at <b>different speeds</b>. Read them together, and you know the exact time.</p>
       <p class="say">A <mark>position vector</mark> works the same way: numbers that turn at different speeds as the position grows. It's <b>added</b> to each token's embedding.</p>
@@ -372,6 +382,7 @@
     <!-- 11 -->
     <section class="part" data-title="Inside the encoder">
       <h2>Inside the encoder</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <p class="say">The encoder has two layers, and the pair is repeated <span data-peek="N = 6 in the 2017 paper. Each copy has its own weights.">6 times</span>:</p>
       <svg class="pic" viewBox="0 0 620 300" aria-label="Position-aware embeddings go into a self-attention layer, then a feed-forward network. This pair repeats six times. Out come context-aware embeddings.">
         <defs><marker id="hd2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
@@ -428,6 +439,7 @@
     <!-- 12 -->
     <section class="part" data-title="The decoder">
       <h2>The decoder</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <p class="say">The decoder starts with just <span class="tk sp">[BOS]</span> (“begin”) and adds one French token at a time. Its layers, repeated 6 times:</p>
       <svg class="pic" viewBox="0 0 620 330" aria-label="French so far goes into masked self-attention, then encoder-decoder attention that also takes the encoder's output, then a feed-forward network. The pair repeats six times.">
         <defs><marker id="hd3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
@@ -456,6 +468,7 @@
     <!-- 13 -->
     <section class="part" data-title="Picking the next word">
       <h2>Picking the next word</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <div class="tfmini" data-lit="linear,softmax,out" title="Click a block to jump to it"></div>
       <p class="say">The top vector gets a score for <b>every token in the vocabulary</b>. Softmax turns the scores into chances. Then we pick one.</p>
       <div class="activity">
@@ -479,6 +492,7 @@
     <!-- 14 -->
     <section class="part" data-title="Trick: masking">
       <h2>Trick: masking</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <div class="tfmini" data-lit="dec-matt" title="Click a block to jump to it"></div>
       <p class="say">In training, the decoder gets the whole French sentence at once, to learn faster. But it must not peek at words it hasn't “written” yet.</p>
       <p class="say"><mark>Masking</mark> hides every later word, so each token only sees itself and the words before it.</p>
@@ -528,6 +542,7 @@
     <!-- 15 -->
     <section class="part" data-title="Trick: multi-head attention">
       <h2>Trick: multi-head attention</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <div class="tfmini" data-lit="enc-att,dec-matt,dec-xatt" title="Click a block to jump to it"></div>
       <p class="say">One attention looks for one kind of thing. <mark>Multi-head attention</mark> runs several at the same time, each with its own W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>.</p>
       <div class="activity">
@@ -543,6 +558,7 @@
     <!-- 16 -->
     <section class="part" data-title="Tricks: residuals and layer norm">
       <h2>Tricks: residual connections and layer norm</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <div class="tfmini" data-lit="res" title="Click a block to jump to it"></div>
       <p class="say">With 6 layers on top of each other, learning gets hard. Two small tricks help:</p>
       <svg class="pic" viewBox="0 0 620 170" aria-label="x goes into a layer, giving f of x. A skip arrow carries x around the layer, and the two are added: x plus f of x.">
@@ -569,6 +585,7 @@
     <!-- 17 -->
     <section class="part" data-title="Tricks: dropout and label smoothing">
       <h2>Tricks: dropout and label smoothing</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <div class="tfmini" data-lit="softmax,out" title="Click a block to jump to it"></div>
       <p class="say"><mark>Dropout</mark>: in training, switch off a few random parts of the network each time, so it can't lean too hard on any one of them.</p>
       <p class="say"><mark>Label smoothing</mark>: don't ask for 100% on the right word. Language has many good answers.</p>
@@ -618,6 +635,7 @@
     <!-- 18 -->
     <section class="part" data-title="End to end: the encoder">
       <h2>End to end, part 1: the encoder reads</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <p class="say">Our sentence, all the way through the encoder.</p>
       <div class="activity">
         <div class="do">Try it: press Next step.</div>
@@ -642,6 +660,7 @@
     <!-- 19 -->
     <section class="part" data-title="Keeping track of sizes">
       <h2>Keeping track of sizes</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <p class="say">n tokens go in. The matrices change shape along the way, but what comes out is the same shape that went in: <b>n × d<sub>model</sub></b>.</p>
       <div class="activity">
         <div class="do">Try it: change the number of tokens n.</div>
@@ -692,6 +711,7 @@
     <!-- 20 -->
     <section class="part" data-title="End to end: the decoder">
       <h2>End to end, part 2: the decoder writes</h2>
+      <div class="stagemap" data-stage="tf"></div>
       <p class="say">Each round: the decoder reads what it has written so far (plus the English), picks one token, and adds it to its input.</p>
       <div class="activity">
         <div class="do">Try it: press Write the next token until it stops.</div>
@@ -898,6 +918,8 @@
 <script src="../assets/maps.js"></script>
 <script>
 const $ = id => document.getElementById(id);
+window.STAGE_LIST = [["intro", "Introduction"], ["tok", "Tokenization"], ["rep", "Word representation"], ["att", "Self-attention"], ["tf", "Transformer"]];
+window.STAGE_PAGES = { intro: "lesson1a.html#1", tok: "lesson1a.html#3", rep: "lesson1a.html#11", att: "2017: drop the RNN", tf: "The Transformer" };
 const pct = x => Math.round(x * 100) + "%";
 
 // ---------- The Transformer: the big map, built step by step ----------

@@ -199,6 +199,7 @@
     <!-- 1 -->
     <section class="part" data-title="How we got here">
       <h2>How we got here</h2>
+      <div class="stagemap" data-stage="intro"></div>
       <p class="say">Today's AI chatbots and coding assistants didn't appear overnight. Here's the short story.</p>
       <ol class="timeline">
         <li><span class="yr">2010s</span>
@@ -223,6 +224,7 @@
     <!-- 2 -->
     <section class="part" data-title="Quick basics: what an LLM does">
       <h2>✏️ Quick basics: what an LLM does</h2>
+      <div class="stagemap" data-stage="intro"></div>
       <p class="say">ChatGPT, Claude and Gemini look like they think. Underneath, they do one simple thing:</p>
       <p class="say"><mark>Guess the next piece of text.</mark> Then add it, and guess again.</p>
 
@@ -246,6 +248,7 @@
     <!-- 3 -->
     <section class="part" data-title="Tokenization">
       <h2>Tokenization</h2>
+      <div class="stagemap" data-stage="tok"></div>
       <p class="say">A model works with <b>numbers</b>, not letters. So first, we cut the text into pieces called <mark>tokens</mark>.</p>
       <p class="say">Cutting text into tokens is called <mark>tokenization</mark>.</p>
 
@@ -269,6 +272,7 @@
     <!-- 4 -->
     <section class="part" data-title="Word-level">
       <h2>Way 1: one token per word</h2>
+      <div class="stagemap" data-stage="tok"></div>
       <div class="activity">
         <div class="do">Try it: type anything. Each word (and each punctuation mark) becomes a token.</div>
         <input class="tokin" id="wIn" value="A cute teddy bear is reading." maxlength="80" spellcheck="false" aria-label="Text to cut into words">
@@ -289,6 +293,7 @@
     <!-- 5 -->
     <section class="part" data-title="Character-level">
       <h2>Way 2: one token per character</h2>
+      <div class="stagemap" data-stage="tok"></div>
       <div class="activity">
         <div class="do">Try it: the same text, cut into single characters. Spaces show as _</div>
         <input class="tokin" id="cIn" value="A cute teddy bear is reading." maxlength="80" spellcheck="false" aria-label="Text to cut into characters">
@@ -309,6 +314,7 @@
     <!-- 6 -->
     <section class="part" data-title="Subword-level">
       <h2>Way 3: pieces of words</h2>
+      <div class="stagemap" data-stage="tok"></div>
       <p class="say">Common words stay whole. Other words are built from smaller, common pieces, called <mark>subwords</mark>.</p>
       <div class="toks" style="margin:6px 0 4px">
         <span class="tk">A</span><span class="tk">cute</span><span class="tk">ted</span><span class="tk">##dy</span><span class="tk">bear</span><span class="tk">is</span><span class="tk">read</span><span class="tk">##ing</span><span class="tk">.</span>
@@ -344,6 +350,7 @@
     <!-- 6b -->
     <section class="part" data-title="How pieces are learned: BPE">
       <h2>How pieces are learned: BPE</h2>
+      <div class="stagemap" data-stage="tok"></div>
       <p class="say">Almost every LLM learns its pieces with <mark data-peek="Byte pair encoding. It was first a way to compress files, then borrowed for tokenizers.">BPE</mark>. It has one rule:</p>
       <p class="say"><b>Find the two pieces that appear side by side most often. Glue them into one new piece. Repeat.</b></p>
 
@@ -391,6 +398,7 @@
     <!-- 7 -->
     <section class="part" data-title="Special tokens: [UNK]">
       <h2>Special tokens: [UNK]</h2>
+      <div class="stagemap" data-stage="tok"></div>
       <p class="say">Some tokens don't come from the text at all. They're called <mark>special tokens</mark>. The first one stands in for words the model doesn't know.</p>
 
       <div class="activity">
@@ -407,6 +415,7 @@
     <!-- 7b -->
     <section class="part" data-title="Special tokens: [BOS] [EOS] [PAD]">
       <h2>Special tokens: [BOS] [EOS] [PAD]</h2>
+      <div class="stagemap" data-stage="tok"></div>
       <p class="say">These are <mark>signals</mark> to the model: where a sentence starts, where it ends, and what is just filler.</p>
       <div class="activity">
         <div class="do"><span class="tk sp">[BOS]</span> <span class="tk sp">[EOS]</span> Beginning and end of sequence, and <span class="tk pad">[PAD]</span> padding</div>
@@ -474,6 +483,7 @@
     <!-- 8 -->
     <section class="part" data-title="Quick basics: vectors">
       <h2>✏️ Quick basics: vectors</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say">A <mark>vector</mark> is just a list of numbers, like <span class="mono">[0.9, 0.4]</span>.</p>
       <p class="say">With two numbers, you can draw it as an arrow: go 0.9 right and 0.4 up.</p>
       <p class="say">To measure how similar two arrows are, we use the <mark>dot product</mark>: multiply matching numbers, then add.</p>
@@ -507,6 +517,7 @@
     <!-- 9 -->
     <section class="part" data-title="Token representations">
       <h2>Token representations</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say">Each token needs a vector. Take three tokens: <b>teddy bear</b>, <b>soft</b> and <b>book</b>.</p>
       <div class="activity">
         <div class="do">Try it: switch between the two ideas and watch the arrows.</div>
@@ -583,6 +594,7 @@
     <!-- 10 -->
     <section class="part" data-title="Quick basics: a guessing machine">
       <h2>✏️ Quick basics: a guessing machine</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say">A <mark>neural network</mark> is a machine that guesses. A word goes in, and out come <b>scores</b> for what might come next.</p>
       <div class="gmwrap">
         <svg class="guessmac" viewBox="0 0 560 170" aria-label="The word A goes into a box called network, full of little knobs. Out come scores: cute 2.0, teddy bear 0.5, is 0.1">
@@ -609,6 +621,7 @@
 
     <section class="part" data-title="Quick basics: scores → chances">
       <h2>✏️ Quick basics: scores → chances</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say">The last step turns scores into <b>chances</b> that add up to 100%. It's called <mark data-peek-from="softmaxPeek">softmax</mark>.</p>
       <div hidden id="softmaxPeek"><b>Softmax</b>
         <div class="eq">chance(cute) = <span class="frac"><span>e<sup>2.0</sup></span><span>e<sup>2.0</sup> + e<sup>0.5</sup> + e<sup>0.1</sup></span></span></div>
@@ -634,6 +647,7 @@
 
     <section class="part" data-title="Quick basics: learning from a mistake">
       <h2>✏️ Quick basics: learning from a mistake</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say">The real next word was <b>“cute”</b>, but the network gave it only a small chance.</p>
       <p class="say">How wrong it was is called the <mark data-peek-from="lossPeek">loss</mark>. Learning means nudging the weights a little so the loss shrinks. That's <mark>training</mark>.</p>
       <div hidden id="lossPeek"><b>Loss</b>
@@ -698,6 +712,7 @@
     <!-- 11 -->
     <section class="part" data-title="Word2vec">
       <h2>Word2vec</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say"><mark>Word2vec</mark> (2013) learns embeddings with a trick: train a small network on a <mark data-peek="It practises on billions of words of text.">proxy task</mark>, a practice task: <b>guess a hidden word from its neighbours</b>.</p>
       <p class="say">To guess well, it must learn what words mean. We don't need its guesses: we keep what it learned along the way, the <b>embeddings</b>.</p>
       <div class="activity">
@@ -715,6 +730,7 @@
     <!-- 12 -->
     <section class="part" data-title="Inside word2vec">
       <h2>Inside word2vec: guessing the next word</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say">Our vocabulary has <b>V = 6</b> tokens: A, cute, teddy bear, is, reading, “.”. The middle layer has <b>d = 2</b> numbers.</p>
       <div class="activity">
         <div class="do">Step through one guess.</div>
@@ -739,6 +755,7 @@
     <!-- 13 -->
     <section class="part" data-title="Embeddings that make sense">
       <h2>Embeddings that make sense</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say">After training, we throw the guessing away and keep the <b>hidden layer</b>: each token's embedding.</p>
       <p class="say">Words used in similar places end up close together.</p>
       <div class="activity">
@@ -798,6 +815,7 @@
     <!-- 14 -->
     <section class="part" data-title="What word2vec misses">
       <h2>What word2vec misses</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <div class="cards">
         <div class="card">
           <h3>1 · One meaning per word</h3>
@@ -827,6 +845,7 @@
     <!-- 15 -->
     <section class="part" data-title="RNNs">
       <h2>Recurrent neural networks (RNNs)</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say">An <mark data-peek="Recurrent neural network. Around since the 1980s. The same box, with the same weights, is reused at every step.">RNN</mark> reads a sentence <b>one token at a time, in order</b>, the way you read.</p>
       <p class="say">It carries a small <mark>memory</mark> (called the <b>hidden state</b>) from each step to the next. At every step it mixes the new token into the memory, then uses the memory to guess the next token.</p>
       <div class="activity">
@@ -845,6 +864,7 @@
     <!-- 16 -->
     <section class="part" data-title="What RNNs were used for">
       <h2>What RNNs were used for</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say">The same reading-in-order idea, with different outputs:</p>
       <div class="cards three">
         <div class="card">
@@ -872,6 +892,7 @@
     <!-- 17 -->
     <section class="part" data-title="RNNs forget">
       <h2>The problem: RNNs forget</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say">The whole sentence has to squeeze into <b>one small memory</b>, and every new token overwrites part of it.</p>
       <div class="activity">
         <div class="do">Try it (<span data-peek="In this picture each step keeps 60% of the old memory. Real RNNs learn how much to keep, but they fade in the same way.">simplified</span>): keep adding words. How much of the first word is still in the memory?</div>
@@ -923,6 +944,7 @@
     <!-- 18 -->
     <section class="part" data-title="LSTMs">
       <h2>LSTMs: memory with switches</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say">The <mark data-peek="Long short-term memory, introduced in 1997.">LSTM</mark> adds a second, longer-lasting memory called the <b>cell state</b>, plus <mark>gates</mark>: learned switches that decide what to do with it.</p>
       <div class="cards three">
         <div class="card"><h3>Forget gate</h3><p>What to <b>erase</b> from the cell state.</p></div>
@@ -946,6 +968,7 @@
     <!-- 19 -->
     <section class="part" data-title="Summary so far">
       <h2>Summary so far</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <table class="compare">
         <tr><th>Method</th><th>Good</th><th>Not so good</th></tr>
         <tr><td><b>Word2vec</b><br><span class="note">CBOW, skip-gram</span></td>
@@ -970,6 +993,7 @@
     <!-- 20 -->
     <section class="part" data-title="2014: attention">
       <h2>2014: the idea of attention</h2>
+      <div class="stagemap" data-stage="rep"></div>
       <p class="say">Translation models then had two RNNs: one <b>reads</b> the English sentence into a memory, the other <b>writes</b> the French from that memory.</p>
       <p class="say">For long sentences, the writer had already “forgotten” what the reader saw.</p>
       <p class="say">The fix, called <mark>attention</mark>: let the writer <b>look straight back</b> at every input word, and learn which ones matter right now.</p>
@@ -1128,7 +1152,11 @@
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/pen.js"></script>
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/guide.js"></script>
 <script src="../assets/practice.js"></script>
+<script src="../assets/maps.js"></script>
 <script>
+window.STAGE_LIST = [["intro", "Introduction"], ["tok", "Tokenization"], ["rep", "Word representation"], ["att", "Self-attention"], ["tf", "Transformer"]];
+window.STAGE_PAGES = { intro: "How we got here", tok: "Tokenization", rep: "Quick basics: vectors", att: "lesson1b.html#1", tf: "lesson1b.html#9" };
+
 const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 const tok = (t, cls = "") => `<span class="tk ${cls}">${esc(t)}</span>`;
 
