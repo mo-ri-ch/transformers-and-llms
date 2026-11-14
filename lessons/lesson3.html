@@ -373,8 +373,43 @@
         <div class="eqline" id="bpEq"></div>
       </div>
       <p class="say">B is the number of bytes. Dividing by log 2 turns the log's units into <mark data-peek="A bit is a yes-or-no answer. 1 bit per byte means: on average, one yes-or-no question per letter to guess the text.">bits</mark>.</p>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 3.1">
+      <h2>✏️ Practice 3.1</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">surprise = −log p</b> (the <code>ln</code> button)<br><b class="eqbox">loss = average surprise of the right tokens</b><br><b class="eqbox">BPB = loss × T/B × 1/log 2</b> (log 2 ≈ 0.693)</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="0.105" data-tol="0.005" data-hint="−log 0.9." data-work="−ln 0.9 = 0.105. Small: the model was nearly sure.">
+          <div class="pq-q">The model gives the right token a chance of <b>0.9</b>. What is its surprise?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.693" data-tol="0.01" data-hint="Work out −log of each, add, divide by 4." data-work="0.693 + 0.693 + 1.386 + 0 = 2.773. ÷ 4 = 0.693.">
+          <div class="pq-q">Four right tokens got chances <b>0.5</b>, <b>0.5</b>, <b>0.25</b> and <b>1.0</b>. What is the loss?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.693" data-tol="0.01" data-hint="Every surprise is the same, so the average is that surprise." data-work="−ln 0.5 = 0.693 for each, so the average is 0.693.">
+          <div class="pq-q">A text of <b>20</b> tokens; every right token got <b>0.5</b>. The loss?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.433" data-tol="0.005" data-hint="1.2 × 10/40, then divide by 0.693." data-work="1.2 × 0.25 = 0.3. 0.3 ÷ 0.693 = 0.433 bits per byte.">
+          <div class="pq-q">Loss <b>1.2</b> per token, T = <b>10</b> tokens, B = <b>40</b> bytes. What is the BPB?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.6" data-tol="0.005" data-hint="Total surprise ÷ T." data-work="12 ÷ 20 = 0.6 (it was 12 ÷ 10 = 1.2). The BPB stays 0.433.">
+          <div class="pq-q">Same text, total surprise still 12, but another tokenizer cuts it into <b>20</b> tokens. What is the loss per token now?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">What text does the model read?</p>
     </section>
+
 
     <!-- 7 -->
     <section class="part" data-title="What the model reads">
@@ -453,8 +488,43 @@
         <div style="margin-top:6px"><b>Data.</b> We need texts where a word near the end really depends on something far back. Those are rare.</div>
       </div>
       <p class="say">Methods like <mark data-peek="Yet another RoPE extensioN method, 2023. It squeezes the slow hands and leaves the fast ones alone, so nearby words stay easy to tell apart.">YaRN</mark> squeeze the slow hands. Then the window grows step by step: 4K → 32K → 128K → 1M tokens.</p>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 3.2">
+      <h2>✏️ Practice 3.2</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">tokens read = unique tokens × passes</b><br>RoPE's slow hand turns by an angle that grows with position. <b>Squeezing</b> by k divides every position by k.<br>Every token looks at every other: <b>n tokens → n × n pairs</b>.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="400" data-tol="0.5" data-hint="Multiply." data-work="100B × 4 = 400B: worth almost as much as 400B new ones.">
+          <div class="pq-q"><b>100B</b> unique tokens, read <b>4</b> times. How many tokens are read, in billions?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="180" data-tol="0.5" data-hint="Twice the positions, twice the angle." data-work="8,000 is twice 4,000, so 2 × 90° = 180°: never seen in training.">
+          <div class="pq-q">The slow hand turns <b>90°</b> over 4,000 positions. At what angle is it at position <b>8,000</b>?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="4000" data-tol="0.5" data-hint="Divide the position by 4." data-work="16,000 ÷ 4 = 4,000: an angle the model already knows.">
+          <div class="pq-q">Squeeze by <b>4</b>. Position 16,000 now gets the angle of which position?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="32" data-tol="0.01" data-hint="128 ÷ 4." data-work="128 ÷ 4 = 32.">
+          <div class="pq-q">The window grows from <b>4K</b> to <b>128K</b> tokens. How many times longer is it?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1024" data-tol="0.5" data-hint="Pairs grow with n × n: 32 × 32." data-work="32 × 32 = 1,024 times more pairs.">
+          <div class="pq-q">And how many times more attention pairs?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">After all that, what do we have?</p>
     </section>
+
 
     <!-- 11 -->
     <section class="part" data-title="What pretraining can't do">
@@ -615,8 +685,48 @@
         <svg class="pic" id="wlPic" viewBox="0 0 620 170" aria-label="One Transformer layer: four attention tables and two feed-forward tables, sized by their weights."></svg>
         <p class="note" id="wlSays"></p>
       </div>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 3.3">
+      <h2>✏️ Practice 3.3</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b>SFT:</b> only the answer tokens count in the loss.<br><b>Column × row:</b> each cell = its row's number × its column's number.<br><b class="eqbox">LoRA learns B × A: 2 × d × r numbers, instead of d × d</b></p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="8" data-tol="0.01" data-hint="Only the answer counts." data-work="T = 8. The 12 prompt tokens are only read.">
+          <div class="pq-q">An SFT example has a prompt of <b>12</b> tokens and an answer of <b>8</b>. How many tokens count in the loss (T)?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="12" data-tol="0.01" data-hint="Row 3&#x27;s number × column 2&#x27;s number." data-work="3 × 4 = 12.">
+          <div class="pq-q">Column [2, −1, 3] × row [1, 4, 0]. What is in row 3, column 2?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="16384" data-tol="0.5" data-hint="2 × d × r." data-work="2 × 1,024 × 8 = 16,384.">
+          <div class="pq-q">d = <b>1,024</b> and r = <b>8</b>. How many numbers does LoRA learn for this table?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1.56" data-tol="0.02" data-hint="d × d = 1,048,576. Divide, then × 100." data-work="16,384 ÷ 1,048,576 = 0.0156 → 1.56%.">
+          <div class="pq-q">What percentage is that of the whole table (d × d)?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="14.4" data-tol="0.01" data-hint="One copy of W₀, plus 10 add-ons." data-work="14 + 10 × 0.04 = 14.4 GB, instead of 10 × 14 = 140 GB.">
+          <div class="pq-q">A model of 14 GB and <b>10</b> jobs, each with a 0.04 GB add-on. How many GB with LoRA?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.667" data-tol="0.005" data-hint="8 out of 4 + 8." data-work="8 ÷ 12 = 0.667: two-thirds. That&#x27;s why LoRA should cover it.">
+          <div class="pq-q">A layer's attention tables hold 4 × d² weights and its feed-forward network 8 × d². What share is in the feed-forward network?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">Fine-tuning shows the model what to do. Can it learn what <i>not</i> to do?</p>
     </section>
+
 
     <!-- 20 -->
     <section class="part" data-title="What not to do">
@@ -705,8 +815,43 @@
         <div class="btnrow"><button class="primary" id="rmGo">Training step</button></div>
       </div>
       <p class="say">In practice: about 10,000 pairs marked by people (the “human feedback”). The reward model is often an LLM with its next-token layer swapped for a <mark data-peek="It reads the embedding of the last token and turns it into one number. An encoder like BERT can do it from [CLS] instead.">one-number output</mark>.</p>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 3.4">
+      <h2>✏️ Practice 3.4</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">σ(x) = 1 ÷ (1 + e<sup>−x</sup>)</b><br><b class="eqbox">p(i better than j) = σ(r<sub>i</sub> − r<sub>j</sub>)</b><br><b class="eqbox">loss = −log σ(r<sub>winner</sub> − r<sub>loser</sub>)</b></p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="0.5" data-tol="0.005" data-hint="e⁰ = 1." data-work="1 ÷ (1 + 1) = 0.5.">
+          <div class="pq-q">σ(0) = ?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.881" data-tol="0.005" data-hint="e^(−2) ≈ 0.135." data-work="1 ÷ 1.135 = 0.881.">
+          <div class="pq-q">σ(2) = ?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.881" data-tol="0.005" data-hint="First the difference r_A − r_B." data-work="1.5 − (−0.5) = 2. σ(2) = 0.881.">
+          <div class="pq-q">r<sub>A</sub> = <b>1.5</b>, r<sub>B</sub> = <b>−0.5</b>. What is p(A better than B)?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.693" data-tol="0.005" data-hint="The difference is 0, and σ(0) = 0.5." data-work="−ln 0.5 = 0.693.">
+          <div class="pq-q">Winner and loser have the <b>same</b> reward. What is the loss?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.127" data-tol="0.005" data-hint="σ(2) = 0.881, then −log." data-work="−ln 0.881 = 0.127: much smaller, the reward model gets this pair right.">
+          <div class="pq-q">r<sub>winner</sub> − r<sub>loser</sub> = <b>2</b>. The loss?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">Now we use the reward model to train our LLM.</p>
     </section>
+
 
     <!-- 25 -->
     <section class="part" data-title="Reinforcement learning">
@@ -747,8 +892,38 @@
         <div class="btnrow"><button class="primary" id="dpGo">Training step</button></div>
       </div>
       <p class="say">β = 0.5 here. To shrink the loss, the winner must get more likely and the loser less likely.</p>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 3.5">
+      <h2>✏️ Practice 3.5</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">RL goal = reward − β × distance from start</b><br><b class="eqbox">DPO reward: r = β log(p<sub>now</sub> ÷ p<sub>start</sub>)</b><br><b class="eqbox">loss = −log σ(r<sub>winner</sub> − r<sub>loser</sub>)</b></p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="6.5" data-tol="0.01" data-hint="reward − β × distance." data-work="8 − 0.5 × 3 = 6.5.">
+          <div class="pq-q">An answer has reward <b>8</b> and distance <b>3</b>. With β = <b>0.5</b>, what is its goal?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1" data-tol="0.01" data-hint="Set 6 − β × 1 equal to 8 − β × 3, and solve." data-work="6 − β = 8 − 3β → 2β = 2 → β = 1.">
+          <div class="pq-q">Answer A: reward 6, distance 1. Answer B: reward 8, distance 3. Which β makes them tie?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.347" data-tol="0.005" data-hint="0.5 × log 2." data-work="0.5 × 0.693 = 0.347.">
+          <div class="pq-q">The LLM now makes an answer <b>2</b> times as likely as at the start. With β = 0.5, what is its DPO reward?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.405" data-tol="0.005" data-hint="r_w − r_l = 0.5 × (log 2 − log 0.5). Then σ, then −log." data-work="0.5 × (0.693 + 0.693) = 0.693. σ(0.693) = 1 ÷ (1 + 0.5) = 0.667. −ln 0.667 = 0.405.">
+          <div class="pq-q">The winner is now 2 times as likely, the loser half as likely (0.5). β = 0.5. What is the loss?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">So which one do people use?</p>
     </section>
+
 
     <!-- 27 -->
     <section class="part" data-title="RLHF or DPO?">
@@ -860,8 +1035,43 @@
         <div style="margin-top:6px">Almost. GRPO also divides by how spread out the rewards are, so every question pushes about equally hard.</div>
         <div style="margin-top:6px">The full maths comes with reinforcement learning, next.</div>
       </div>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 3.6">
+      <h2>✏️ Practice 3.6</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">reward = right answer? (+1) + reasoned in &lt;think&gt;? (+1)</b><br><b class="eqbox">advantage = reward − group average</b><br>You pay for every output token: thinking and answer.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="1" data-tol="0.01" data-hint="+1 for right, +0 for the format." data-work="1 + 0 = 1 (of 2).">
+          <div class="pq-q">An answer is right, but has no &lt;think&gt; part. Its reward?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.333" data-tol="0.005" data-hint="Add, divide by 6." data-work="2 ÷ 6 = 0.333.">
+          <div class="pq-q">A group of 6 answers gets rewards 1, 1, 0, 0, 0, 0. What is the group average?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.667" data-tol="0.005" data-hint="1 − average." data-work="1 − 0.333 = 0.667: write more like this.">
+          <div class="pq-q">What is the advantage of one of the right answers?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="-0.333" data-tol="0.005" data-hint="0 − average." data-work="0 − 0.333 = −0.333: write less like this.">
+          <div class="pq-q">And of a wrong one?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1250" data-tol="0.5" data-hint="Thinking counts too." data-work="1,200 + 50 = 1,250.">
+          <div class="pq-q">A reasoning model thinks for <b>1,200</b> tokens and answers in <b>50</b>. How many output tokens do you pay for?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">What happens as this training goes on?</p>
     </section>
+
 
     <!-- 32 -->
     <section class="part" data-title="Reasoning grows">
@@ -964,8 +1174,38 @@
         <div class="wins" id="pkWins"></div>
         <p class="note" id="pkSays2"></p>
       </div>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 3.7">
+      <h2>✏️ Practice 3.7</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b>Concatenate and chunk:</b> join documents end to end and cut every window full.<br><b>Best-fit packing:</b> longest document first, into the window with the least room that still fits it; gaps get [PAD].</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="4" data-tol="0.01" data-hint="30 ÷ 8, rounded up." data-work="8 + 8 + 8 + 6: 4 windows.">
+          <div class="pq-q">Documents total <b>30</b> tokens; windows hold 8. With concatenate and chunk, how many windows?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="2" data-tol="0.01" data-hint="The last window has 6 tokens." data-work="8 − 6 = 2.">
+          <div class="pq-q">And how many [PAD] tokens in the last window?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="2" data-tol="0.01" data-hint="6 first, then 5 in a new window, then 3 where it fits best, then 2." data-work="6 → window 1 (2 left). 5 → window 2 (3 left). 3 → window 2 (0 left). 2 → window 1 (0 left). 2 windows.">
+          <div class="pq-q">Documents of <b>6, 5, 3, 2</b> tokens, windows of 8, best-fit packing. How many windows?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1" data-tol="0.01" data-hint="Fill window 1 with 6, then as much of the 5 as fits." data-work="Window 1: 6 + 2 of the 5 (cut). Window 2: 3 + 3 + 2. Only 1 document cut.">
+          <div class="pq-q">Same, with concatenate and chunk (in the order 6, 5, 3, 2). How many documents get cut?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">There's one more danger in the data itself.</p>
     </section>
+
 
     <!-- 38 -->
     <section class="part" data-title="Model collapse">
@@ -1003,6 +1243,177 @@
       <p class="hook">Where does this leave us?</p>
     </section>
 
+
+    <section class="part" data-title="Lesson test">
+      <h2>Lesson 3 test</h2>
+      <p class="say">18 questions, one for each idea in this lesson. Answer them all right to pass. A wrong answer tells you why, and which page to look at again.</p>
+      <div class="test" data-test="4">
+        <div class="quiz" data-page="lesson3.html#3" data-topic="All positions at once" data-right="Right. Teacher forcing: the input is always the real text.">
+          <div class="q"><small>1. Predict</small>In training, the model guessed “The”, but the text says “A”. What is the next input?</div>
+          <div class="options">
+            <button data-right>“A”, the real token</button>
+            <button data-why="That&#x27;s what happens in real use, not in training.">“The”, its own guess</button>
+            <button data-why="Wrong guesses are how it learns; training carries on.">Nothing: training stops</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#5" data-topic="The loss: cross-entropy" data-right="Right. −log 0.1 = 2.30, against −log 0.9 = 0.11.">
+          <div class="q"><small>2. Compare</small>At one position the right token got 0.9, at another 0.1. Which adds more to the loss?</div>
+          <div class="options">
+            <button data-why="Being nearly sure and right costs almost nothing.">The 0.9 one</button>
+            <button data-right>The 0.1 one</button>
+            <button data-why="Surprise depends on the chance given.">Both the same</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#6" data-topic="Bits per byte" data-right="Right. Bytes don&#x27;t depend on the tokenizer.">
+          <div class="q"><small>3. Choose</small>Two models use different tokenizers. How do you compare them fairly?</div>
+          <div class="options">
+            <button data-right>By bits per byte</button>
+            <button data-why="Different T makes the per-token averages unfair.">By loss per token</button>
+            <button data-why="That only tells you about the tokenizer.">By number of tokens</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#9" data-topic="How much text" data-right="Right. Up to about 4 passes, repeated text is almost as good as new.">
+          <div class="q"><small>4. Predict</small>Only 100B good tokens exist. Reading them 4 times is worth about…</div>
+          <div class="options">
+            <button data-right>Almost 400B new tokens</button>
+            <button data-why="Repeating does help, up to about 4 times.">Only 100B</button>
+            <button data-why="A few repeats help; only many repeats stop helping.">Nothing: it's harmful</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#11" data-topic="Longer texts" data-right="Right. RoPE&#x27;s slow hands reach angles never seen in training.">
+          <div class="q"><small>5. Predict</small>A model trained on 4K windows is used at 16K, unchanged. What can go wrong?</div>
+          <div class="options">
+            <button data-right>It meets RoPE angles it never saw</button>
+            <button data-why="No weights, but the model only learned the angles it saw.">Nothing: RoPE has no weights</button>
+            <button data-why="It runs; it just may get confused.">It refuses longer inputs</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#14" data-topic="Asking the pretrained model" data-right="Right. It was only trained to guess the next token.">
+          <div class="q"><small>6. Predict</small>You ask a pretrained-only model a question. What does it do?</div>
+          <div class="options">
+            <button data-right>It continues the text</button>
+            <button data-why="That&#x27;s what fine-tuning teaches.">It answers helpfully</button>
+            <button data-why="It has no idea it&#x27;s being asked anything.">It says it doesn't know</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#16" data-topic="Learning only the answer" data-right="Right. The instruction is only read; the answer is learned.">
+          <div class="q"><small>7. Choose</small>Which tokens count in the SFT loss?</div>
+          <div class="options">
+            <button data-right>Only the answer's</button>
+            <button data-why="That&#x27;s pretraining.">Every token</button>
+            <button data-why="The model shouldn&#x27;t learn to write instructions.">Only the instruction's</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#19" data-topic="LoRA" data-right="Right. 2 × 4,096 × 8 = 65,536, out of 16.8 million: 0.4%.">
+          <div class="q"><small>8. Work it out</small>d = 4,096 and r = 8. LoRA learns about what share of the table's weights?</div>
+          <div class="options">
+            <button data-right>About 0.4%</button>
+            <button data-why="r is 8, but the share is 2r/d = 16/4,096.">About 8%</button>
+            <button data-why="B and A are thin: far fewer numbers.">About 50%</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#23" data-topic="What not to do" data-right="Right. Comparing is quick and easy; writing perfect answers is slow.">
+          <div class="q"><small>9. Explain</small>Why collect pairs (better / worse) instead of perfect answers?</div>
+          <div class="options">
+            <button data-right>Comparing is much easier for people</button>
+            <button data-why="People (or a judge model) still pick the better one.">Pairs need no people at all</button>
+            <button data-why="Length isn&#x27;t the point.">Pairs are shorter text</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#26" data-topic="The reward model" data-right="Right. σ(0) = 0.5.">
+          <div class="q"><small>10. Predict</small>Two answers get the same reward. What is p(A better than B)?</div>
+          <div class="options">
+            <button data-right>50%</button>
+            <button data-why="Only a very big difference gets close to 100%.">100%</button>
+            <button data-why="Equal rewards favour neither.">0%</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#29" data-topic="Reinforcement learning" data-right="Right. It learns to please the imperfect reward model with nonsense: reward hacking.">
+          <div class="q"><small>11. Predict</small>With β = 0, nothing keeps the LLM near its start. What can happen?</div>
+          <div class="options">
+            <button data-right>Reward hacking</button>
+            <button data-why="That&#x27;s a very large β.">It stops changing</button>
+            <button data-why="Nothing pushes it toward short answers.">Its answers get shorter</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#30" data-topic="DPO" data-right="Right. DPO turns the pairs directly into a loss.">
+          <div class="q"><small>12. Compare</small>What does DPO not need, that RLHF does?</div>
+          <div class="options">
+            <button data-right>A reward model</button>
+            <button data-why="DPO learns from exactly those.">Preference pairs</button>
+            <button data-why="DPO compares with the starting model all the time.">A starting model</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#35" data-topic="Rewards you can check" data-right="Right. A maths answer can be compared with the known answer.">
+          <div class="q"><small>13. Choose</small>Which task can use a reward you can check?</div>
+          <div class="options">
+            <button data-right>A maths problem with a known answer</button>
+            <button data-why="There&#x27;s no single right poem to check against.">Writing a poem</button>
+            <button data-why="That needs a judge, like a reward model.">Being friendly</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#36" data-topic="GRPO" data-right="Right. Every reward equals the average, so every advantage is 0.">
+          <div class="q"><small>14. Predict</small>All 6 answers in a group are right. What does GRPO learn from them?</div>
+          <div class="options">
+            <button data-right>Nothing: all advantages are 0</button>
+            <button data-why="Being right only helps when compared with worse answers.">A lot: all are right</button>
+            <button data-why="Their advantages are 0, not negative.">To write less like them</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#40" data-topic="Off-policy and on-policy" data-right="Right. People wrote the text, and every token is marked.">
+          <div class="q"><small>15. Choose</small>Which describes SFT?</div>
+          <div class="options">
+            <button data-right>Off-policy, dense</button>
+            <button data-why="That&#x27;s RLHF or GRPO.">On-policy, sparse</button>
+            <button data-why="That&#x27;s on-policy distillation.">On-policy, dense</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#41" data-topic="On-policy distillation" data-right="Right. A mark for every token the student wrote, so the student knows where it went wrong.">
+          <div class="q"><small>16. Explain</small>What does the teacher give the student?</div>
+          <div class="options">
+            <button data-right>A mark for every token</button>
+            <button data-why="That&#x27;s GRPO-style feedback.">One reward for the whole answer</button>
+            <button data-why="The text is the student&#x27;s own.">New text to copy</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#43" data-topic="Packing text into windows" data-right="Right. Every document stays whole, at the cost of some [PAD].">
+          <div class="q"><small>17. Compare</small>What does best-fit packing avoid?</div>
+          <div class="options">
+            <button data-right>Cutting documents in two</button>
+            <button data-why="It uses some [PAD]; chunking uses none.">[PAD] tokens</button>
+            <button data-why="It still fills fixed windows.">Using windows</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson3.html#45" data-topic="Model collapse" data-right="Right. Rare words are easy to miss in a finite sample, and once missed they&#x27;re gone.">
+          <div class="q"><small>18. Predict</small>Each generation learns only from the last one's writing. What disappears first?</div>
+          <div class="options">
+            <button data-right>Rare words</button>
+            <button data-why="Those show up in every sample.">Common words</button>
+            <button data-why="That&#x27;s the danger: something always gets lost.">Nothing</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+      </div>
+      <p class="hook">Did it all make sense? Then let's look back, and ahead.</p>
+    </section>
+
     <!-- 40 -->
     <section class="part" data-title="Where we go from here">
       <h2>Where we go from here</h2>
@@ -1035,6 +1446,7 @@
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/common.js"></script>
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/pen.js"></script>
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/guide.js"></script>
+<script src="../assets/practice.js"></script>
 <script src="../assets/maps.js"></script>
 <script>
 const $ = id => document.getElementById(id);

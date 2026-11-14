@@ -13,7 +13,7 @@ const COURSE_LESSONS = [
   { n: 3, label: "2", step: "LLMs", title: "Large language models", file: "lesson2.html", ready: true, test: 46,
     summary: "Model families, mixture of experts, cheaper attention (MQA, GQA), RoPE, and how temperature and sampling pick each word.",
     leaves: "We know what an LLM is. How does it learn everything it knows?" },
-  { part: "Part 2 · How it learns", n: 4, label: "3", step: "training", title: "Training an LLM", file: "lesson3.html", ready: true,
+  { part: "Part 2 · How it learns", n: 4, label: "3", step: "training", title: "Training an LLM", file: "lesson3.html", ready: true, test: 47,
     summary: "Pretraining, fine-tuning, LoRA, preference tuning, reasoning, and teaching small models from big ones (distillation).",
     leaves: "Much of this training uses rewards instead of right answers. How does a model learn from a reward?" },
   { n: 5, label: "4", step: "rewards", title: "Reinforcement learning", file: "lesson4.html", ready: false,
