@@ -228,3 +228,28 @@ const tfDrawMinis = () => document.querySelectorAll(".tfmini[data-lit]").forEach
   else tfDraw(el, keys, { id: "tfm" + i });
 });
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", tfDrawMinis); else tfDrawMinis();
+
+// ---------- Training stages: a slim bar under a page's title, with the current stage lit ----------
+// <div class="stagemap" data-stage="sft"></div>   Clicking a stage opens its first page (window.STAGE_PAGES).
+const STAGES = [["pre", "Pretraining"], ["mid", "Midtraining"], ["sft", "Fine-tuning"], ["pref", "Preference tuning"], ["reason", "Reasoning"], ["distill", "Distillation"]];
+(function () {
+  const st = document.createElement("style");
+  st.textContent = `
+  .stagemap { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: -4px 0 12px; font-size: 0.78rem; }
+  .stagemap .sg { padding: 1px 8px; border: 1.2px solid var(--rule); border-radius: 10px; color: var(--pencil); background: transparent; cursor: pointer; font: inherit; line-height: 1.5; }
+  .stagemap .sg.now { border-color: var(--ink); background: var(--note-yellow); color: var(--ink); font-weight: 700; }
+  .stagemap .sg.past { color: var(--ink); }
+  .stagemap .ar { color: var(--pencil); }
+  @media (max-width: 640px) { .stagemap .sg:not(.now) { font-size: 0; padding: 0; width: 9px; height: 9px; border-radius: 50%; } .stagemap .sg.past { background: var(--pencil); } .stagemap .ar { display: none; } }
+  `;
+  document.head.appendChild(st);
+})();
+function stageDraw() {
+  document.querySelectorAll(".stagemap[data-stage]").forEach(el => {
+    const now = el.dataset.stage.split(","), first = STAGES.findIndex(s => now.includes(s[0]));
+    el.setAttribute("aria-label", "Training stages; this page: " + STAGES.filter(s => now.includes(s[0])).map(s => s[1]).join(", "));
+    el.innerHTML = STAGES.map(([k, name], i) => `<button type="button" class="sg ${now.includes(k) ? "now" : i < first ? "past" : ""}" data-k="${k}" title="${name}">${name}</button>`).join('<span class="ar">→</span>');
+    el.querySelectorAll(".sg").forEach(b => b.onclick = () => { const p = (window.STAGE_PAGES || {})[b.dataset.k]; if (p) tfGoTo(p); });
+  });
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", stageDraw); else stageDraw();
