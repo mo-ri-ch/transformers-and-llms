@@ -1,0 +1,1850 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Large language models</title>
+<meta name="description" content="Lesson 2 of Transformers & LLMs: encoder-only and decoder-only models, scaling laws, mixture of experts, modern attention tricks, how the next word is picked, and prompting.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Kalam:wght@400&family=Patrick+Hand&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("notebook-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<link rel="stylesheet" href="https://mo-ri-ch.github.io/study-notebook-design/v1/style.css">
+<style>
+  .mono { font-family: var(--mono); }
+  .small { font-size: 0.85rem; }
+  .btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  button.on { background: var(--ink); color: var(--paper); }
+  /* Token chips */
+  .toks { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--mono); align-items: center; }
+  .tk { padding: 3px 8px; border: 1.5px solid var(--ink); border-radius: 5px; background: var(--paper); color: var(--ink); white-space: pre; }
+  .tk.sp { color: var(--pen); border-color: var(--pen); font-weight: 600; }
+  .tk.pick { cursor: pointer; }
+  .tk.q { outline: 3px solid var(--redpen); }
+  .tk.lit { background: var(--note-yellow); }
+  .tk.blank { border-style: dashed; color: var(--pencil); }
+  .linkbox { position: relative; }
+  svg.links { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+  /* Equations */
+  .eq { margin: 8px 0; font-family: var(--mono); font-size: 0.95rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .frac { display: inline-flex; flex-direction: column; text-align: center; vertical-align: middle; }
+  .frac > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 4px 2px; }
+  .frac > span:last-child { padding: 2px 4px 0; }
+  .eq sup, .eq sub { font-size: 0.75em; }
+  .bigeq { font-size: 1.15rem; justify-content: center; padding: 12px; background: var(--card); border: 1.5px solid var(--rule); border-radius: 8px; }
+  /* Bars */
+  .bars { display: grid; gap: 6px; max-width: 560px; }
+  .bar { display: grid; grid-template-columns: 8.6em 3.4em 1fr 3.2em; gap: 10px; align-items: center; font-family: var(--mono); font-size: 0.88rem; }
+  .bar.nosc { grid-template-columns: 8.6em 1fr 3.2em; }
+  .bar .track { height: 16px; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .bar .fill { display: block; height: 100%; background: var(--hl-yellow); border-right: 2px solid var(--ink); transition: width .25s; }
+  .bar .pct { text-align: right; color: var(--pencil); }
+  .bar .sc { color: var(--pen); text-align: right; }
+  .bar.head { font-family: var(--head); font-size: 0.95rem; color: var(--pencil); }
+  .bar.top .fill { background: var(--hl-green); }
+  /* Paint swatches (weighted average) */
+  .sw { display: inline-block; width: 1.1em; height: 1.1em; border-radius: 50%; border: 1.5px solid var(--ink); vertical-align: middle; }
+  .bigsw { width: 84px; height: 84px; border-radius: 50%; border: 2px solid var(--ink); box-shadow: 0 10px 16px -12px rgba(20,24,50,.5); }
+  .mix { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: center; }
+  .mixrow { display: grid; grid-template-columns: 1.4em 7em 1fr 3.2em; gap: 10px; align-items: center; font-family: var(--mono); font-size: 0.9rem; }
+  .mixrow input { width: 100%; accent-color: var(--pen); }
+  .mixout { display: grid; justify-items: center; gap: 6px; font-family: var(--head); }
+  /* Matrices */
+  .mat { display: inline-grid; gap: 2px; padding: 3px 6px; border-left: 2px solid var(--ink); border-right: 2px solid var(--ink); border-radius: 6px; font-family: var(--mono); font-size: 0.9rem; vertical-align: middle; }
+  .mat span { min-width: 2.4em; padding: 2px 4px; text-align: center; border-radius: 3px; }
+  .mat span.on { background: var(--hl-yellow); color: var(--on-hl); }
+  .mat span.click { cursor: pointer; outline: 1.5px dashed var(--pen); }
+  .matrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--mono); }
+  .matlbl { display: grid; justify-items: center; gap: 4px; }
+  .matlbl small { font-family: var(--hand); color: var(--pencil); font-size: 0.95rem; }
+  /* Attention grid */
+  .agrid { display: grid; gap: 2px; font-family: var(--mono); font-size: 0.78rem; overflow-x: auto; }
+  .agrid .c { padding: 5px 2px; text-align: center; border-radius: 3px; background: color-mix(in srgb, var(--hl-yellow) calc(var(--w, 0) * 100%), var(--paper)); color: var(--ink); border: 1px solid var(--rule); min-width: 2.8em; }
+  .agrid .c.hot { color: #1D2238; }
+  .agrid .c.masked { background: var(--card); color: var(--pencil); border-style: dashed; }
+  .agrid .h { padding: 4px 2px; text-align: center; color: var(--pencil); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .agrid .rh { text-align: right; padding-right: 6px; cursor: pointer; }
+  .agrid .rh.sel { color: var(--redpen); font-weight: 700; }
+  .agrid .rowsel { outline: 2px solid var(--redpen); }
+  .agrid .swc { display: grid; place-items: center; }
+  .steps4 { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 10px; }
+  .steps4 button.done { opacity: 1; }
+  /* Diagrams */
+  .pic { width: 100%; max-width: 620px; display: block; margin: 6px 0 10px; }
+  .pic .bx { fill: var(--note-blue); stroke: var(--ink); stroke-width: 1.5; }
+  .pic .bx.y { fill: var(--note-yellow); } .pic .bx.g { fill: var(--note-green); } .pic .bx.p { fill: var(--note-pink); } .pic .bx.o { fill: var(--note-orange); }
+  .pic .bx.w { fill: var(--card); }
+  .pic .t { font-family: var(--head); font-size: 17px; text-anchor: middle; fill: var(--ink); }
+  .pic .ts { font-family: var(--hand); font-size: 13px; text-anchor: middle; fill: var(--pencil); }
+  .pic .tm { font-family: var(--mono); font-size: 12px; text-anchor: middle; fill: var(--ink); }
+  .pic .ar { stroke: var(--pen); stroke-width: 2.2; fill: none; marker-end: url(#hd); }
+  .pic .ar.r { stroke: var(--redpen); marker-end: url(#hdr); }
+  .pic .lit { stroke: var(--redpen); stroke-width: 3; }
+  .pic .dash { stroke-dasharray: 5 4; }
+  /* Step list (end-to-end) */
+  .flow { display: grid; grid-template-columns: minmax(0, 15em) 1fr; gap: 16px; align-items: start; }
+  .flow ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; counter-reset: s; }
+  .flow li { counter-increment: s; padding: 5px 10px; border: 1.5px solid var(--rule); border-radius: 6px; font-size: 0.92rem; color: var(--pencil); }
+  .flow li::before { content: counter(s) " "; font-family: var(--mono); color: var(--pencil); }
+  .flow li.now { border-color: var(--ink); background: var(--note-yellow); color: var(--ink); }
+  .flow li.past { color: var(--ink); }
+  .stage { display: grid; gap: 10px; }
+  .stage .shape { font-family: var(--mono); font-size: 0.9rem; color: var(--pen); }
+  /* Sizes */
+  .sizes { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; }
+  .rect { display: grid; justify-items: center; gap: 4px; font-family: var(--mono); font-size: 0.8rem; }
+  .rect > div { background: var(--note-blue); border: 1.5px solid var(--ink); border-radius: 3px; }
+  .rect.y > div { background: var(--note-yellow); } .rect.g > div { background: var(--note-green); } .rect.p > div { background: var(--note-pink); }
+  .rect b { font-family: var(--head); font-weight: 400; font-size: 1rem; }
+  /* Clock hands (positions) */
+  .clocks { display: flex; gap: 16px; flex-wrap: wrap; }
+  .clock { display: grid; justify-items: center; gap: 4px; font-family: var(--mono); font-size: 0.8rem; color: var(--pencil); }
+  .clock svg { width: 76px; height: 76px; }
+  .clock .face { fill: var(--card); stroke: var(--ink); stroke-width: 2; }
+  .clock .hand { stroke: var(--redpen); stroke-width: 3; stroke-linecap: round; }
+  /* Generation */
+  .gen { display: grid; gap: 10px; }
+  .genrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .genlbl { font-family: var(--head); font-size: 1.05rem; color: var(--pencil); width: 8.5em; }
+  .timeline { list-style: none; padding: 0; margin: 18px 0; display: grid; gap: 14px; }
+  .timeline li { display: grid; grid-template-columns: 5.5em 1fr; gap: 14px; align-items: start; }
+  .timeline .yr { font-family: var(--head); font-size: 1.5rem; color: var(--pen); line-height: 1.1; }
+  .timeline .what { padding: 10px 14px; border-radius: 2px 2px 6px 2px; color: var(--ink); box-shadow: 0 10px 18px -14px rgba(20,24,50,.45); }
+  .timeline .what > b:first-child { display: block; font-family: var(--head); font-weight: 400; font-size: 1.2rem; }
+  .n-y { background: var(--note-yellow); } .n-p { background: var(--note-pink); } .n-b { background: var(--note-blue); } .n-g { background: var(--note-green); }
+  table.mini { border-collapse: collapse; margin: 8px 0; font-size: 0.9rem; }
+  table.mini td, table.mini th { padding: 3px 10px 3px 0; text-align: left; }
+  table.mini th { font-family: var(--head); font-weight: 400; color: var(--pencil); }
+  @media (max-width: 640px) {
+    .bar { grid-template-columns: 7.6em 2.6em 1fr 2.8em; gap: 6px; font-size: 0.8rem; }
+    .bar.nosc { grid-template-columns: 7.6em 1fr 2.8em; }
+    .mix { grid-template-columns: 1fr; justify-items: center; }
+    .mixrow { grid-template-columns: 1.4em 6em 1fr 3em; }
+    .flow { grid-template-columns: 1fr; }
+    .timeline li { grid-template-columns: 1fr; gap: 4px; }
+    .agrid { font-size: 0.66rem; }
+    .agrid .c { min-width: 2.2em; padding: 4px 1px; }
+  }
+  /* ---- Lesson 2 extras ---- */
+  .tk.mask { background: var(--card); color: var(--redpen); border-color: var(--redpen); border-style: dashed; }
+  .tk.dim { opacity: .35; }
+  .tk.out { background: var(--note-green); }
+  .tk.bad { text-decoration: line-through; color: var(--pencil); border-style: dashed; }
+  .tk.ok { background: var(--note-green); }
+  .tagrow { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--mono); }
+  .tagcol { display: grid; justify-items: center; gap: 3px; }
+  .tagcol small { font-family: var(--hand); color: var(--pen); font-size: 0.95rem; min-height: 1.2em; }
+  .pic .faded { opacity: .18; }
+  .pic .gone { opacity: .12; }
+  .pic .x { stroke: var(--redpen); stroke-width: 3; }
+  .chart { width: 100%; max-width: 560px; display: block; }
+  .chart .ax { stroke: var(--ink); stroke-width: 1.2; }
+  .chart .gr { stroke: var(--rule); stroke-width: 1; }
+  .chart .tl { font-family: var(--mono); font-size: 11px; fill: var(--pencil); }
+  .chart .tt { font-family: var(--hand); font-size: 14px; fill: var(--pencil); }
+  .chart .cv { fill: none; stroke-width: 2.6; }
+  .chart .c1 { stroke: var(--pencil); } .chart .c2 { stroke: var(--pen); } .chart .c3 { stroke: var(--redpen); }
+  .chart .f1 { fill: var(--pencil); } .chart .f2 { fill: var(--pen); } .chart .f3 { fill: var(--redpen); }
+  .chart .hl { stroke: var(--good, #2a8a4a); stroke-width: 1.6; stroke-dasharray: 5 4; }
+  .chart .cl { font-family: var(--head); font-size: 15px; }
+  .readout .f1 { color: var(--pencil); } .readout .f2 { color: var(--pen); } .readout .f3 { color: var(--redpen); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-family: var(--mono); font-size: 0.85rem; }
+  .legend i { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 5px; }
+  .readout { font-family: var(--mono); font-size: 0.9rem; display: grid; gap: 3px; }
+  .slrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--mono); font-size: 0.92rem; margin: 6px 0; }
+  .slrow input[type=range] { flex: 1; min-width: 160px; max-width: 360px; accent-color: var(--pen); }
+  /* Experts */
+  .experts { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .ex { min-width: 5.6em; padding: 6px 8px; border: 1.5px solid var(--ink); border-radius: 8px; background: var(--card); text-align: center; font-family: var(--head); transition: opacity .2s, background .2s; }
+  .ex small { display: block; font-family: var(--mono); font-size: 0.78rem; color: var(--pencil); }
+  .ex.on { background: var(--note-yellow); }
+  .ex.off { opacity: .3; }
+  .exgrid { display: grid; grid-template-columns: repeat(32, 1fr); gap: 2px; max-width: 520px; }
+  .exgrid span { aspect-ratio: 1; background: var(--card); border: 1px solid var(--rule); border-radius: 2px; }
+  .exgrid span.r { background: var(--hl-yellow); border-color: var(--ink); }
+  .exgrid span.s { background: var(--hl-green); border-color: var(--ink); }
+  table.facts { border-collapse: collapse; font-size: 0.9rem; margin-top: 8px; }
+  table.facts td, table.facts th { border-bottom: 1px solid var(--rule); padding: 4px 12px 4px 0; text-align: left; }
+  table.facts th { font-family: var(--head); font-weight: 400; color: var(--pencil); }
+  table.facts td.mono { text-align: right; }
+  table.facts tr.chg td { background: var(--note-yellow); }
+  /* Chat bubbles */
+  .chat { display: grid; gap: 6px; max-height: 260px; overflow-y: auto; padding: 4px; }
+  .bub { max-width: 80%; padding: 6px 12px; border-radius: 12px; border: 1.5px solid var(--ink); font-size: 0.95rem; }
+  .bub.me { justify-self: start; background: var(--card); }
+  .bub.bot { justify-self: end; background: var(--note-blue); color: var(--ink); }
+  /* Prompt box */
+  .prompt { font-family: var(--mono); font-size: 0.88rem; white-space: pre-wrap; background: var(--card); border: 1.5px solid var(--rule); border-radius: 8px; padding: 10px 12px; line-height: 1.5; }
+  .prompt .ans { background: var(--note-green); color: var(--ink); border-radius: 3px; padding: 0 2px; }
+  .prompt .eg { color: var(--pen); }
+  /* KV / heads */
+  .heads { display: grid; gap: 4px; font-family: var(--mono); font-size: 0.8rem; }
+  .hrow { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+  .hrow b { width: 5.5em; font-weight: 400; color: var(--pencil); font-family: var(--head); font-size: 0.95rem; }
+  .sq { width: 30px; height: 26px; display: grid; place-items: center; border: 1.5px solid var(--ink); border-radius: 4px; background: var(--card); }
+  .sq.q { background: var(--note-pink); } .sq.k { background: var(--note-blue); } .sq.v { background: var(--note-green); }
+  .sq.wide { transition: width .25s; }
+  .kvstack { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-end; min-height: 74px; }
+  .kvcol { display: grid; gap: 2px; justify-items: center; font-family: var(--mono); font-size: 0.75rem; }
+  .kvcol .sq { width: 26px; height: 18px; font-size: 0.7rem; }
+  .eqline { font-family: var(--mono); font-size: 0.92rem; margin: 6px 0; line-height: 1.6; }
+  .vote { display: flex; gap: 6px; flex-wrap: wrap; }
+  .numin { width: 4.2em; font-family: var(--mono); font-size: 1rem; padding: 3px 5px; border: 1.5px solid var(--ink); border-radius: 5px; background: var(--paper); color: var(--ink); }
+  #abBars .bar { grid-template-columns: 12.5em 3.4em 1fr 3.2em; }
+  @media (max-width: 640px) {
+    #abBars .bar { grid-template-columns: 8.5em 2.6em 1fr 3em; }
+    #peGrid .c { min-width: 1.5em; }
+    #peGrid { grid-template-columns: 2em repeat(12, minmax(1.5em, 1fr)) !important; }
+    .exgrid { grid-template-columns: repeat(24, 1fr); }
+    .bub { max-width: 92%; }
+  }
+</style>
+</head>
+<body data-pen="blue">
+<div class="wrap">
+  <header class="topbar">
+    <a class="home" href="../">← Transformers & LLMs</a>
+    <span class="where">Lesson 2 of 10</span>
+  </header>
+
+  <main data-paged>
+    <div class="paged-head">
+      <h1>Large language models</h1>
+      <div class="progress" aria-label="Lesson parts"></div>
+    </div>
+
+    <!-- 1 -->
+    <section class="part" data-title="Taking the Transformer apart">
+      <h2>Taking the Transformer apart</h2>
+      <p class="say">The Transformer has two halves. The <b>encoder</b> reads the input and builds meaningful embeddings. The <b>decoder</b> writes the output, one token at a time.</p>
+      <p class="say">It was made for translation, and it worked very well. So people asked: what if we keep only one half?</p>
+      <div class="activity">
+        <div class="do">Try it: keep both halves, or just one.</div>
+        <div class="btnrow" style="margin:0 0 8px">
+          <button class="on" id="famBoth">Both halves</button>
+          <button id="famEnc">Encoder only</button>
+          <button id="famDec">Decoder only</button>
+        </div>
+        <svg class="pic" id="famPic" viewBox="0 0 620 190" aria-label="An encoder box on the left, a decoder box on the right, and an arrow from the encoder to the decoder.">
+          <defs><marker id="hdF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
+          <g id="famE"><rect x="40" y="40" width="220" height="100" rx="12" class="bx"/><text x="150" y="86" class="t">ENCODER</text><text x="150" y="112" class="ts">builds meaningful embeddings</text></g>
+          <path id="famA" d="M262,90 L354,90" class="ar" style="marker-end:url(#hdF)"/>
+          <g id="famD"><rect x="360" y="40" width="220" height="100" rx="12" class="bx y"/><text x="470" y="86" class="t">DECODER</text><text x="470" y="112" class="ts">writes the next token</text></g>
+        </svg>
+        <p class="note" id="famSays"></p>
+      </div>
+      <p class="hook">Let's start with the encoder on its own.</p>
+    </section>
+
+    <!-- 2 -->
+    <section class="part" data-title="BERT: the encoder alone">
+      <h2>BERT: the encoder alone</h2>
+      <p class="say"><mark data-peek="Bidirectional Encoder Representations from Transformers, by Devlin and others at Google, 2018.">BERT</mark> keeps only the encoder. Every token looks at every other token, on <b>both</b> sides. That's why it's called <b>bidirectional</b>.</p>
+      <p class="say">A special token, <span class="tk sp">[CLS]</span>, is put at the start. It has looked at every word, so its embedding sums up the whole sentence.</p>
+      <div class="activity">
+        <div class="do">Try it: click a token to see what it looks at.</div>
+        <div class="linkbox" id="bertBox" style="padding-top:58px"><div class="toks" id="bertToks"></div></div>
+        <p class="note" id="bertSays"></p>
+      </div>
+      <p class="say"><span class="tk sp">[SEP]</span> marks the end of a sentence.</p>
+      <p class="hook">How does BERT learn to understand text? With practice games.</p>
+    </section>
+
+    <!-- 3 -->
+    <section class="part" data-title="BERT game 1: fill in the blanks">
+      <h2>BERT's first game: fill in the blanks</h2>
+      <p class="say">BERT first trains on huge amounts of text, with games that aren't the real goal. They're <mark data-peek="A task not wanted for itself, but done to learn something else: here, how language is written.">proxy tasks</mark>.</p>
+      <p class="say">In <mark data-peek="Often shortened to MLM.">masked language modeling</mark>, some tokens are hidden behind <span class="tk sp">[MASK]</span>. BERT must guess them from the words around them.</p>
+      <div class="activity">
+        <div class="do">Try it: click words to hide them (up to two).</div>
+        <button class="doubt" type="button" data-peek-from="mlmPeek" aria-label="How does guessing hidden words help?">🤔</button>
+        <div class="toks" id="mlmToks"></div>
+        <div id="mlmBars" style="display:grid;gap:12px;margin-top:12px"></div>
+        <p class="note" id="mlmSays"></p>
+      </div>
+      <div hidden id="mlmPeek"><b>🤔 How does guessing hidden words help?</b>
+        <div style="margin-top:6px">To guess well, BERT must learn grammar, meaning, and which words go together.</div>
+        <div style="margin-top:6px">And the answers come free: we hid the words ourselves, so nobody has to label anything.</div>
+      </div>
+      <p class="hook">The second game works with whole sentences.</p>
+    </section>
+
+    <!-- 4 -->
+    <section class="part" data-title="BERT game 2: next sentence">
+      <h2>BERT's second game: does it follow?</h2>
+      <p class="say">In <mark data-peek="Often shortened to NSP.">next sentence prediction</mark>, BERT gets two sentences, split by <span class="tk sp">[SEP]</span>. From the <span class="tk sp">[CLS]</span> embedding, it answers: does the second sentence come right after the first?</p>
+      <p class="say">Half the pairs come one after the other from real text; half are random. So BERT learns how sentences connect, not just words.</p>
+      <div class="activity">
+        <div class="do">Try it: play BERT. Does the second sentence follow?</div>
+        <div class="toks" id="nspToks"></div>
+        <div class="btnrow" id="nspBtns">
+          <button id="nspYes">Follows</button>
+          <button id="nspNo">Doesn't follow</button>
+          <button class="primary" id="nspNext" hidden>Next pair →</button>
+        </div>
+        <p class="note" id="nspSays"></p>
+      </div>
+      <p class="hook">After the games, BERT gets its real job.</p>
+    </section>
+
+    <!-- 5 -->
+    <section class="part" data-title="BERT step 2: fine-tuning">
+      <h2>BERT's real job: fine-tuning</h2>
+      <p class="say">Step 1, <mark>pre-training</mark> (the two games), is costly and done once. Step 2, <mark>fine-tuning</mark>, adapts BERT to one task, with a few hundred labelled examples.</p>
+      <p class="say">A small layer is added on top. It turns an embedding into the answer, and its weights are learned from the examples.</p>
+      <div class="activity">
+        <div class="do">Try it: pick a task and see which embedding gives the answer.</div>
+        <div class="btnrow" style="margin:0 0 10px">
+          <button class="on" id="ftSent">Is this review positive?</button>
+          <button id="ftTag">Is each word a noun or a verb?</button>
+        </div>
+        <div class="tagrow" id="ftRow"></div>
+        <p class="note" id="ftSays"></p>
+      </div>
+      <p class="say">Good results, with little data. But every task needs its own fine-tuning, and BERT has <span data-peek="An encoder sees the whole sentence at once, so it has no natural way to write word after word. Lesson 8 shows that it can be done.">no obvious way to write text</span>.</p>
+      <p class="hook">Now the other half: the decoder alone.</p>
+    </section>
+
+    <!-- 6 -->
+    <section class="part" data-title="GPT: the decoder alone">
+      <h2>GPT: the decoder alone</h2>
+      <p class="say"><mark data-peek="Generative Pre-trained Transformer, by Radford and others at OpenAI, 2018.">GPT</mark> keeps only the decoder. It has one job: predict the next token, again and again.</p>
+      <p class="say">Any task can be written as text for it to continue. So no fine-tuning is needed (though it can still help).</p>
+      <div class="activity">
+        <div class="do">Try it: pick a task, then let the model write.</div>
+        <div class="btnrow" style="margin:0 0 10px">
+          <button class="on" data-gt="0">Review</button>
+          <button data-gt="1">Translation</button>
+          <button data-gt="2">Question</button>
+        </div>
+        <div class="prompt" id="gptBox"></div>
+        <div class="btnrow">
+          <button class="primary" id="gptGo">Write the next token</button>
+        </div>
+        <p class="note" id="gptSays"></p>
+      </div>
+      <p class="hook">The original Transformer could write too. What's different?</p>
+    </section>
+
+    <!-- 7 -->
+    <section class="part" data-title="Encoder-decoder or decoder-only?">
+      <h2>Encoder-decoder or decoder-only?</h2>
+      <p class="say">Both write the output one token at a time, each token looking only back. The difference is the <b>input</b>.</p>
+      <p class="say">In an encoder-decoder, the input has its own encoder, where its tokens look both ways. In a decoder-only model, input and output are one sequence, and every token looks only back.</p>
+      <div class="activity">
+        <div class="do">Try it: switch models. Each row is one token; shaded cells are what it can see.</div>
+        <div class="btnrow" style="margin:0 0 10px">
+          <button class="on" id="edBoth">Encoder-decoder</button>
+          <button id="edDec">Decoder-only</button>
+        </div>
+        <div class="agrid" id="edGrid"></div>
+        <p class="note" id="edSays"></p>
+      </div>
+      <p class="say">Decoder-only is simpler: no special treatment for the input. It won. Today's LLMs are decoder-only.</p>
+      <p class="hook">Then people made these models bigger. Much bigger.</p>
+    </section>
+
+    <!-- 8 -->
+    <section class="part" data-title="Scaling laws">
+      <h2>Scaling laws: bigger is better</h2>
+      <p class="say">In 2020, <mark data-peek="“Scaling Laws for Neural Language Models”, Kaplan and others at OpenAI, 2020.">a study</mark> measured it. More training tokens and more parameters give a lower <mark data-peek="How wrong the next-token guesses are, on text the model hasn't seen (cross-entropy). Lower is better.">loss</mark>, in a smooth, predictable way.</p>
+      <p class="say">And bigger models learn more from each token: they reach the same loss with <b>fewer</b> tokens.</p>
+      <div class="activity">
+        <div class="do">Try it: move the goal. How many tokens does each model need to reach it?</div>
+        <svg class="chart" id="slChart" viewBox="0 0 560 260" aria-label="Loss against training tokens for three model sizes."></svg>
+        <div class="slrow"><label for="slGoal">Goal: loss</label><input type="range" id="slGoal" min="0" max="100" value="45"><b id="slGoalV"></b></div>
+        <div class="readout" id="slOut"></div>
+      </div>
+      <p class="say small">Curves drawn with a formula shaped like the study's results.</p>
+      <p class="hook">But compute isn't free. How do we measure it?</p>
+    </section>
+
+    <!-- 9 -->
+    <section class="part" data-title="Quick basics: FLOPs">
+      <h2>✏️ Quick basics: FLOPs and FLOP/s</h2>
+      <p class="say">A <mark data-peek="FLoating-point OPeration: one addition or multiplication of two decimal numbers.">FLOP</mark> is one sum or product of two decimal numbers. Two names look alike:</p>
+      <ul>
+        <li><b>FLOPs</b> (small s): an amount of work. Training an LLM takes about 10<sup>25</sup>.</li>
+        <li><b>FLOP/s</b> (per second): how fast a chip works. One modern GPU: about 10<sup>15</sup>.</li>
+      </ul>
+      <div class="activity">
+        <div class="do">Try it: how long does 10<sup>25</sup> FLOPs take?</div>
+        <div class="slrow"><label for="flN">GPUs:</label><input type="range" id="flN" min="0" max="5" step="1" value="4"><b id="flNv"></b></div>
+        <div class="eqline" id="flEq"></div>
+        <p class="note" id="flSays">That's at full speed. <span data-peek="Chips wait for data and for each other, so real training often runs at a third to a half of full speed.">Real training is slower</span>. This is why LLMs are trained on thousands of GPUs.</p>
+      </div>
+      <p class="hook">With a fixed amount of compute, should we grow the model or the data?</p>
+    </section>
+
+    <!-- 10 -->
+    <section class="part" data-title="Chinchilla: the sweet spot">
+      <h2>The sweet spot: about 20 tokens per parameter</h2>
+      <p class="say">Compute ≈ <span data-peek="About 2 FLOPs per parameter per token to run forward, and 4 more to learn from it (backward).">6</span> × parameters × tokens. So with a fixed budget, a bigger model gets fewer tokens.</p>
+      <p class="say">In 2022, <mark data-peek="“Training Compute-Optimal Large Language Models”, Hoffmann and others at DeepMind, 2022. Their model was named Chinchilla.">a study</mark> found the best split:<br><b class="eqbox">tokens ≈ 20 × parameters</b><br>Most big models then were too big for their data: <b>undertrained</b>.</p>
+      <div class="activity">
+        <div class="do">Try it: same compute, different model sizes. Find the lowest loss.</div>
+        <button class="doubt" type="button" data-peek-from="chPeek" aria-label="So why do many models train past 20 tokens per parameter?">🤔</button>
+        <svg class="chart" id="chChart" viewBox="0 0 560 230" aria-label="Loss against model size, for a fixed compute budget."></svg>
+        <div class="slrow"><label for="chN">Model size:</label><input type="range" id="chN" min="0" max="100" value="80"><b id="chNv"></b></div>
+        <div class="readout" id="chOut"></div>
+      </div>
+      <div hidden id="chPeek"><b>🤔 So why do many models train past 20 tokens per parameter?</b>
+        <div style="margin-top:6px">Training is paid once. Running the model is paid for every question it answers.</div>
+        <div style="margin-top:6px">A smaller model, trained on more tokens, costs less to run. So teams often go well past 20.</div>
+      </div>
+      <p class="hook">So what exactly is a “large language model”?</p>
+    </section>
+
+    <!-- 11 -->
+    <section class="part" data-title="What is an LLM?">
+      <h2>What is an LLM?</h2>
+      <p class="say">A <mark>language model</mark> gives a probability to a sequence of tokens. In practice: chances for the next token.</p>
+      <p class="say"><b>Large</b>: billions of parameters or more, trained on hundreds of billions of tokens or more, on many GPUs.</p>
+      <div class="activity">
+        <div class="do">Try it: remove the encoder from the Transformer.</div>
+        <svg class="pic" viewBox="0 0 620 250" aria-label="Encoder on the left, decoder on the right with three layers: masked self-attention, cross-attention and feed-forward.">
+          <defs><marker id="hdL" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
+          <g id="llmEnc"><rect x="30" y="60" width="170" height="140" rx="12" class="bx"/><text x="115" y="136" class="t">ENCODER</text></g>
+          <g id="llmX"><path d="M202,110 L330,110" class="ar" style="marker-end:url(#hdL)"/>
+            <rect x="335" y="88" width="230" height="44" rx="8" class="bx p"/><text x="450" y="116" class="t">cross-attention</text></g>
+          <rect x="320" y="20" width="260" height="215" rx="14" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <rect x="335" y="160" width="230" height="44" rx="8" class="bx y"/><text x="450" y="188" class="t">causal attention</text>
+          <rect x="335" y="30" width="230" height="44" rx="8" class="bx g"/><text x="450" y="58" class="t">feed-forward network</text>
+          <text x="600" y="130" class="ts" style="text-anchor:end" transform="rotate(90 600 130)">× N layers</text>
+        </svg>
+        <div class="btnrow"><button class="primary" id="llmGo">Remove the encoder</button></div>
+        <p class="note" id="llmSays"></p>
+      </div>
+      <p class="say">Examples: <span data-peek="GPT series, Gemma, DeepSeek, Qwen, GLM, Kimi, and many more.">most LLMs you've heard of</span>.</p>
+      <p class="hook">Bigger is better. But does every token need all those weights?</p>
+    </section>
+
+    <!-- 12 -->
+    <section class="part" data-title="Mixture of experts">
+      <h2>Mixture of experts</h2>
+      <p class="say">Picture a room of experts. For a maths question, you'd ask the maths expert, not everyone.</p>
+      <p class="say">A <mark data-peek="Often shortened to MoE.">mixture of experts</mark> works like this. A small <mark>router</mark> gives each expert a share for this input. The output is the weighted average of the experts' outputs.</p>
+      <div class="activity">
+        <div class="do">Try it: pick a question, then switch between dense and sparse.</div>
+        <button class="doubt" type="button" data-peek-from="moePeek" aria-label="Are real experts really about maths or biology?">🤔</button>
+        <div class="btnrow" style="margin:0 0 6px" id="moeQ"></div>
+        <div class="btnrow" style="margin:0 0 6px">
+          <button class="on" id="moeDense">Dense: all experts</button>
+          <button id="moeSparse">Sparse: top 2</button>
+        </div>
+        <div class="experts" id="moeEx"></div>
+        <div class="eqline" id="moeEq"></div>
+        <p class="note" id="moeSays"></p>
+      </div>
+      <div hidden id="moePeek"><b>🤔 Are real experts really about maths or biology?</b>
+        <div style="margin-top:6px">No. Nobody gives them topics. Each one drifts towards the kinds of tokens it handles best, during training.</div>
+        <div style="margin-top:6px">The names here just make the idea easy to see.</div>
+      </div>
+      <p class="say">LLMs use <b>sparse</b> MoE: the model can be huge, but each input only pays for a few experts.</p>
+      <p class="hook">Where do the experts go inside an LLM?</p>
+    </section>
+
+    <!-- 13 -->
+    <section class="part" data-title="Experts inside the LLM">
+      <h2>Experts inside the LLM</h2>
+      <p class="say">Attention is where tokens talk to each other. The feed-forward network is where most of the computing happens. So the experts are feed-forward networks: the MoE layer takes the feed-forward network's place.</p>
+      <p class="say">The router chooses <b>for each token</b>, in every layer.</p>
+      <div class="activity">
+        <div class="do">Try it: each colour is the expert a token went to. Click a token to see its router.</div>
+        <button class="doubt" type="button" data-peek-from="routerPeek" aria-label="How does the router know which expert to pick?">🤔</button>
+        <div class="toks" id="rtToks"></div>
+        <div class="bars" id="rtBars" style="margin-top:12px"></div>
+        <p class="note" id="rtSays"></p>
+      </div>
+      <div hidden id="routerPeek"><b>🤔 How does the router know which expert to pick?</b>
+        <div style="margin-top:6px">Nobody tells it. The router has weights, like every other layer, and they're learned in training: nudged after every guess.</div>
+      </div>
+      <p class="hook">Learning to route has a trap.</p>
+    </section>
+
+    <!-- 14 -->
+    <section class="part" data-title="Routing collapse">
+      <h2>The trap: routing collapse</h2>
+      <p class="say">Early in training, one expert gets picked a bit more. It gets more practice, so it gets better, so it gets picked even more. The others sit idle, and the model is in effect smaller. This is <mark>routing collapse</mark>.</p>
+      <p class="say">The fix: add a <span data-peek="Called an auxiliary loss. α is a small weight, N is the number of experts, fᵢ the share of tokens sent to expert i, and Pᵢ the router's average share for expert i.">balancing term</span> to the loss. It's smallest when tokens are spread evenly:</p>
+      <div class="eq bigeq">L<sub>balance</sub> = α · N · Σ<sub>i</sub> f<sub>i</sub> · P<sub>i</sub></div>
+      <div class="activity">
+        <div class="do">Try it: train, with the balancing term off, then on.</div>
+        <div class="btnrow" style="margin:0 0 8px">
+          <button class="on" id="rcOff">Balancing off</button>
+          <button id="rcOn">Balancing on</button>
+        </div>
+        <div class="bars" id="rcBars"></div>
+        <div class="eqline" id="rcEq"></div>
+        <div class="btnrow">
+          <button class="primary" id="rcStep">Next training step</button>
+          <button id="rcPlay">▶ Play</button>
+        </div>
+      </div>
+      <p class="hook">MoEs have grown a lot since. What do today's look like?</p>
+    </section>
+
+    <!-- 15 -->
+    <section class="part" data-title="MoEs today">
+      <h2>MoEs today</h2>
+      <p class="say">Two newer ideas: <b>many small experts</b> (hundreds instead of 8), so each can be very specialised; and <b>shared experts</b>, which run for every token and hold what all tokens need.</p>
+      <div class="activity">
+        <div class="do">Try it: pick a model, then send it a token.</div>
+        <div class="btnrow" style="margin:0 0 8px" id="mtBtns"></div>
+        <div class="exgrid" id="mtGrid"></div>
+        <div class="legend" style="margin-top:6px"><span><i style="background:var(--hl-yellow);height:10px"></i>chosen by the router</span><span><i style="background:var(--hl-green);height:10px"></i>shared (always on)</span></div>
+        <div class="btnrow"><button class="primary" id="mtGo">Send the next token</button></div>
+        <p class="note" id="mtSays"></p>
+      </div>
+      <p class="say small">Open models from <span data-peek="MiMo-V2.6 Pro (Xiaomi, Sept 2026), GLM-5 (Feb 2026), DeepSeek V4.1 Flash (Sept 2026), from their own reports.">2026</span>.</p>
+      <p class="hook">Next: changes inside the layers, starting with word positions.</p>
+    </section>
+
+    <!-- 16 -->
+    <section class="part" data-title="Positions as waves">
+      <h2>Positions as waves</h2>
+      <p class="say">Attention links tokens directly, so word order is lost unless we add positions. Learned position vectors stop at the longest text seen in training.</p>
+      <p class="say">The fix was fixed waves, from fast to slow, like clock hands. The nice part: how similar two positions m and n are depends only on how far apart they are:</p>
+      <div class="eq bigeq">PE(m) · PE(n) = Σ<sub>i</sub> cos( ω<sub>i</sub> (m − n) )</div>
+      <div class="activity">
+        <div class="do">Try it: click any cell to compare two positions.</div>
+        <button class="doubt" type="button" data-peek-from="pePeek" aria-label="Why is it biggest when m = n?">🤔</button>
+        <div class="agrid" id="peGrid"></div>
+        <p class="note" id="peSays"></p>
+      </div>
+      <div hidden id="pePeek"><b>🤔 Why is it biggest when m = n?</b>
+        <div style="margin-top:6px">Then m − n = 0, and cos(0) = 1, the biggest value cos can have. Every term in the sum is at its top.</div>
+      </div>
+      <p class="hook">But these waves are added to every embedding, so every layer sees them. Who needs them?</p>
+    </section>
+
+    <!-- 17 -->
+    <section class="part" data-title="Position inside attention">
+      <h2>Position inside attention</h2>
+      <p class="say">Only attention cares about positions: how far apart two tokens are. The feed-forward network doesn't care if a word is 5th or 12th.</p>
+      <p class="say">So newer methods leave the embeddings alone and change attention. One way: add a <mark>bias</mark> to each score. <mark data-peek="Attention with Linear Biases (Press and others, 2021). An earlier model, T5, learned one bias per distance instead, which can't go past the distances seen in training.">ALiBi</mark> takes off more, the farther apart:</p>
+      <div class="eq bigeq">score = <span class="frac"><span>q · k</span><span>√d</span></span> − s · |m − n|</div>
+      <div class="activity">
+        <div class="do">Try it: raise the slope s. Where does “reading” look?</div>
+        <div class="slrow"><label for="abS">s =</label><input type="range" id="abS" min="0" max="10" value="0"><b id="abSv"></b></div>
+        <div class="bars" id="abBars"></div>
+        <p class="note" id="abSays"></p>
+      </div>
+      <p class="hook">Today's most popular method doesn't add anything. It turns things.</p>
+    </section>
+
+    <!-- 18 -->
+    <section class="part" data-title="Quick basics: turning an arrow">
+      <h2>✏️ Quick basics: turning an arrow</h2>
+      <p class="say">To turn an arrow (x, y) by an angle φ, multiply it by a <mark>rotation matrix</mark>:</p>
+      <div class="eq bigeq"><span class="mat" style="grid-template-columns:auto auto"><span>cos φ</span><span>−sin φ</span><span>sin φ</span><span>cos φ</span></span> × <span class="mat"><span>x</span><span>y</span></span></div>
+      <p class="say">The arrow keeps its length. Only its direction changes.</p>
+      <div class="activity">
+        <div class="do">Try it: drag the angle.</div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center">
+          <svg id="rotPic" viewBox="-110 -110 220 220" style="width:200px;height:200px" aria-label="An arrow and the same arrow turned by the angle."></svg>
+          <div style="flex:1;min-width:220px">
+            <div class="slrow"><label for="rotA">φ =</label><input type="range" id="rotA" min="0" max="360" step="5" value="30"><b id="rotAv"></b></div>
+            <div class="eqline" id="rotEq"></div>
+          </div>
+        </div>
+      </div>
+      <p class="hook">Now let's turn queries and keys.</p>
+    </section>
+
+    <!-- 19 -->
+    <section class="part" data-title="RoPE: turn queries and keys">
+      <h2>RoPE: turn queries and keys</h2>
+      <p class="say"><mark data-peek="Rotary Position Embedding (Su and others, 2021). The usual choice today.">RoPE</mark> turns each token's query and key by an angle set by its position: position m turns by m · θ.</p>
+      <p class="say">The score q · k depends on the angle between them. Both turned, so that gap only depends on <b>n − m</b>: how far apart the tokens are, not where they are.</p>
+      <div class="activity">
+        <div class="do">Try it: move the positions. Then shift both together.</div>
+        <button class="doubt" type="button" data-peek-from="ropePeek" aria-label="Real queries have many numbers, not 2. How is that turned?">🤔</button>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center">
+          <svg id="ropePic" viewBox="-110 -110 220 220" style="width:200px;height:200px" aria-label="The query and key arrows, each turned by its position."></svg>
+          <div style="flex:1;min-width:230px">
+            <div class="slrow"><label for="ropeM">query at m =</label><input type="range" id="ropeM" min="0" max="8" value="1"><b id="ropeMv"></b></div>
+            <div class="slrow"><label for="ropeN">key at n =</label><input type="range" id="ropeN" min="0" max="8" value="3"><b id="ropeNv"></b></div>
+            <div class="btnrow" style="margin:0 0 6px"><button id="ropeShift">Shift both +1</button></div>
+            <div class="eqline" id="ropeEq"></div>
+          </div>
+        </div>
+      </div>
+      <div hidden id="ropePeek"><b>🤔 Real queries have many numbers, not 2. How is that turned?</b>
+        <div style="margin-top:6px">Split them into pairs, and turn each pair like this arrow. Each pair turns at its own speed θ, from fast to slow, like the clock hands.</div>
+        <div style="margin-top:6px">A bonus: scores tend to get smaller as tokens get farther apart.</div>
+      </div>
+      <p class="hook">Next: does every token need to look at every earlier token?</p>
+    </section>
+
+    <!-- 20 -->
+    <section class="part" data-title="Sliding window attention">
+      <h2>Sliding window attention</h2>
+      <p class="say">Looking at every earlier token costs more and more as text grows. With <mark>sliding window attention</mark>, each token only looks at the last w tokens (itself included).</p>
+      <p class="say">Isn't that the RNN problem again? No: layers are stacked. A token at layer 2 sees tokens that themselves saw further back. So each layer reaches w − 1 tokens further.</p>
+      <div class="activity">
+        <div class="do">Try it: change the window and the layers. How far back can the last token reach?</div>
+        <div class="slrow"><label for="swW">window w =</label><input type="range" id="swW" min="2" max="4" value="3"><b id="swWv"></b></div>
+        <div class="slrow"><label for="swL">layers =</label><input type="range" id="swL" min="1" max="5" value="1"><b id="swLv"></b></div>
+        <div class="toks" id="swToks"></div>
+        <p class="note" id="swSays"></p>
+      </div>
+      <p class="say small">Image networks have the same idea (a <span data-peek="In a convolutional network, each pixel sees a small patch; stacked layers see wider and wider patches.">receptive field</span>). Many models mix window layers with full ones.</p>
+      <p class="hook">Another cost: while writing, the model keeps every key and value.</p>
+    </section>
+
+    <!-- 21 -->
+    <section class="part" data-title="Keeping keys and values">
+      <h2>Keeping keys and values</h2>
+      <p class="say">To write each new token, its query is compared with the keys of all tokens before it, then their values are mixed. Those keys and values never change, so they're saved instead of computed again. This store is the <mark>KV cache</mark>.</p>
+      <p class="say">It grows with every token, in every head of every layer. Memory fills up.</p>
+      <div class="activity">
+        <div class="do">Try it: write tokens and watch the cache grow (one layer, 8 heads).</div>
+        <div class="toks" id="kvToks"></div>
+        <div class="kvstack" id="kvStack" style="margin-top:10px"></div>
+        <div class="btnrow"><button class="primary" id="kvGo">Write the next token</button></div>
+        <p class="note" id="kvSays"></p>
+      </div>
+      <p class="hook">Can we keep fewer keys and values?</p>
+    </section>
+
+    <!-- 22 -->
+    <section class="part" data-title="Sharing keys and values">
+      <h2>Sharing keys and values between heads</h2>
+      <p class="say">Each head has its own query, key and value. A query is used once; keys and values are kept. So let heads <b>share</b> keys and values:</p>
+      <ul>
+        <li><mark data-peek="Multi-Head Attention: the original Transformer's.">MHA</mark>: every head has its own.</li>
+        <li><mark data-peek="Grouped-Query Attention.">GQA</mark>: each group of heads shares one. Common today.</li>
+        <li><mark data-peek="Multi-Query Attention.">MQA</mark>: all heads share one.</li>
+      </ul>
+      <div class="activity">
+        <div class="do">Try it: switch and compare the memory per token.</div>
+        <div class="btnrow" style="margin:0 0 10px">
+          <button class="on" data-kv="8">MHA</button>
+          <button data-kv="2">GQA</button>
+          <button data-kv="1">MQA</button>
+        </div>
+        <div class="heads" id="shHeads"></div>
+        <div class="eqline" id="shEq"></div>
+      </div>
+      <p class="hook">Last change: where the normalization goes.</p>
+    </section>
+
+    <!-- 23 -->
+    <section class="part" data-title="Pre-norm instead of post-norm">
+      <h2>Normalize before, not after</h2>
+      <p class="say">Each layer has a residual connection: x skips around the layer and is added back, so learning reaches deep layers.</p>
+      <p class="say">The original put layer norm <b>after</b> the addition (<b>post-norm</b>), so x itself gets changed. Today it goes <b>before</b> the layer (<b>pre-norm</b>), and x skips by untouched.</p>
+      <div class="activity">
+        <div class="do">Try it: switch, and follow x's skip path (red).</div>
+        <div class="btnrow" style="margin:0 0 8px">
+          <button class="on" id="pnPost">Post-norm (2017)</button>
+          <button id="pnPre">Pre-norm (today)</button>
+        </div>
+        <svg class="pic" id="pnPic" viewBox="0 0 620 170" aria-label="Where the layer norm sits around a layer and its skip connection."></svg>
+        <div class="eq" id="pnEq" style="justify-content:center"></div>
+      </div>
+      <p class="hook">The normalization itself got simpler too.</p>
+    </section>
+
+    <!-- 24 -->
+    <section class="part" data-title="RMSNorm">
+      <h2>RMSNorm: a simpler normalization</h2>
+      <p class="say">Layer norm shifts a token's numbers so they average 0, then scales them. <mark data-peek="Root Mean Square normalization (Zhang and Sennrich, 2019).">RMSNorm</mark> skips the shift. It only divides by the <b>root mean square</b>:</p>
+      <div class="eq bigeq">RMS(x) = <span style="font-size:1.3em">√</span><span style="border-top:1.5px solid currentColor;padding:0 4px"><span class="frac"><span>x<sub>1</sub><sup>2</sup> + … + x<sub>d</sub><sup>2</sup></span><span>d</span></span></span> &nbsp; RMSNorm(x) = <span class="frac"><span>x</span><span>RMS(x)</span></span></div>
+      <p class="say">Fewer steps, and it works just as well.</p>
+      <div class="activity">
+        <div class="do">Try it: change a token's numbers and compare.</div>
+        <button class="doubt" type="button" data-peek-from="rmsPeek" aria-label="Don't both also have learned weights?">🤔</button>
+        <div class="slrow" id="rmsIn"></div>
+        <div class="eqline" id="rmsEq"></div>
+      </div>
+      <div hidden id="rmsPeek"><b>🤔 Don't both also have learned weights?</b>
+        <div style="margin-top:6px">Yes. Layer norm then multiplies by learned numbers (γ) and adds learned numbers (β). RMSNorm only multiplies (γ). We leave them out here.</div>
+      </div>
+      <p class="hook">Let's put all the changes side by side.</p>
+    </section>
+
+    <!-- 25 -->
+    <section class="part" data-title="2017 versus today">
+      <h2>2017 versus today</h2>
+      <p class="say">The same building block, updated piece by piece.</p>
+      <div class="activity">
+        <div class="do">Try it: switch years.</div>
+        <div class="btnrow" style="margin:0 0 8px">
+          <button class="on" id="yr17">2017</button>
+          <button id="yrNow">Today</button>
+        </div>
+        <table class="facts" id="yrTable"></table>
+      </div>
+      <div class="quiz" data-right="Right. Only attention compares tokens, so only attention needs to know how far apart they are.">
+        <div class="q">Why does RoPE change only the attention layer?</div>
+        <div class="options">
+          <button data-why="RoPE uses no learned weights at all: the angles are fixed.">It has fewer weights to learn there</button>
+          <button data-right>Only attention cares how far apart tokens are</button>
+          <button data-why="The feed-forward network handles each token on its own, so positions don't help it.">The feed-forward network already knows positions</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+      <p class="hook">The model is built. Now: how does it pick each word?</p>
+    </section>
+
+    <!-- 26 -->
+    <section class="part" data-title="Greedy and beam search">
+      <h2>Greedy and beam search</h2>
+      <p class="say">The LLM gives chances for the next token. <mark>Greedy</mark> decoding always takes the most likely one. But the best word now can lead to a worse sentence overall.</p>
+      <p class="say"><mark>Beam search</mark> keeps the k most likely sentences so far, where a sentence's chance is its tokens' chances multiplied, and grows each of them.</p>
+      <div class="activity">
+        <div class="do">Try it: run each method on two words.</div>
+        <div class="btnrow" style="margin:0 0 8px">
+          <button class="on" id="bmG">Greedy</button>
+          <button id="bmB">Beam search (k = 2)</button>
+        </div>
+        <svg class="pic" id="bmPic" viewBox="0 0 620 250" aria-label="A tree of possible first and second words with their chances."></svg>
+        <p class="note" id="bmSays"></p>
+      </div>
+      <p class="say">Beam search finds better sentences, but costs more computing.</p>
+      <p class="hook">Both give the same answer every time. Is that a problem?</p>
+    </section>
+
+    <!-- 27 -->
+    <section class="part" data-title="Same question, same answer">
+      <h2>Same question, same answer?</h2>
+      <p class="say">Greedy and beam search are <mark>deterministic</mark>: the same input gives the same output, every time. A chatbot that answers everyone word for word the same feels robotic.</p>
+      <div class="activity">
+        <div class="do">Try it: ask the same question a few times, in each mode.</div>
+        <div class="btnrow" style="margin:0 0 8px">
+          <button class="on" id="dtFix">Deterministic</button>
+          <button id="dtRand">With chance</button>
+        </div>
+        <div class="chat" id="dtChat"></div>
+        <div class="btnrow"><button class="primary" id="dtAsk">Ask “Hey, how are you?”</button></div>
+      </div>
+      <p class="say">Sometimes deterministic is what we want: a summary that must come out the same, or a model that grades answers.</p>
+      <p class="say small">Example replies, written for this page.</p>
+      <p class="hook">How do we add a little chance?</p>
+    </section>
+
+    <!-- 28 -->
+    <section class="part" data-title="Sampling: top-k and top-p">
+      <h2>Sampling: top-k and top-p</h2>
+      <p class="say">Instead of always taking the top token, <mark>sample</mark>: draw one at random, following the chances. A 40% token is picked 40% of the time.</p>
+      <p class="say">To skip odd picks from the long tail, keep only some tokens, then rescale their chances to add up to 100%:</p>
+      <ul>
+        <li><mark>Top-k</mark>: keep the k most likely.</li>
+        <li><mark>Top-p</mark>: keep the fewest top tokens whose chances add up to at least p.</li>
+      </ul>
+      <div class="activity">
+        <div class="do">Try it: “A teddy bear is ___”. Pick a rule, then sample.</div>
+        <div class="btnrow" style="margin:0 0 6px">
+          <button class="on" id="spAll">All tokens</button>
+          <button id="spK">Top-k</button>
+          <button id="spP">Top-p</button>
+        </div>
+        <div class="slrow" id="spKrow" hidden><label for="spKs">k =</label><input type="range" id="spKs" min="1" max="6" value="3"><b id="spKv"></b></div>
+        <div class="slrow" id="spProw" hidden><label for="spPs">p =</label><input type="range" id="spPs" min="10" max="100" step="5" value="75"><b id="spPv"></b></div>
+        <div class="bars" id="spBars"></div>
+        <div class="btnrow"><button class="primary" id="spGo">Sample a token</button></div>
+        <p class="note" id="spSays"></p>
+      </div>
+      <p class="hook">Where do these chances come from, and can we tune them?</p>
+    </section>
+
+    <!-- 29 -->
+    <section class="part" data-title="Temperature">
+      <h2>Temperature</h2>
+      <p class="say">The last layer gives each token a score; softmax turns scores into chances. <mark>Temperature</mark> T divides the scores first:</p>
+      <div class="eq bigeq">p<sub>i</sub> = <span class="frac"><span>e<sup>x<sub>i</sub> / T</sup></span><span>Σ<sub>j</sub> e<sup>x<sub>j</sub> / T</sup></span></span></div>
+      <p class="say">Small T: sharper, the top token takes almost everything. Big T: flatter, more surprises. T = 1 is plain softmax.</p>
+      <div class="activity">
+        <div class="do">Try it: drag the temperature.</div>
+        <div class="slrow"><label for="tpT">T =</label><input type="range" id="tpT" min="1" max="30" value="10"><b id="tpTv"></b></div>
+        <div class="bars" id="tpBars"></div>
+        <div class="eqline" id="tpEq"></div>
+      </div>
+      <p class="hook">So with T near 0, is the answer always the same? Almost.</p>
+    </section>
+
+    <!-- 30 -->
+    <section class="part" data-title="Why outputs can still differ">
+      <h2>Why the same input can still differ</h2>
+      <p class="say">With T near 0, every step is fixed maths, so the output should never change. In practice, it sometimes does.</p>
+      <p class="say">Computers round decimal numbers, so the order of adding matters. Servers group your request with other people's (<mark>batching</mark>), and that can change the order.</p>
+      <div class="activity">
+        <div class="do">Try it: add the same three numbers in two orders. a = 10<sup>16</sup>, b = 1, c = −10<sup>16</sup>.</div>
+        <div class="btnrow" style="margin:0 0 8px">
+          <button id="fpA">(a + b) + c</button>
+          <button id="fpB">(a + c) + b</button>
+        </div>
+        <div class="eqline" id="fpOut"></div>
+        <p class="note" id="fpSays"></p>
+      </div>
+      <p class="say small">More in <span data-peek="“Defeating Nondeterminism in LLM Inference”, He and others, 2025.">a 2025 blog post</span>.</p>
+      <p class="hook">Sometimes we need the output in an exact format.</p>
+    </section>
+
+    <!-- 31 -->
+    <section class="part" data-title="Guided decoding">
+      <h2>Guided decoding</h2>
+      <p class="say">Say a program needs the answer as JSON. Asking for JSON in the prompt works most of the time, but not 100%.</p>
+      <p class="say"><mark>Guided decoding</mark> only allows tokens that keep the output valid. Every other token gets 0% before picking.</p>
+      <div class="activity">
+        <div class="do">Try it: “Describe my 33-year-old teddy bear who likes reading, in JSON.” Press Next step.</div>
+        <div class="prompt" id="gdOut"></div>
+        <div class="toks" id="gdCands" style="margin-top:10px"></div>
+        <div class="btnrow"><button class="primary" id="gdGo">Next step</button></div>
+        <p class="note" id="gdSays"></p>
+      </div>
+      <p class="hook">Next: the prompt itself.</p>
+    </section>
+
+    <!-- 32 -->
+    <section class="part" data-title="Context window">
+      <h2>The context window</h2>
+      <p class="say">Your prompt goes in. Each token the model writes is added to the input for the next step. Everything it reads at a step is its <mark>context</mark>; the tokens it writes are <mark>output tokens</mark>.</p>
+      <p class="say">So the context limit must hold the prompt <b>and</b> the answer. Today: about 1 million tokens of context, and up to about 100,000 output tokens (<span data-peek="Big providers' limits, autumn 2026. These keep growing.">for now</span>).</p>
+      <div class="activity">
+        <div class="do">Try it: write the answer and watch the counts.</div>
+        <div class="toks" id="cwToks"></div>
+        <div class="eqline" id="cwEq"></div>
+        <div class="btnrow"><button class="primary" id="cwGo">Write the next token</button></div>
+      </div>
+      <p class="hook">How much is a million tokens?</p>
+    </section>
+
+    <!-- 33 -->
+    <section class="part" data-title="How big is that?">
+      <h2>How big is a million tokens?</h2>
+      <p class="say">Rough rule: 1 token ≈ 0.75 words, and a page ≈ 500 tokens.</p>
+      <div class="activity">
+        <div class="do">Try it: drag the number of tokens.</div>
+        <div class="slrow"><label for="hbT">tokens:</label><input type="range" id="hbT" min="0" max="3" step="0.05" value="2"><b id="hbTv"></b></div>
+        <div class="eqline" id="hbEq"></div>
+        <p class="note" id="hbSays"></p>
+      </div>
+      <p class="say">More isn't always better. With a very long context, the model has a harder time finding one fact in it: <mark data-peek="Tested with a “needle in a haystack”: hide one fact in a long text and ask for it. The longer the text, the more often models miss it. That's why starting a fresh chat helps.">context rot</mark>.</p>
+      <p class="hook">The prompt can also teach the model.</p>
+    </section>
+
+    <!-- 34 -->
+    <section class="part" data-title="In-context learning">
+      <h2>In-context learning</h2>
+      <p class="say">You can teach a model inside the prompt, without changing any weights: show a few questions with answers first. This is <mark>in-context learning</mark>. No examples is <b>zero-shot</b>; a few is <b>few-shot</b>.</p>
+      <div class="activity">
+        <div class="do">Try it: switch between zero-shot and few-shot.</div>
+        <div class="btnrow" style="margin:0 0 8px">
+          <button class="on" id="icZero">Zero-shot</button>
+          <button id="icFew">Few-shot</button>
+        </div>
+        <div class="prompt" id="icBox"></div>
+        <p class="note" id="icSays"></p>
+      </div>
+      <p class="say">Usually better, but someone must write the examples, and a longer prompt costs more and takes longer.</p>
+      <p class="say small">Example answers, written for this page.</p>
+      <p class="hook">Examples can show how to think, too.</p>
+    </section>
+
+    <!-- 35 -->
+    <section class="part" data-title="Chain of thought">
+      <h2>Chain of thought</h2>
+      <p class="say">If the examples show their reasoning, the model writes its reasoning too, before the answer. This <mark>chain of thought</mark> often gives better answers, and shows how the model got there.</p>
+      <div class="activity">
+        <div class="do">Try it: compare the two prompts.</div>
+        <div class="btnrow" style="margin:0 0 8px">
+          <button class="on" id="ctPlain">Answer only</button>
+          <button id="ctCot">With reasoning</button>
+        </div>
+        <div class="prompt" id="ctBox"></div>
+        <p class="note" id="ctSays"></p>
+      </div>
+      <p class="say">The cost: more tokens to write, so more money and more waiting. <span data-peek="Reasoning models do this by themselves, without examples. Coming in Lesson 3.">Reasoning models</span> build on this.</p>
+      <p class="hook">One line of reasoning can go wrong. What about several?</p>
+    </section>
+
+    <!-- 36 -->
+    <section class="part" data-title="Self-consistency">
+      <h2>Self-consistency</h2>
+      <p class="say">Ask the same question several times, with sampling on, to get several chains of thought. Then keep the answer most of them agree on: a majority vote. This is <mark>self-consistency</mark>.</p>
+      <div class="activity">
+        <div class="do">Try it: “How old will the bear be next year?”</div>
+        <div class="chat" id="scChat" style="max-height:none"></div>
+        <div class="vote" id="scVote"></div>
+        <div class="btnrow"><button class="primary" id="scGo">Write one more answer</button></div>
+        <p class="note" id="scSays"></p>
+      </div>
+      <p class="say">More reliable, but you pay for every answer.</p>
+      <p class="hook">That was a lot. What matters most?</p>
+    </section>
+
+    <!-- 37 -->
+    <section class="part" data-title="What matters most">
+      <h2>What matters most</h2>
+      <div class="cards">
+        <div class="card"><h3>🧱 Decoder-only</h3><p>An LLM is the Transformer's decoder, made huge: causal attention and feed-forward layers, stacked.</p></div>
+        <div class="card"><h3>📈 Scale</h3><p>More parameters and more tokens give lower loss. About 20 tokens per parameter is the sweet spot for training.</p></div>
+        <div class="card"><h3>🧑‍🏫 Experts</h3><p>Sparse MoE: a huge model where each token uses only a few experts.</p></div>
+        <div class="card"><h3>🎲 Picking words</h3><p>Sampling with top-k, top-p and temperature trades sure answers for variety.</p></div>
+      </div>
+      <div class="quiz" data-right="Right. Higher T flattens the chances, so less likely tokens get picked more often.">
+        <div class="q">A chatbot's replies feel too repetitive. What would you change?</div>
+        <div class="options">
+          <button data-why="Greedy always takes the top token: replies would be exactly the same every time.">Switch to greedy decoding</button>
+          <button data-right>Raise the temperature a little</button>
+          <button data-why="Top-k = 1 keeps only the top token, which is the same as greedy.">Set top-k to 1</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+      <p class="hook">Where does this leave us?</p>
+    </section>
+
+    <!-- 38 -->
+    <section class="part" data-title="Where we go from here">
+      <h2>Where we go from here</h2>
+      <ul class="timeline">
+        <li><span class="yr">2017</span><div class="what n-b"><b>The Transformer</b>Encoder and decoder, for translation.</div></li>
+        <li><span class="yr">2018</span><div class="what n-y"><b>BERT and GPT</b>The encoder alone, and the decoder alone.</div></li>
+        <li><span class="yr">2020–22</span><div class="what n-p"><b>Scaling laws</b>Bigger models, more tokens, and the 20-to-1 sweet spot.</div></li>
+        <li><span class="yr">Now</span><div class="what n-g"><b>Today's LLMs</b>Decoder-only, often MoE, with RoPE, GQA, pre-norm and RMSNorm.</div></li>
+      </ul>
+      <p class="say">In this lesson: model families → scaling → experts → modern layers → picking words → prompting. ✓</p>
+      <div class="open-question">
+        <div>This leaves a question</div>
+        <div class="big">We know what an LLM is. How does it learn everything it knows?</div>
+        <div>Lesson 3 answers it. Coming soon.</div>
+      </div>
+      <p><button class="done-toggle" data-done="3">Mark lesson as done</button></p>
+    </section>
+  </main>
+</div>
+
+<nav class="pagebar" aria-label="Move between parts">
+  <div class="inner">
+    <button data-page-back>← Previous</button>
+    <span data-page-label></span>
+    <button class="primary" data-page-next>Next →</button>
+  </div>
+</nav>
+
+<script src="../assets/course.js"></script>
+<script src="https://mo-ri-ch.github.io/study-notebook-design/v1/common.js"></script>
+<script src="https://mo-ri-ch.github.io/study-notebook-design/v1/pen.js"></script>
+<script src="https://mo-ri-ch.github.io/study-notebook-design/v1/guide.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const pct = x => Math.round(x * 100) + "%";
+const softmax = sc => { const m = Math.max(...sc), e = sc.map(x => Math.exp(x - m)), t = e.reduce((a, b) => a + b, 0); return e.map(x => x / t); };
+const f2 = x => (Math.round(x * 100) / 100).toFixed(2);
+
+// Our sentence, the scores query·key/√dₖ (made up, but sensible), and each token's value as a colour
+const T6 = ["A", "cute", "teddy bear", "is", "reading", "."];
+const SCORES = [
+  [1.2, 0.3, 1.5, 0.2, 0.2, 0.0],  // A
+  [0.1, 1.0, 2.0, 0.1, 0.2, 0.0],  // cute
+  [0.2, 2.0, 1.4, 0.2, 1.0, 0.0],  // teddy bear
+  [0.0, 0.1, 1.2, 0.8, 1.4, 0.2],  // is
+  [0.1, 0.2, 1.8, 0.6, 1.2, 0.3],  // reading
+  [0.3, 0.2, 0.5, 0.4, 0.6, 1.0],  // .
+];
+const VCOL = [[165, 165, 165], [255, 110, 165], [150, 95, 50], [110, 185, 135], [70, 120, 230], [215, 215, 215]];
+const rgb = c => `rgb(${c.map(Math.round).join(",")})`;
+const mixCol = (w, cols) => rgb([0, 1, 2].map(k => w.reduce((s, wi, i) => s + wi * cols[i][k], 0)));
+const sw = c => `<span class="sw" style="background:${rgb(c)}"></span>`;
+const barHTML = (label, share, opts = {}) => `<div class="bar ${opts.score == null ? "nosc" : ""} ${opts.top ? "top" : ""}">
+  <span>${label}</span>${opts.score == null ? "" : `<span class="sc">${opts.score}</span>`}
+  <span class="track"><span class="fill" style="width:${share * 100}%"></span></span><span class="pct">${pct(share)}</span></div>`;
+
+// Arrows drawn over a row of chips. Ends on the top curve upward; ends on the bottom curve downward.
+const arrowWatch = new ResizeObserver(es => es.forEach(e => { const a = e.target._arrows; if (a) overlayArrows(e.target, a.links, a.opts); }));
+function overlayArrows(box, links, opts = {}) {
+  if (!box._arrows) arrowWatch.observe(box);
+  box._arrows = { links, opts };
+  let svg = box.querySelector(":scope > svg.links");
+  if (!svg) { svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.setAttribute("class", "links"); svg.setAttribute("aria-hidden", "true"); box.prepend(svg); }
+  // Words wrapped onto more than one line (small screens): arrows would cross them, so draw none
+  const tops = new Set(links.flatMap(l => [l.from, l.to]).map(el => Math.round(el.getBoundingClientRect().top)));
+  if (tops.size > 1) links = [];
+  const b = box.getBoundingClientRect();
+  svg.setAttribute("width", b.width); svg.setAttribute("height", b.height);
+  const side = opts.side || "top", dir = side === "top" ? -1 : 1;
+  const at = el => { const r = el.getBoundingClientRect(); return [r.left - b.left + r.width / 2, side === "top" ? r.top - b.top - 2 : r.bottom - b.top + 2]; };
+  const col = opts.color || "var(--pen)";
+  svg.innerHTML = `<defs><marker id="${opts.id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${col}"/></marker></defs>` +
+    links.map(l => {
+      let [x1, y1] = at(l.from), [x2, y2] = at(l.to);
+      const k = Math.max(-14, Math.min(14, (x2 - x1) * 0.08)); x1 += k; x2 -= k;
+      const lift = Math.min(50, 12 + Math.abs(x2 - x1) * 0.22);
+      return `<path d="M${x1},${y1} Q${(x1 + x2) / 2},${y1 + dir * lift} ${x2},${y2}" fill="none" stroke="${col}" stroke-width="${l.width || 2}" stroke-opacity="${l.opacity == null ? 1 : l.opacity}" stroke-linecap="round" ${l.noHead ? "" : `marker-end="url(#${opts.id})"`}/>`;
+    }).join("");
+}
+
+const big = n => { // 1.4e12 → "1.4T"
+  const u = [[1e12, "T"], [1e9, "B"], [1e6, "M"], [1e3, "k"]];
+  for (const [v, s] of u) if (n >= v) { const x = n / v; return (x >= 100 ? Math.round(x) : x >= 10 ? x.toFixed(0) : x.toFixed(1)) + s; }
+  return String(Math.round(n));
+};
+const sci = n => { const e = Math.floor(Math.log10(n)), m = n / 10 ** e; return `${m.toFixed(1)} × 10<sup>${e}</sup>`; };
+const setOn = (pairs, which) => pairs.forEach(([id, v]) => $(id).classList.toggle("on", v === which));
+
+// ---------- 1: taking the Transformer apart ----------
+(function families() {
+  let mode = "both";
+  const SAYS = {
+    both: "<b>The original Transformer</b> (2017). The encoder reads English; the decoder writes French. Made for translation.",
+    enc: "<b>Encoder only</b>: BERT (2018). It reads text and builds meaningful embeddings, used for other tasks.",
+    dec: "<b>Decoder only</b>: GPT (2018). It writes text, one token at a time. Today's LLMs are built this way.",
+  };
+  function draw() {
+    $("famE").classList.toggle("faded", mode === "dec");
+    $("famD").classList.toggle("faded", mode === "enc");
+    $("famA").classList.toggle("faded", mode !== "both");
+    setOn([["famBoth", "both"], ["famEnc", "enc"], ["famDec", "dec"]], mode);
+    $("famSays").innerHTML = SAYS[mode];
+  }
+  $("famBoth").onclick = () => { mode = "both"; draw(); };
+  $("famEnc").onclick = () => { mode = "enc"; draw(); };
+  $("famDec").onclick = () => { mode = "dec"; draw(); };
+  addReset("famPic", () => { mode = "both"; draw(); });
+  draw();
+})();
+
+// ---------- 2: BERT looks both ways ----------
+(function bert() {
+  const TK = ["[CLS]", ...T6.slice(0, 5), "[SEP]"];
+  let sel = 0;
+  function draw() {
+    const box = $("bertToks");
+    box.innerHTML = TK.map((t, i) => `<button class="tk pick ${t[0] === "[" ? "sp" : ""} ${i === sel ? "q" : ""}" data-i="${i}">${t}</button>`).join("");
+    box.querySelectorAll("button").forEach(b => b.onclick = () => { sel = +b.dataset.i; draw(); });
+    const btns = [...box.children];
+    requestAnimationFrame(() => overlayArrows($("bertBox"), btns.filter((_, i) => i !== sel).map(b => ({ from: btns[sel], to: b })), { id: "bertHead", color: "var(--redpen)" }));
+    const t = TK[sel];
+    $("bertSays").innerHTML = sel === 0
+      ? "[CLS] looks at every token, so after the encoder its embedding carries the whole sentence."
+      : sel === TK.length - 1 ? "[SEP] looks at every token too. It just marks where the sentence ends."
+      : `“${t}” looks <b>left</b> (${TK.slice(1, sel).map(x => "“" + x + "”").join(", ") || "only [CLS]"}) <b>and right</b> (${TK.slice(sel + 1, -1).map(x => "“" + x + "”").join(", ") || "only [SEP]"}). Both directions.`;
+  }
+  addReset("bertToks", () => { sel = 0; draw(); });
+  draw();
+})();
+
+// ---------- 3: masked language modeling ----------
+(function mlm() {
+  const G = {
+    "A": [["A", .55], ["The", .35], ["One", .10]],
+    "cute": [["cute", .45], ["little", .35], ["big", .20]],
+    "teddy bear": [["teddy bear", .60], ["puppy", .25], ["child", .15]],
+    "is": [["is", .85], ["was", .15]],
+    "reading": [["reading", .50], ["sleeping", .30], ["smiling", .20]],
+    ".": [[".", .80], ["!", .20]],
+  };
+  let masked = [1, 4];
+  function draw() {
+    const box = $("mlmToks");
+    box.innerHTML = `<span class="tk sp">[CLS]</span>` + T6.map((t, i) => masked.includes(i)
+      ? `<button class="tk pick mask" data-i="${i}">[MASK]</button>`
+      : `<button class="tk pick" data-i="${i}">${t}</button>`).join("") + `<span class="tk sp">[SEP]</span>`;
+    box.querySelectorAll("button").forEach(b => b.onclick = () => {
+      const i = +b.dataset.i;
+      if (masked.includes(i)) masked = masked.filter(x => x !== i);
+      else { masked.push(i); if (masked.length > 2) masked.shift(); }
+      draw();
+    });
+    const ms = masked.slice().sort((a, b) => a - b);
+    $("mlmBars").innerHTML = ms.map(i => `<div><div class="small" style="color:var(--pencil);margin-bottom:4px">BERT's guesses for the [MASK] at word ${i + 1}:</div><div class="bars">${G[T6[i]].map(([w, p], k) => barHTML(w, p, { top: k === 0 })).join("")}</div></div>`).join("");
+    $("mlmSays").innerHTML = ms.length
+      ? `Training compares the guesses with the hidden word${ms.length > 1 ? "s" : ""} (${ms.map(i => "“" + T6[i] + "”").join(" and ")}) and nudges BERT's weights. It can use words on <b>both</b> sides of each blank.`
+      : "Click a word to hide it.";
+  }
+  addReset("mlmToks", () => { masked = [1, 4]; draw(); });
+  draw();
+})();
+
+// ---------- 4: next sentence prediction ----------
+(function nsp() {
+  const P = [
+    ["Oh wow", "What a cutie !", true],
+    ["Oh wow", "The train leaves at nine .", false],
+    ["The bear opened its book", "It started to read .", true],
+    ["It started to read", "Bananas are yellow .", false],
+  ];
+  let i = 0, answered = null, right = 0;
+  function draw() {
+    const [a, b, ok] = P[i];
+    $("nspToks").innerHTML = `<span class="tk sp">[CLS]</span>` + a.split(" ").map(w => `<span class="tk">${w}</span>`).join("") +
+      `<span class="tk sp">[SEP]</span>` + b.split(" ").map(w => `<span class="tk">${w}</span>`).join("") + `<span class="tk sp">[SEP]</span>`;
+    $("nspYes").hidden = $("nspNo").hidden = answered !== null;
+    $("nspNext").hidden = answered === null;
+    $("nspNext").textContent = i === P.length - 1 ? "↺ Play again" : "Next pair →";
+    $("nspSays").innerHTML = answered === null ? `Pair ${i + 1} of ${P.length}.`
+      : `${answered === ok ? "✓ Right" : "✗ Not quite"}: these sentences ${ok ? "<b>do</b> follow each other" : "<b>don't</b> follow each other"}. Score: ${right} of ${i + 1}.` +
+        (i === P.length - 1 ? " BERT plays millions of rounds like this." : "");
+  }
+  const answer = v => { answered = v; if (v === P[i][2]) right++; draw(); };
+  $("nspYes").onclick = () => answer(true);
+  $("nspNo").onclick = () => answer(false);
+  $("nspNext").onclick = () => { if (i === P.length - 1) { i = 0; right = 0; } else i++; answered = null; draw(); };
+  addReset("nspToks", () => { i = 0; right = 0; answered = null; draw(); });
+  draw();
+})();
+
+// ---------- 5: fine-tuning ----------
+(function finetune() {
+  const TK = ["[CLS]", "I", "really", "love", "this", "teddy bear", "[SEP]"];
+  const TAG = ["", "other", "other", "verb", "other", "noun", ""];
+  let task = "sent";
+  function draw() {
+    $("ftRow").innerHTML = TK.map((t, i) => {
+      const used = task === "sent" ? i === 0 : TAG[i] !== "";
+      const lab = task === "sent" ? (i === 0 ? "positive 94%" : "") : TAG[i];
+      return `<div class="tagcol"><span class="tk ${t[0] === "[" ? "sp" : ""} ${used ? "q" : "dim"}">${t}</span><small>${lab ? "↓ " + lab : ""}</small></div>`;
+    }).join("");
+    setOn([["ftSent", "sent"], ["ftTag", "tag"]], task);
+    $("ftSays").innerHTML = task === "sent"
+      ? "For the whole sentence, the small layer reads the <b>[CLS]</b> embedding and gives positive or negative."
+      : "For each word, the small layer reads <b>that word's own</b> embedding and gives noun, verb or other.";
+  }
+  $("ftSent").onclick = () => { task = "sent"; draw(); };
+  $("ftTag").onclick = () => { task = "tag"; draw(); };
+  addReset("ftRow", () => { task = "sent"; draw(); });
+  draw();
+})();
+
+// ---------- 6: GPT: every task as text ----------
+(function gpt() {
+  const TASKS = [
+    { p: "Is this review positive or negative?\nI really love this teddy bear.\nAnswer:", a: [" positive"] },
+    { p: "English: A cute teddy bear is reading.\nFrench:", a: [" Un", " ours", " en", " peluche", " mignon", " lit", "."] },
+    { p: "A cute teddy bear is reading.\nQ: What is the teddy bear doing?\nA:", a: [" It", " is", " reading", "."] },
+  ];
+  let t = 0, k = 0;
+  function draw() {
+    const T = TASKS[t];
+    $("gptBox").innerHTML = T.p.replace(/</g, "&lt;") + (k ? `<span class="ans">${T.a.slice(0, k).join("")}</span>` : "") + (k < T.a.length ? "▌" : "");
+    document.querySelectorAll("[data-gt]").forEach(b => b.classList.toggle("on", +b.dataset.gt === t));
+    $("gptGo").hidden = k >= T.a.length;
+    $("gptSays").innerHTML = k === 0 ? "The task is written as text. The model just continues it."
+      : k < T.a.length ? `Each new token is added to the text, and the model predicts the next one.`
+      : "Done: the answer was simply the most likely continuation. <span class='small'>(Example answer, written for this page.)</span>";
+  }
+  document.querySelectorAll("[data-gt]").forEach(b => b.onclick = () => { t = +b.dataset.gt; k = 0; draw(); });
+  $("gptGo").onclick = () => { k++; draw(); };
+  addReset("gptBox", () => { t = 0; k = 0; draw(); });
+  draw();
+})();
+
+// ---------- 7: encoder-decoder vs decoder-only ----------
+(function encDec() {
+  const TK = ["Hey", "how", "are", "you", "Good", "thanks"], NIN = 4;
+  let mode = "ed", row = 1;
+  const sees = (i, j) => mode === "ed" ? (i < NIN ? j < NIN : j < NIN || j <= i) : j <= i;
+  function draw() {
+    const g = $("edGrid");
+    g.style.gridTemplateColumns = `5.5em repeat(${TK.length}, minmax(2.6em, 1fr))`;
+    let h = `<span></span>` + TK.map((t, j) => `<span class="h" style="${j === NIN ? "border-left:2px solid var(--ink)" : ""}">${t}</span>`).join("");
+    TK.forEach((t, i) => {
+      h += `<span class="h rh ${i === row ? "sel" : ""}" data-r="${i}">${t}</span>`;
+      TK.forEach((_, j) => { h += sees(i, j) ? `<span class="c hot ${i === row ? "rowsel" : ""}" style="--w:.75">✓</span>` : `<span class="c masked ${i === row ? "rowsel" : ""}">—</span>`; });
+    });
+    g.innerHTML = h;
+    g.querySelectorAll(".rh").forEach(el => el.onclick = () => { row = +el.dataset.r; draw(); });
+    setOn([["edBoth", "ed"], ["edDec", "dec"]], mode);
+    const seen = TK.filter((_, j) => sees(row, j));
+    const part = row < NIN ? "input" : "output";
+    $("edSays").innerHTML = `Input: “Hey how are you”. Output: “Good thanks”. Click a word on the left.<br>“${TK[row]}” (${part}) sees: ${seen.map(x => "“" + x + "”").join(", ")}.` +
+      (mode === "ed" && row < NIN && row < NIN - 1 ? " It sees later input words too: both ways." : "") +
+      (mode === "dec" && row < NIN - 1 ? " Only earlier words, even in the input." : "");
+  }
+  $("edBoth").onclick = () => { mode = "ed"; draw(); };
+  $("edDec").onclick = () => { mode = "dec"; draw(); };
+  addReset("edGrid", () => { mode = "ed"; row = 1; draw(); });
+  draw();
+})();
+
+// Shared loss formula for the scaling pages: shaped like the 2020–2022 studies (made-up constants)
+const LOSS = (N, D) => 1.69 + 406.4 / N ** 0.34 + 1126 / D ** 0.34;
+
+// ---------- 8: scaling laws ----------
+(function scaling() {
+  const W = 560, H = 260, L = 48, R = 20, T = 14, B = 40;
+  const X0 = 9, X1 = 13, Y0 = 1.8, Y1 = 3.1;
+  const sx = lx => L + (lx - X0) / (X1 - X0) * (W - L - R), sy = y => T + (Y1 - y) / (Y1 - Y0) * (H - T - B);
+  const MODELS = [[1e9, "1B", "c1"], [1e10, "10B", "c2"], [1e11, "100B", "c3"]];
+  const goalOf = v => 1.85 + v / 100 * 0.75;
+  function draw() {
+    const goal = goalOf(+$("slGoal").value);
+    let s = "";
+    for (let x = X0; x <= X1; x++) s += `<line class="gr" x1="${sx(x)}" y1="${T}" x2="${sx(x)}" y2="${H - B}"/><text class="tl" x="${sx(x)}" y="${H - B + 15}" text-anchor="middle">${big(10 ** x)}</text>`;
+    for (let y = 2; y <= 3; y += 0.5) s += `<line class="gr" x1="${L}" y1="${sy(y)}" x2="${W - R}" y2="${sy(y)}"/><text class="tl" x="${L - 6}" y="${sy(y) + 4}" text-anchor="end">${y.toFixed(1)}</text>`;
+    s += `<line class="ax" x1="${L}" y1="${H - B}" x2="${W - R}" y2="${H - B}"/><line class="ax" x1="${L}" y1="${T}" x2="${L}" y2="${H - B}"/>`;
+    s += `<text class="tt" x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">training tokens →</text><text class="tt" x="12" y="${(T + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(T + H - B) / 2})">loss (lower is better)</text>`;
+    MODELS.forEach(([N, lab, c]) => {
+      let d = "";
+      for (let lx = X0; lx <= X1 + 1e-9; lx += 0.05) d += (d ? " L" : "M") + sx(lx).toFixed(1) + "," + sy(LOSS(N, 10 ** lx)).toFixed(1);
+      s += `<path class="cv ${c}" d="${d}"/><text class="cl f${c.slice(1)}" x="${sx(X1) - 4}" y="${sy(LOSS(N, 10 ** X1)) - 6}" text-anchor="end">${lab}</text>`;
+    });
+    s += `<line class="hl" x1="${L}" y1="${sy(goal)}" x2="${W - R}" y2="${sy(goal)}"/>`;
+    const out = MODELS.map(([N, lab, c]) => {
+      const rest = goal - 1.69 - 406.4 / N ** 0.34;
+      const D = rest > 0 ? (1126 / rest) ** (1 / 0.34) : Infinity;
+      if (D <= 10 ** X1) s += `<circle cx="${sx(Math.log10(D))}" cy="${sy(goal)}" r="5" class="f${c.slice(1)}"/>`;
+      return `<span><b class="f${c.slice(1)}">${lab} parameters</b>: ${D > 10 ** X1 ? "can't reach it here, even with 10T tokens" : "needs about <b>" + big(D) + " tokens</b>"}</span>`;
+    });
+    $("slChart").innerHTML = s;
+    $("slGoalV").textContent = goal.toFixed(2);
+    $("slOut").innerHTML = out.join("");
+  }
+  $("slGoal").oninput = draw;
+  addReset("slGoal", () => { $("slGoal").value = 45; draw(); });
+  draw();
+})();
+
+// ---------- 9: FLOPs and FLOP/s ----------
+(function flops() {
+  const span = s => {
+    const y = s / 3.156e7, d = s / 86400, h = s / 3600;
+    return y >= 1 ? `${y >= 10 ? Math.round(y).toLocaleString() : y.toFixed(1)} years` : d >= 1 ? `${d >= 10 ? Math.round(d) : d.toFixed(1)} days` : `${h.toFixed(1)} hours`;
+  };
+  function draw() {
+    const n = 10 ** +$("flN").value, s = 1e25 / (1e15 * n);
+    $("flNv").textContent = n.toLocaleString();
+    $("flEq").innerHTML = `time = <span class="frac"><span>FLOPs</span><span>FLOP/s × GPUs</span></span> = <span class="frac"><span>10<sup>25</sup></span><span>10<sup>15</sup> × ${n.toLocaleString()}</span></span> = 10<sup>${10 - +$("flN").value}</sup> seconds ≈ <b>${span(s)}</b>`;
+  }
+  $("flN").oninput = draw;
+  addReset("flN", () => { $("flN").value = 4; draw(); });
+  draw();
+})();
+
+// ---------- 10: Chinchilla ----------
+(function chinchilla() {
+  const C = 5.88e23, W = 560, H = 230, L = 48, R = 20, T = 14, B = 40, X0 = 9, X1 = 12;
+  const lossN = N => LOSS(N, C / (6 * N));
+  const ys = []; for (let lx = X0; lx <= X1 + 1e-9; lx += 0.05) ys.push(lossN(10 ** lx));
+  const Y0 = Math.min(...ys) - 0.03, Y1 = Math.max(...ys) + 0.03;
+  const sx = lx => L + (lx - X0) / (X1 - X0) * (W - L - R), sy = y => T + (Y1 - y) / (Y1 - Y0) * (H - T - B);
+  const lxOf = v => X0 + v / 100 * (X1 - X0);
+  function draw() {
+    const lx = lxOf(+$("chN").value), N = 10 ** lx, D = C / (6 * N);
+    let s = "";
+    for (let x = X0; x <= X1; x++) s += `<line class="gr" x1="${sx(x)}" y1="${T}" x2="${sx(x)}" y2="${H - B}"/><text class="tl" x="${sx(x)}" y="${H - B + 15}" text-anchor="middle">${big(10 ** x)}</text>`;
+    s += `<line class="ax" x1="${L}" y1="${H - B}" x2="${W - R}" y2="${H - B}"/><line class="ax" x1="${L}" y1="${T}" x2="${L}" y2="${H - B}"/>`;
+    s += `<text class="tt" x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">parameters →</text><text class="tt" x="12" y="${(T + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(T + H - B) / 2})">loss ↓</text>`;
+    let d = ""; for (let x = X0; x <= X1 + 1e-9; x += 0.05) d += (d ? " L" : "M") + sx(x).toFixed(1) + "," + sy(lossN(10 ** x)).toFixed(1);
+    s += `<path class="cv c2" d="${d}"/>`;
+    [[70e9, "Chinchilla"], [280e9, "Gopher"]].forEach(([n, lab]) => {
+      const x = sx(Math.log10(n)), y = sy(lossN(n));
+      s += `<circle cx="${x}" cy="${y}" r="4" class="f1"/><text class="tl" x="${x}" y="${y - 9}" text-anchor="middle">${lab}</text>`;
+    });
+    s += `<circle cx="${sx(lx)}" cy="${sy(lossN(N))}" r="7" class="f3"/>`;
+    $("chChart").innerHTML = s;
+    $("chNv").textContent = big(N) + " parameters";
+    const r = D / N;
+    $("chOut").innerHTML = `<span>tokens = <span class="frac"><span>${sci(C)}</span><span>6 × ${big(N)}</span></span> = <b>${big(D)}</b></span>` +
+      `<span>tokens per parameter: <b>${r >= 10 ? Math.round(r) : r.toFixed(1)}</b> ${Math.abs(Math.log10(r / 20)) < 0.15 ? "✓ the sweet spot" : r < 20 ? "(model too big for its data)" : "(model too small)"}</span>` +
+      `<span class="small">Gopher: 280B parameters, 300B tokens. Chinchilla: 70B, 1.4T tokens. Same compute, and Chinchilla did better.</span>`;
+  }
+  $("chN").oninput = draw;
+  addReset("chN", () => { $("chN").value = 80; draw(); });
+  draw();
+})();
+
+// ---------- 11: what is an LLM ----------
+(function llm() {
+  let gone = false;
+  function draw() {
+    $("llmEnc").classList.toggle("gone", gone); $("llmX").classList.toggle("gone", gone);
+    $("llmGo").hidden = gone;
+    $("llmSays").innerHTML = gone
+      ? "Without an encoder, cross-attention has nothing to look at, so it goes too. What's left is an LLM: <b>causal attention</b> (tokens talk, looking back) and a <b>feed-forward network</b> (most of the computing), repeated N times."
+      : "The decoder has three layers. Cross-attention looks at the encoder's embeddings.";
+  }
+  $("llmGo").onclick = () => { gone = true; draw(); };
+  addReset("llmGo", () => { gone = false; draw(); });
+  draw();
+})();
+
+// ---------- 12: mixture of experts ----------
+(function moe() {
+  const EX = ["Maths", "Physics", "Biology", "Language"];
+  const Q = { "a maths question": [.70, .18, .04, .08], "a physics question": [.20, .65, .05, .10], "a biology question": [.04, .08, .76, .12] };
+  const QK = Object.keys(Q);
+  let q = 0, sparse = false;
+  function draw() {
+    $("moeQ").innerHTML = QK.map((k, i) => `<button class="${i === q ? "on" : ""}" data-q="${i}">${k[2].toUpperCase() + k.slice(3)}</button>`).join("");
+    $("moeQ").querySelectorAll("button").forEach(b => b.onclick = () => { q = +b.dataset.q; draw(); });
+    const w = Q[QK[q]];
+    const top = w.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).slice(0, 2).map(x => x[1]);
+    const used = sparse ? top : [0, 1, 2, 3];
+    const tot = used.reduce((s, i) => s + w[i], 0);
+    const share = i => used.includes(i) ? w[i] / tot : 0;
+    $("moeEx").innerHTML = EX.map((e, i) => `<div class="ex ${used.includes(i) ? "on" : "off"}">${e}<small>${used.includes(i) ? pct(share(i)) : "not run"}</small></div>`).join("");
+    const terms = used.slice().sort((a, b) => w[b] - w[a]).map(i => `${f2(share(i))} · E<sub>${EX[i]}</sub>(x)`);
+    $("moeEq").innerHTML = `output = ${terms.join(" + ")}`;
+    setOn([["moeDense", false], ["moeSparse", true]], sparse);
+    $("moeSays").innerHTML = sparse
+      ? `Only the top 2 experts run: <b>2 of 4</b>, half the computing. Their shares (${pct(w[top[0]])} and ${pct(w[top[1]])}) are rescaled to add up to 100%.`
+      : `The router gave its shares. In a <b>dense</b> MoE, all <b>4 of 4</b> experts still run, even the ones with tiny shares.`;
+  }
+  $("moeDense").onclick = () => { sparse = false; draw(); };
+  $("moeSparse").onclick = () => { sparse = true; draw(); };
+  addReset("moeEx", () => { q = 0; sparse = false; draw(); });
+  draw();
+})();
+
+// ---------- 13: experts inside the LLM (routing per token) ----------
+(function routing() {
+  const TK = ["A", "cute", "teddy bear", "is", "reading", "a", "book", "about", "the", "stars", "."];
+  const TOP = [0, 2, 3, 0, 5, 0, 3, 1, 0, 6, 7];
+  const COL = ["#F6E58D", "#F8B7CD", "#A8D8F0", "#B8E6B8", "#FFCC99", "#D7C4F2", "#F2D0A4", "#C9D1D9"];
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const LOG = TOP.map(t => { const l = Array.from({ length: 8 }, () => rnd() * 0.8); l[t] += 2.6; l[(t + 3) % 8] += 1.6; return l; });
+  let sel = 2;
+  function draw() {
+    $("rtToks").innerHTML = TK.map((t, i) => `<button class="tk pick ${i === sel ? "q" : ""}" data-i="${i}" style="background:${COL[TOP[i]]};color:#1D2238">${t}</button>`).join("");
+    $("rtToks").querySelectorAll("button").forEach(b => b.onclick = () => { sel = +b.dataset.i; draw(); });
+    const p = softmax(LOG[sel]);
+    const top2 = p.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).slice(0, 2).map(x => x[1]);
+    $("rtBars").innerHTML = p.map((v, i) => barHTML(`<span class="sw" style="background:${COL[i]}"></span> expert ${i + 1}`, v, { top: top2.includes(i) })).join("");
+    $("rtSays").innerHTML = `“${TK[sel]}” runs through experts <b>${top2[0] + 1}</b> and <b>${top2[1] + 1}</b> (its top 2). The other 6 experts skip it. <span class="small">(Made-up router, 8 experts.)</span>`;
+  }
+  addReset("rtToks", () => { sel = 2; draw(); });
+  draw();
+})();
+
+// ---------- 14: routing collapse ----------
+(function collapse() {
+  const N = 4, START = [0.25, 0, 0, -0.1], MAX = 40;
+  let b = START.slice(), step = 0, bal = false, timer = null;
+  const share = () => softmax(b.map(x => 2 * x)); // f: share of tokens actually sent (hard picks exaggerate)
+  const prob = () => softmax(b);                  // P: router's average share
+  function draw() {
+    const f = share(), P = prob();
+    $("rcBars").innerHTML = `<div class="bar head nosc"><span>expert</span><span>share of tokens (f)</span><span></span></div>` +
+      f.map((v, i) => barHTML(`expert ${i + 1}`, v, { top: v === Math.max(...f) && v > 0.4 })).join("");
+    const sum = f.reduce((s, v, i) => s + v * P[i], 0);
+    $("rcEq").innerHTML = `Step ${step}. N · Σ f·P = 4 × (${f.map((v, i) => f2(v) + "×" + f2(P[i])).join(" + ")}) = <b>${(N * sum).toFixed(2)}</b>` +
+      `<br><span class="small">${N * sum < 1.05 ? "As low as it goes (1.00): tokens are spread evenly." : N * sum > 2.5 ? "High: almost every token goes to one expert. The others barely learn." : "Rising when tokens pile up on fewer experts."}</span>`;
+    setOn([["rcOff", false], ["rcOn", true]], bal);
+    $("rcStep").hidden = step >= MAX;
+    $("rcPlay").hidden = step >= MAX;
+    $("rcPlay").textContent = timer ? "⏸ Pause" : "▶ Play";
+  }
+  function tick() {
+    const f = share();
+    b = b.map((x, i) => x + 0.5 * (f[i] - 1 / N) - (bal ? 1.1 * (f[i] - 1 / N) : 0));
+    step++;
+    if (step >= MAX) stop();
+    draw();
+  }
+  const stop = () => { clearInterval(timer); timer = null; };
+  $("rcStep").onclick = () => { stop(); tick(); };
+  $("rcPlay").onclick = () => { if (timer) stop(); else timer = setInterval(tick, 300); draw(); };
+  const setBal = v => { stop(); bal = v; b = START.slice(); step = 0; draw(); };
+  $("rcOff").onclick = () => setBal(false);
+  $("rcOn").onclick = () => setBal(true);
+  addReset("rcBars", () => setBal(false));
+  draw();
+})();
+
+// ---------- 15: MoEs today ----------
+(function moeToday() {
+  const M = [
+    ["MiMo-V2.6 Pro", 384, 8, 0, "1.02T"],
+    ["GLM-5", 256, 8, 1, "744B"],
+    ["DeepSeek V4.1 Flash", 384, 6, 1, "552B"],
+  ];
+  let m = 0, toks = 0, seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  function draw() {
+    const [name, tot, k, sh, size] = M[m];
+    $("mtBtns").innerHTML = M.map((x, i) => `<button class="${i === m ? "on" : ""}" data-m="${i}">${x[0]}</button>`).join("");
+    $("mtBtns").querySelectorAll("button").forEach(b => b.onclick = () => { m = +b.dataset.m; toks = 0; draw(); });
+    const pick = new Set();
+    if (toks) while (pick.size < k) pick.add(Math.floor(rnd() * tot));
+    $("mtGrid").innerHTML = Array.from({ length: tot + sh }, (_, i) => `<span class="${i >= tot ? "s" : pick.has(i) ? "r" : ""}"></span>`).join("");
+    $("mtSays").innerHTML = (toks
+      ? `Token ${toks}: <b>${k} of ${tot}</b> chosen experts ran (${(k / tot * 100).toFixed(1)}%)${sh ? `, plus ${sh} shared` : ""}. The next token gets a different set.`
+      : `${name}: ${tot} experts${sh ? ` + ${sh} shared` : ", no shared expert"}. Each token uses ${k}. Size: ${size} parameters.`);
+  }
+  $("mtGo").onclick = () => { toks++; draw(); };
+  addReset("mtGrid", () => { m = 0; toks = 0; seed = 11; draw(); });
+  draw();
+})();
+
+// ---------- 16: positions as waves (similarity grid) ----------
+(function waves() {
+  const P = 12, D = 16, W = Array.from({ length: D / 2 }, (_, i) => 1 / 10000 ** (2 * i / D));
+  const sim = (m, n) => W.reduce((s, w) => s + Math.cos(w * (m - n)), 0) / W.length;
+  let sm = 3, sn = 7;
+  const all = []; for (let m = 0; m < P; m++) for (let n = 0; n < P; n++) all.push(sim(m, n));
+  const lo = Math.min(...all), hi = Math.max(...all);
+  function draw() {
+    const g = $("peGrid");
+    g.style.gridTemplateColumns = `2.4em repeat(${P}, minmax(2.2em, 1fr))`;
+    let h = `<span class="h">m\\n</span>` + Array.from({ length: P }, (_, n) => `<span class="h">${n}</span>`).join("");
+    for (let m = 0; m < P; m++) {
+      h += `<span class="h">${m}</span>`;
+      for (let n = 0; n < P; n++) {
+        const v = sim(m, n), shade = (v - lo) / (hi - lo), same = m - n === sm - sn;
+        h += `<span class="c pick ${same ? "rowsel" : ""} ${shade > 0.55 ? "hot" : ""}" data-m="${m}" data-n="${n}" style="--w:${shade * 0.9};cursor:pointer" title="${v.toFixed(2)}">${m === sm && n === sn ? "●" : ""}</span>`;
+      }
+    }
+    g.innerHTML = h;
+    g.querySelectorAll("[data-m]").forEach(el => el.onclick = () => { sm = +el.dataset.m; sn = +el.dataset.n; draw(); });
+    $("peSays").innerHTML = `m = ${sm}, n = ${sn}: m − n = ${sm - sn}. Similarity = <b>${sim(sm, sn).toFixed(2)}</b> (1.00 when m = n). Every outlined cell has the same distance, and the <b>same</b> value.`;
+  }
+  addReset("peGrid", () => { sm = 3; sn = 7; draw(); });
+  draw();
+})();
+
+// ---------- 17: ALiBi ----------
+(function alibi() {
+  const SC = [0.1, 0.2, 1.8, 0.6, 1.2], TK = T6.slice(0, 5), Q = 4;
+  function draw() {
+    const s = +$("abS").value / 10;
+    $("abSv").textContent = s.toFixed(1);
+    const sc = SC.map((x, j) => x - s * (Q - j)), p = softmax(sc), mx = Math.max(...p);
+    $("abBars").innerHTML = `<div class="bar head"><span>key</span><span>score</span><span>share</span><span></span></div>` +
+      TK.map((t, j) => barHTML(`${t} <span class="small">(${Q - j} back)</span>`, p[j], { score: sc[j].toFixed(1), top: p[j] === mx })).join("");
+    const top = TK[p.indexOf(mx)];
+    $("abSays").innerHTML = `“teddy bear” is 2 back: ${SC[2].toFixed(1)} − ${s.toFixed(1)} × 2 = <b>${sc[2].toFixed(1)}</b>. ` +
+      (s === 0 ? "With no bias, “reading” looks most at “teddy bear”." : `Now “reading” looks most at “${top}”. Far tokens fade, but none is cut off.`);
+  }
+  $("abS").oninput = draw;
+  addReset("abS", () => { $("abS").value = 0; draw(); });
+  draw();
+})();
+
+// Arrow drawing for the rotation pages
+const arrowSVG = (x, y, cls, id, col) => `<line x1="0" y1="0" x2="${x * 80}" y2="${-y * 80}" stroke="${col}" stroke-width="3" marker-end="url(#${id})"/>`;
+const axesSVG = (ids) => `<defs>${ids.map(([id, col]) => `<marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${col}"/></marker>`).join("")}</defs>
+  <circle r="90" fill="none" stroke="var(--rule)"/><line x1="-100" y1="0" x2="100" y2="0" stroke="var(--rule)"/><line x1="0" y1="-100" x2="0" y2="100" stroke="var(--rule)"/>`;
+const rad = d => d * Math.PI / 180;
+
+// ---------- 18: turning an arrow ----------
+(function rotate() {
+  const X = 1, Y = 0.5;
+  function draw() {
+    const a = +$("rotA").value, c = Math.cos(rad(a)), s = Math.sin(rad(a));
+    const x2 = X * c - Y * s, y2 = X * s + Y * c;
+    $("rotAv").textContent = a + "°";
+    $("rotPic").innerHTML = axesSVG([["rH1", "var(--pencil)"], ["rH2", "var(--redpen)"]]) +
+      arrowSVG(X, Y, "", "rH1", "var(--pencil)") + arrowSVG(x2, y2, "", "rH2", "var(--redpen)") +
+      `<text x="${X * 80 + 4}" y="${-Y * 80 - 4}" class="tl" style="font:11px var(--mono);fill:var(--pencil)">before</text>`;
+    $("rotEq").innerHTML = `x′ = 1 · cos ${a}° − 0.5 · sin ${a}° = ${f2(c)} − ${f2(0.5 * s)} = <b>${f2(x2)}</b><br>` +
+      `y′ = 1 · sin ${a}° + 0.5 · cos ${a}° = ${f2(s)} + ${f2(0.5 * c)} = <b>${f2(y2)}</b><br>` +
+      `<span class="small">Length before: √(1² + 0.5²) = 1.12. After: √(${f2(x2)}² + ${f2(y2)}²) = ${f2(Math.hypot(x2, y2))}.</span>`;
+  }
+  $("rotA").oninput = draw;
+  addReset("rotA", () => { $("rotA").value = 30; draw(); });
+  draw();
+})();
+
+// ---------- 19: RoPE ----------
+(function rope() {
+  const TH = 20, QA = 10, KA = 50;
+  function draw() {
+    const m = +$("ropeM").value, n = +$("ropeN").value;
+    $("ropeMv").textContent = m; $("ropeNv").textContent = n;
+    const qa = QA + m * TH, ka = KA + n * TH, gap = ka - qa;
+    $("ropePic").innerHTML = axesSVG([["qH", "var(--redpen)"], ["kH", "var(--pen)"]]) +
+      arrowSVG(Math.cos(rad(qa)), Math.sin(rad(qa)), "", "qH", "var(--redpen)") +
+      arrowSVG(Math.cos(rad(ka)), Math.sin(rad(ka)), "", "kH", "var(--pen)") +
+      `<text x="${Math.cos(rad(qa)) * 96}" y="${-Math.sin(rad(qa)) * 96 + 4}" text-anchor="middle" style="font:13px var(--mono);fill:var(--redpen)">q</text>` +
+      `<text x="${Math.cos(rad(ka)) * 96}" y="${-Math.sin(rad(ka)) * 96 + 4}" text-anchor="middle" style="font:13px var(--mono);fill:var(--pen)">k</text>`;
+    $("ropeShift").hidden = m >= 8 || n >= 8;
+    $("ropeEq").innerHTML = `θ = ${TH}°. Before turning, k is 40° ahead of q.<br>` +
+      `q turns m · θ = ${m} × ${TH}° = ${m * TH}°<br>k turns n · θ = ${n} × ${TH}° = ${n * TH}°<br>` +
+      `gap = 40° + (n − m) · θ = 40° + ${n - m} × ${TH}° = ${gap}°<br>score = cos ${gap}° = <b>${f2(Math.cos(rad(gap)))}</b>`;
+  }
+  $("ropeM").oninput = draw; $("ropeN").oninput = draw;
+  $("ropeShift").onclick = () => { $("ropeM").value = +$("ropeM").value + 1; $("ropeN").value = +$("ropeN").value + 1; draw(); };
+  addReset("ropeM", () => { $("ropeM").value = 1; $("ropeN").value = 3; draw(); });
+  draw();
+})();
+
+// ---------- 20: sliding window ----------
+(function sliding() {
+  const TK = ["The", "cute", "teddy", "bear", "sat", "down", "and", "read", "a", "long", "story", "."], LAST = TK.length - 1;
+  function draw() {
+    const w = +$("swW").value, L = +$("swL").value, reach = Math.min(LAST, L * (w - 1));
+    $("swWv").textContent = w; $("swLv").textContent = L;
+    $("swToks").innerHTML = TK.map((t, i) => {
+      const d = LAST - i;
+      return `<span class="tk ${i === LAST ? "q" : d <= reach ? "ok" : "dim"}">${t}${i !== LAST && d <= reach ? `<sup class="small"> L${Math.ceil(d / (w - 1))}</sup>` : ""}</span>`;
+    }).join("");
+    $("swSays").innerHTML = `Each layer reaches w − 1 = ${w - 1} more. After ${L} layer${L > 1 ? "s" : ""}: ${L} × ${w - 1} = <b>${L * (w - 1)} tokens back</b>${L * (w - 1) >= LAST ? ", the whole sentence" : `, as far as “${TK[LAST - reach]}”`}. <span class="small">(L2 = reached at layer 2.)</span>`;
+  }
+  $("swW").oninput = draw; $("swL").oninput = draw;
+  addReset("swW", () => { $("swW").value = 3; $("swL").value = 1; draw(); });
+  draw();
+})();
+
+// ---------- 21: KV cache ----------
+(function kvcache() {
+  const PROMPT = ["A", "teddy", "bear"], GEN = ["is", "reading", "a", "book", "."];
+  let k = 0;
+  function draw() {
+    const all = PROMPT.concat(GEN.slice(0, k));
+    $("kvToks").innerHTML = all.map((t, i) => `<span class="tk ${i >= PROMPT.length ? "out" : ""} ${i === all.length - 1 && k ? "q" : ""}">${t}</span>`).join("");
+    $("kvStack").innerHTML = all.map((t, i) => `<div class="kvcol"><span class="sq k">K</span><span class="sq v">V</span><span>${t}</span></div>`).join("");
+    $("kvGo").hidden = k >= GEN.length;
+    const n = all.length;
+    $("kvSays").innerHTML = (k ? `“${all[n - 1]}” was written by comparing its query with the ${n - 1} saved keys (plus its own). Its key and value are saved too.<br>` : "The prompt's keys and values are saved first.<br>") +
+      `Saved: ${n} tokens × 8 heads × 2 (K and V) = <b>${n * 16} vectors</b>, in this one layer. A model with 60 layers keeps 60 times that.`;
+  }
+  $("kvGo").onclick = () => { k++; draw(); };
+  addReset("kvStack", () => { k = 0; draw(); });
+  draw();
+})();
+
+// ---------- 22: MHA / GQA / MQA ----------
+(function sharing() {
+  let g = 8;
+  function draw() {
+    const sz = matchMedia("(max-width: 640px)").matches ? 24 : 30, per = 8 / g, wpx = n => n * sz + (n - 1) * 4;
+    const row = (lab, n, cls, w) => `<div class="hrow" style="flex-wrap:nowrap"><b>${lab}</b>${Array.from({ length: n }, (_, i) => `<span class="sq ${cls} wide" style="width:${w}px">${cls.toUpperCase()}${n > 1 ? i + 1 : ""}</span>`).join("")}</div>`;
+    $("shHeads").innerHTML = row("queries", 8, "q", sz) + row("keys", g, "k", wpx(per)) + row("values", g, "v", wpx(per));
+    document.querySelectorAll("[data-kv]").forEach(b => b.classList.toggle("on", +b.dataset.kv === g));
+    const nums = 2 * g * 128;
+    $("shEq").innerHTML = `Kept per token, per layer (each key or value has 128 numbers):<br>2 (K and V) × ${g} × 128 = <b>${nums.toLocaleString()} numbers</b>` +
+      (g < 8 ? ` <span class="small">(${8 / g}× less than MHA)</span>` : "") +
+      `<br><span class="small">${g === 8 ? "Each head has its own key and value." : g === 1 ? "All 8 heads share one key and one value." : `Heads 1–4 share one key and value; heads 5–8 share another.`}</span>`;
+  }
+  document.querySelectorAll("[data-kv]").forEach(b => b.onclick = () => { g = +b.dataset.kv; draw(); });
+  addReset("shHeads", () => { g = 8; draw(); });
+  draw();
+})();
+
+// ---------- 23: post-norm vs pre-norm ----------
+(function norms() {
+  let pre = false;
+  const box = (x, w, lab, cls) => `<rect x="${x}" y="80" width="${w}" height="46" rx="8" class="bx ${cls}"/><text x="${x + w / 2}" y="109" class="t">${lab}</text>`;
+  const arr = (x1, x2) => `<path d="M${x1},103 L${x2},103" class="ar" style="marker-end:url(#hdN)"/>`;
+  const plus = cx => `<circle cx="${cx}" cy="103" r="16" class="bx w"/><text x="${cx}" y="110" class="t">+</text>`;
+  function draw() {
+    let s = `<defs><marker id="hdN" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker><marker id="hdNr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--redpen)"/></marker></defs>`;
+    s += `<text x="24" y="109" class="t">x</text>`;
+    if (!pre) {
+      s += arr(40, 158) + box(160, 130, "layer", "y") + arr(290, 332) + plus(350) + arr(366, 398) + box(400, 100, "norm", "p") + arr(500, 556) + `<text x="584" y="108" class="tm">out</text>`;
+      s += `<path d="M80,103 C80,30 350,30 350,85" fill="none" stroke="var(--redpen)" stroke-width="3" marker-end="url(#hdNr)"/><text x="215" y="40" class="ts">skip</text>`;
+      s += `<text x="450" y="150" class="ts">x is changed here</text>`;
+    } else {
+      s += arr(40, 128) + box(130, 90, "norm", "p") + arr(220, 248) + box(250, 120, "layer", "y") + arr(370, 412) + plus(430) + arr(446, 520) + `<text x="550" y="108" class="tm">out</text>`;
+      s += `<path d="M80,103 C80,30 430,30 430,85" fill="none" stroke="var(--redpen)" stroke-width="3" marker-end="url(#hdNr)"/><text x="255" y="40" class="ts">skip: x arrives untouched</text>`;
+    }
+    $("pnPic").innerHTML = s;
+    $("pnEq").innerHTML = pre ? `output = x + f( norm(x) )` : `output = norm( x + f(x) )`;
+    setOn([["pnPost", false], ["pnPre", true]], pre);
+  }
+  $("pnPost").onclick = () => { pre = false; draw(); };
+  $("pnPre").onclick = () => { pre = true; draw(); };
+  addReset("pnPic", () => { pre = false; draw(); });
+  draw();
+})();
+
+// ---------- 24: LayerNorm vs RMSNorm ----------
+(function rms() {
+  const START = [3, 9, 6];
+  $("rmsIn").innerHTML = `x = [ ` + START.map((v, i) => `<input class="numin" type="number" step="1" id="rmsX${i}" value="${v}" aria-label="number ${i + 1}">`).join(", ") + ` ]`;
+  const n1 = v => (Math.round(v * 100) / 100).toString();
+  function draw() {
+    const x = START.map((_, i) => +$("rmsX" + i).value || 0), d = x.length;
+    const mean = x.reduce((a, b) => a + b, 0) / d;
+    const sd = Math.sqrt(x.reduce((a, b) => a + (b - mean) ** 2, 0) / d);
+    const r = Math.sqrt(x.reduce((a, b) => a + b * b, 0) / d);
+    const ln = x.map(v => sd ? (v - mean) / sd : 0), rn = x.map(v => r ? v / r : 0);
+    $("rmsEq").innerHTML = `<b>Layer norm</b>: average = (${x.join(" + ")}) / 3 = ${n1(mean)}; spread = ${f2(sd)}<br>` +
+      `→ [ ${ln.map(f2).join(", ")} ] <span class="small">(subtract the average, divide by the spread)</span><br><br>` +
+      `<b>RMSNorm</b>: RMS = √((${x.map(v => v + "²").join(" + ")}) / 3) = √${n1(x.reduce((a, b) => a + b * b, 0) / d)} = ${f2(r)}<br>` +
+      `→ [ ${rn.map(f2).join(", ")} ] <span class="small">(just divide by the RMS)</span>`;
+  }
+  START.forEach((_, i) => $("rmsX" + i).oninput = draw);
+  addReset("rmsIn", () => { START.forEach((v, i) => $("rmsX" + i).value = v); draw(); });
+  draw();
+})();
+
+// ---------- 25: 2017 vs today ----------
+(function years() {
+  const ROWS = [
+    ["Positions", "waves added to each embedding", "RoPE: queries and keys turned"],
+    ["Attention", "every token sees all earlier tokens", "sliding window in many layers"],
+    ["Keys and values", "each head has its own (MHA)", "shared in groups (GQA)"],
+    ["Feed-forward", "one network", "often a mixture of experts"],
+    ["Normalization", "post-norm, layer norm", "pre-norm, RMSNorm"],
+  ];
+  let now = false;
+  function draw() {
+    $("yrTable").innerHTML = `<tr><th>Part</th><th>${now ? "Today" : "2017"}</th></tr>` +
+      ROWS.map(r => `<tr class="${now ? "chg" : ""}"><td>${r[0]}</td><td>${now ? r[2] : r[1]}</td></tr>`).join("");
+    setOn([["yr17", false], ["yrNow", true]], now);
+  }
+  $("yr17").onclick = () => { now = false; draw(); };
+  $("yrNow").onclick = () => { now = true; draw(); };
+  addReset("yrTable", () => { now = false; draw(); });
+  draw();
+})();
+
+// ---------- 26: greedy and beam search ----------
+(function beam() {
+  // [label, chance, x, y, parent]
+  const N = {
+    root: ["[BOS]", 1, 50, 125, null],
+    A: ["A", .5, 220, 50, "root"], The: ["The", .4, 220, 135, "root"], Cute: ["Cute", .1, 220, 215, "root"],
+    Acute: ["cute", .4, 400, 20, "A"], Alittle: ["little", .35, 400, 52, "A"], Abig: ["big", .25, 400, 84, "A"],
+    Teddy: ["teddy", .9, 400, 125, "The"], Tcat: ["cat", .1, 400, 160, "The"],
+  };
+  const L2 = ["Acute", "Alittle", "Abig", "Teddy", "Tcat"];
+  const prob = k => N[k][4] === "root" ? N[k][1] : N[N[k][4]][1] * N[k][1];
+  let mode = "g", step = 0;
+  function draw() {
+    let lit = [], kept1 = [], kept2 = [], gone = [];
+    if (mode === "g") lit = ["A", "Acute"];
+    else {
+      if (step >= 1) { kept1 = ["A", "The"]; gone.push("Cute"); }
+      if (step >= 2) { kept2 = ["Teddy", "Acute"]; lit = ["The", "Teddy"]; }
+    }
+    let s = `<defs><marker id="hdB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pencil)"/></marker></defs>`;
+    for (const k in N) {
+      const [lab, p, x, y, par] = N[k];
+      if (!par) continue;
+      const [, , px, py] = N[par];
+      const on = lit.includes(k);
+      const show = mode === "g" ? (par === "root" || par === "A") : (par === "root" || step >= 2 && par !== "Cute");
+      if (!show) continue;
+      s += `<path d="M${px + 36},${py} L${x - 34},${y}" fill="none" stroke="${on ? "var(--redpen)" : "var(--pencil)"}" stroke-width="${on ? 3 : 1.5}"/>`;
+      s += `<text x="${x - 40}" y="${y - 2}" class="tm" style="fill:var(--pencil);text-anchor:end">${p}</text>`;
+    }
+    for (const k in N) {
+      const [lab, , x, y, par] = N[k];
+      const show = !par || par === "root" || (mode === "g" ? par === "A" : step >= 2 && par !== "Cute");
+      if (!show) continue;
+      const cls = lit.includes(k) || !par ? "y" : kept1.includes(k) || kept2.includes(k) ? "g" : gone.includes(k) ? "faded" : "w";
+      s += `<rect x="${x - 34}" y="${y - 14}" width="68" height="28" rx="6" class="bx ${cls === "faded" ? "w faded" : cls}"/><text x="${x}" y="${y + 6}" class="t" style="font-size:15px">${lab}</text>`;
+      if (L2.includes(k)) s += `<text x="${x + 44}" y="${y + 5}" class="tm" style="text-anchor:start">${N[par][1]} × ${N[k][1]} = ${f2(prob(k))}</text>`;
+    }
+    $("bmPic").innerHTML = s;
+    setOn([["bmG", "g"], ["bmB", "b"]], mode);
+    let go = $("bmNext");
+    if (!go) { go = document.createElement("button"); go.id = "bmNext"; go.className = "primary"; go.textContent = "Next step"; go.onclick = () => { step++; draw(); }; const r = document.createElement("div"); r.className = "btnrow"; r.appendChild(go); $("bmSays").before(r); }
+    go.hidden = mode === "g" || step >= 2;
+    $("bmSays").innerHTML = mode === "g"
+      ? "Greedy takes “A” (0.5), then “cute” (0.4): 0.5 × 0.4 = <b>0.20</b>. But “The teddy” has 0.4 × 0.9 = <b>0.36</b>. Greedy never saw it, because “The” looked worse at first."
+      : step === 0 ? "Beam search with k = 2. Press Next step."
+      : step === 1 ? "Step 1: keep the 2 most likely first words, “A” (0.5) and “The” (0.4). Drop “Cute”."
+      : "Step 2: grow both, multiply the chances, keep the best 2: “The teddy” (0.36) and “A cute” (0.20). Best: <b>“The teddy”</b>.";
+  }
+  $("bmG").onclick = () => { mode = "g"; step = 0; draw(); };
+  $("bmB").onclick = () => { mode = "b"; step = 0; draw(); };
+  addReset("bmPic", () => { mode = "g"; step = 0; draw(); });
+  draw();
+})();
+
+// ---------- 27: deterministic vs random replies ----------
+(function determinism() {
+  const R = ["Good, and you?", "Awesome, thanks for asking!", "All good today!", "Pretty great! How about you?", "Doing well, thanks!"];
+  let rand = false, chat = [], i = 0;
+  function draw() {
+    $("dtChat").innerHTML = chat.map(r => `<div class="bub me">Hey, how are you?</div><div class="bub bot">${r} 🤖</div>`).join("") || `<p class="small" style="color:var(--pencil)">No messages yet.</p>`;
+    $("dtChat").scrollTop = 1e6;
+    setOn([["dtFix", false], ["dtRand", true]], rand);
+  }
+  $("dtAsk").onclick = () => { chat.push(rand ? R[(i = (i + 1 + Math.floor(Math.random() * (R.length - 1))) % R.length)] : R[0]); chat = chat.slice(-4); draw(); };
+  $("dtFix").onclick = () => { rand = false; chat = []; draw(); };
+  $("dtRand").onclick = () => { rand = true; chat = []; draw(); };
+  addReset("dtChat", () => { rand = false; chat = []; draw(); });
+  draw();
+})();
+
+// Next-token chances for "A teddy bear is ___"
+const NEXT = ["reading", "sleeping", "cute", "happy", "flying", "purple"];
+
+// ---------- 28: top-k and top-p ----------
+(function sampling() {
+  const P = [.40, .25, .15, .10, .06, .04];
+  let mode = "all", last = null, tally = {};
+  function kept() {
+    if (mode === "k") return P.map((_, i) => i < +$("spKs").value);
+    if (mode === "p") { const p = +$("spPs").value / 100; let c = 0; return P.map(v => { const keep = c < p - 1e-9; c += v; return keep; }); }
+    return P.map(() => true);
+  }
+  function draw() {
+    const kp = kept(), tot = P.reduce((s, v, i) => s + (kp[i] ? v : 0), 0);
+    $("spKv").textContent = $("spKs").value; $("spPv").textContent = (+$("spPs").value / 100).toFixed(2);
+    $("spKrow").hidden = mode !== "k"; $("spProw").hidden = mode !== "p";
+    $("spBars").innerHTML = `<div class="bar head"><span>token</span><span>before</span><span>chance now</span><span></span></div>` +
+      NEXT.map((t, i) => barHTML(kp[i] ? t : `<span style="color:var(--pencil);text-decoration:line-through">${t}</span>`, kp[i] ? P[i] / tot : 0, { score: pct(P[i]), top: i === last })).join("");
+    setOn([["spAll", "all"], ["spK", "k"], ["spP", "p"]], mode);
+    const n = kp.filter(Boolean).length;
+    const t = Object.entries(tally).map(([k, v]) => `${k} ${v}`).join(", ");
+    $("spSays").innerHTML = (mode === "all" ? "Every token can be picked, even “purple” (4%)." :
+      `Kept ${n} token${n > 1 ? "s" : ""}, adding up to ${pct(tot)}. Each is divided by ${f2(tot)}: e.g. “reading” 0.40 / ${f2(tot)} = ${pct(P[0] / tot)}.`) +
+      (last !== null ? `<br>Picked: <b>“${NEXT[last]}”</b>. Picks so far: ${t}.` : "");
+  }
+  $("spGo").onclick = () => {
+    const kp = kept(), tot = P.reduce((s, v, i) => s + (kp[i] ? v : 0), 0);
+    let r = Math.random() * tot, i = 0;
+    for (; i < P.length; i++) { if (!kp[i]) continue; r -= P[i]; if (r <= 0) break; }
+    last = Math.min(i, P.length - 1); tally[NEXT[last]] = (tally[NEXT[last]] || 0) + 1; draw();
+  };
+  const set = m => { mode = m; last = null; tally = {}; draw(); };
+  $("spAll").onclick = () => set("all"); $("spK").onclick = () => set("k"); $("spP").onclick = () => set("p");
+  $("spKs").oninput = () => { last = null; tally = {}; draw(); }; $("spPs").oninput = $("spKs").oninput;
+  addReset("spBars", () => { $("spKs").value = 3; $("spPs").value = 75; set("all"); });
+  draw();
+})();
+
+// ---------- 29: temperature ----------
+(function temperature() {
+  const X = [2.0, 1.5, 1.0, 0.6, 0.1, -0.3];
+  function draw() {
+    const T = +$("tpT").value / 10, p = softmax(X.map(x => x / T));
+    $("tpTv").textContent = T.toFixed(1);
+    $("tpBars").innerHTML = `<div class="bar head"><span>token</span><span>score</span><span>chance</span><span></span></div>` +
+      NEXT.map((t, i) => barHTML(t, p[i], { score: X[i].toFixed(1), top: i === 0 })).join("");
+    $("tpEq").innerHTML = `p<sub>reading</sub> = <span class="frac"><span>e<sup>2.0 / ${T.toFixed(1)}</sup></span><span>e<sup>2.0 / ${T.toFixed(1)}</sup> + e<sup>1.5 / ${T.toFixed(1)}</sup> + …</span></span> = <b>${pct(p[0])}</b>` +
+      `<br><span class="small">${T < 0.5 ? "Very sharp: nearly always “reading”." : T > 1.5 ? "Flat: even “purple” gets a real chance." : "In between."}</span>`;
+  }
+  $("tpT").oninput = draw;
+  addReset("tpT", () => { $("tpT").value = 10; draw(); });
+  draw();
+})();
+
+// ---------- 30: floating-point order ----------
+(function floats() {
+  const a = 1e16, b = 1, c = -1e16;
+  let shown = [];
+  function draw() {
+    const L = { A: `(a + b) + c = (10<sup>16</sup> + 1) − 10<sup>16</sup> = <b>${(a + b) + c}</b>`, B: `(a + c) + b = (10<sup>16</sup> − 10<sup>16</sup>) + 1 = <b>${(a + c) + b}</b>` };
+    $("fpOut").innerHTML = shown.map(k => L[k]).join("<br>");
+    $("fpSays").innerHTML = shown.length < 2 ? "Try both orders. This page really computes them, in your browser."
+      : "Same numbers, different order, different answer. 10<sup>16</sup> + 1 can't be stored exactly, so the 1 is rounded away. Tiny differences like this can tip which token comes out on top.";
+  }
+  $("fpA").onclick = () => { if (!shown.includes("A")) shown.push("A"); draw(); };
+  $("fpB").onclick = () => { if (!shown.includes("B")) shown.push("B"); draw(); };
+  addReset("fpOut", () => { shown = []; draw(); });
+  draw();
+})();
+
+// ---------- 31: guided decoding ----------
+(function guided() {
+  const STEPS = [
+    { c: [["Sure", .45, 0], ["{", .35, 1], ["Here", .20, 0]], why: "JSON must start with “{”." },
+    { c: [['"first_name"', .40, 1], ["the", .35, 0], ["}", .25, 0]], why: "After “{” comes a name in quotes. “}” would end it with no details." },
+    { c: [[":", .70, 1], [",", .20, 0], ["to", .10, 0]], why: "A name is followed by “:”." },
+    { c: [['"teddy"', .50, 1], ["10", .30, 0], ['"Jane"', .20, 1]], why: "A first name must be text in quotes, so “10” is blocked." },
+  ];
+  const REST = `,\n  "last_name": "bear",\n  "age": 33,\n  "hobby": "reading"\n}`;
+  let s = 0;
+  const pickOf = st => st.c.filter(x => x[2]).sort((a, b) => b[1] - a[1])[0][0];
+  function draw() {
+    const chosen = STEPS.slice(0, s).map(pickOf);
+    let txt = chosen.length ? chosen[0] + (chosen[1] ? "\n  " + chosen.slice(1).join(" ").replace(" :", ":") : "") : "";
+    if (s >= STEPS.length) txt += REST;
+    $("gdOut").innerHTML = (txt || " ").replace(/</g, "&lt;") + (s < STEPS.length ? "▌" : "");
+    $("gdGo").hidden = s >= STEPS.length;
+    if (s < STEPS.length) {
+      const st = STEPS[s], top = pickOf(st);
+      $("gdCands").innerHTML = st.c.map(([t, p, ok]) => `<span class="tk ${ok ? (t === top ? "ok q" : "ok") : "bad"}">${t} ${ok ? pct(p) : "0%"}</span>`).join("");
+      $("gdSays").innerHTML = `${st.why} Blocked tokens are set to 0%. The model picks “${top}”.`;
+    } else {
+      $("gdCands").innerHTML = "";
+      $("gdSays").innerHTML = "And so on, to the end. The output is valid JSON every time, so the program can always read it.";
+    }
+  }
+  $("gdGo").onclick = () => { s++; draw(); };
+  addReset("gdOut", () => { s = 0; draw(); });
+  draw();
+})();
+
+// ---------- 32: context window ----------
+(function context() {
+  const PR = ["A", "teddy", "bear"], GEN = ["is", "cute", "[EOS]"];
+  let k = 0;
+  function draw() {
+    $("cwToks").innerHTML = PR.map(t => `<span class="tk">${t}</span>`).join("") + GEN.slice(0, k).map(t => `<span class="tk ${t[0] === "[" ? "sp" : "out"}">${t}</span>`).join("") + (k < GEN.length ? `<span class="tk blank">?</span>` : "");
+    $("cwGo").hidden = k >= GEN.length;
+    $("cwEq").innerHTML = `context now = ${PR.length} prompt + ${k} written = <b>${PR.length + k} tokens</b><br>output tokens = <b>${k}</b>` +
+      (k >= GEN.length ? `<br><span class="small">[EOS] means “end”: the answer is done.</span>` : "");
+  }
+  $("cwGo").onclick = () => { k++; draw(); };
+  addReset("cwToks", () => { k = 0; draw(); });
+  draw();
+})();
+
+// ---------- 33: how big is a million tokens ----------
+(function howBig() {
+  const A = [[1e4, "a technical report"], [1e5, "a book"], [1e6, "an encyclopedia"]];
+  function draw() {
+    const t = Math.round(10 ** (3 + +$("hbT").value));
+    $("hbTv").textContent = t.toLocaleString();
+    $("hbEq").innerHTML = `words ≈ ${t.toLocaleString()} × 0.75 = <b>${Math.round(t * 0.75).toLocaleString()}</b><br>pages ≈ ${t.toLocaleString()} / 500 = <b>${Math.round(t / 500).toLocaleString()}</b>`;
+    const near = A.reduce((b, a) => Math.abs(Math.log10(a[0] / t)) < Math.abs(Math.log10(b[0] / t)) ? a : b);
+    $("hbSays").innerHTML = Math.abs(Math.log10(near[0] / t)) < 0.25 ? `About ${near[0].toLocaleString()} tokens: <b>${near[1]}</b>.` : `For scale: 10,000 tokens ≈ a technical report, 100,000 ≈ a book, 1,000,000 ≈ an encyclopedia.`;
+  }
+  $("hbT").oninput = draw;
+  addReset("hbT", () => { $("hbT").value = 2; draw(); });
+  draw();
+})();
+
+// ---------- 34: in-context learning ----------
+(function icl() {
+  let few = false;
+  function draw() {
+    $("icBox").innerHTML = few
+      ? `<span class="eg">Q: How old is bear A?\nA: 4.\n\nQ: How old is bear B?\nA: 3.\n\n</span>Q: How old will bear A be next year?\nA:<span class="ans"> 5.</span>`
+      : `How old will bear A be next year?\n<span class="ans">I can't tell: I don't know how old bear A is.</span>`;
+    setOn([["icZero", false], ["icFew", true]], few);
+    $("icSays").innerHTML = few
+      ? "The examples (blue) give the facts and show the format: a short number. Prompt: about <b>35 tokens</b>."
+      : "No examples: the model doesn't know the age or the format you want. Prompt: about <b>10 tokens</b>.";
+  }
+  $("icZero").onclick = () => { few = false; draw(); };
+  $("icFew").onclick = () => { few = true; draw(); };
+  addReset("icBox", () => { few = false; draw(); });
+  draw();
+})();
+
+// ---------- 35: chain of thought ----------
+(function cot() {
+  let on = false;
+  function draw() {
+    $("ctBox").innerHTML = on
+      ? `<span class="eg">Q: How old is this bear?\nA: The bear was born in 2020. It is therefore 4.\n\n</span>Q: How old will the bear be next year?\nA:<span class="ans"> It is 4 this year, and one year older next year. So it will be 5.</span>`
+      : `<span class="eg">Q: How old is this bear?\nA: 4.\n\n</span>Q: How old will the bear be next year?\nA:<span class="ans"> 4.</span>`;
+    setOn([["ctPlain", false], ["ctCot", true]], on);
+    $("ctSays").innerHTML = on
+      ? "The example showed its reasoning, so the answer does too, step by step, and gets it right."
+      : "The example jumped straight to a number, so the answer does too, and here it just repeats 4.";
+  }
+  $("ctPlain").onclick = () => { on = false; draw(); };
+  $("ctCot").onclick = () => { on = true; draw(); };
+  addReset("ctBox", () => { on = false; draw(); });
+  draw();
+})();
+
+// ---------- 36: self-consistency ----------
+(function selfCons() {
+  const A = [
+    ["It is 4 this year, so next year it will be 5.", 5],
+    ["Born in 2020, so next year it will be 5.", 5],
+    ["Next year is 2024, so it will be 4.", 4],
+    ["4 + 1 = 5.", 5],
+    ["One year older than 4: 5.", 5],
+  ];
+  let k = 0;
+  function draw() {
+    const got = A.slice(0, k);
+    $("scChat").innerHTML = got.map(([t, a], i) => `<div class="bub bot" style="justify-self:start">Answer ${i + 1}: ${t}</div>`).join("") || `<p class="small" style="color:var(--pencil)">No answers yet.</p>`;
+    const votes = {}; got.forEach(([, a]) => votes[a] = (votes[a] || 0) + 1);
+    $("scVote").innerHTML = Object.entries(votes).map(([a, v]) => `<span class="tk ${k === A.length && v === Math.max(...Object.values(votes)) ? "ok" : ""}">“${a}”: ${"●".repeat(v)}</span>`).join("");
+    $("scGo").hidden = k >= A.length;
+    $("scSays").innerHTML = k < A.length ? (k ? `${k} answer${k > 1 ? "s" : ""} so far. Each one reasoned on its own.` : "")
+      : "Answer 3 slipped, but 4 of 5 say <b>5</b>. The vote keeps 5.";
+  }
+  $("scGo").onclick = () => { k++; draw(); };
+  addReset("scChat", () => { k = 0; draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>
