@@ -1,0 +1,971 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attention and the Transformer</title>
+<meta name="description" content="Lesson 1b of Transformers & LLMs: self-attention, queries, keys and values, and the Transformer, built up step by step and run end to end.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Kalam:wght@400&family=Patrick+Hand&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("notebook-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<link rel="stylesheet" href="https://mo-ri-ch.github.io/study-notebook-design/v1/style.css">
+<style>
+  .mono { font-family: var(--mono); }
+  .small { font-size: 0.85rem; }
+  .btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  button.on { background: var(--ink); color: var(--paper); }
+  /* Token chips */
+  .toks { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--mono); align-items: center; }
+  .tk { padding: 3px 8px; border: 1.5px solid var(--ink); border-radius: 5px; background: var(--paper); color: var(--ink); white-space: pre; }
+  .tk.sp { color: var(--pen); border-color: var(--pen); font-weight: 600; }
+  .tk.pick { cursor: pointer; }
+  .tk.q { outline: 3px solid var(--redpen); }
+  .tk.lit { background: var(--note-yellow); }
+  .tk.blank { border-style: dashed; color: var(--pencil); }
+  .linkbox { position: relative; }
+  svg.links { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+  /* Equations */
+  .eq { margin: 8px 0; font-family: var(--mono); font-size: 0.95rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .frac { display: inline-flex; flex-direction: column; text-align: center; vertical-align: middle; }
+  .frac > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 4px 2px; }
+  .frac > span:last-child { padding: 2px 4px 0; }
+  .eq sup, .eq sub { font-size: 0.75em; }
+  .bigeq { font-size: 1.15rem; justify-content: center; padding: 12px; background: var(--card); border: 1.5px solid var(--rule); border-radius: 8px; }
+  /* Bars */
+  .bars { display: grid; gap: 6px; max-width: 560px; }
+  .bar { display: grid; grid-template-columns: 8.6em 3.4em 1fr 3.2em; gap: 10px; align-items: center; font-family: var(--mono); font-size: 0.88rem; }
+  .bar.nosc { grid-template-columns: 8.6em 1fr 3.2em; }
+  .bar .track { height: 16px; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .bar .fill { display: block; height: 100%; background: var(--hl-yellow); border-right: 2px solid var(--ink); transition: width .25s; }
+  .bar .pct { text-align: right; color: var(--pencil); }
+  .bar .sc { color: var(--pen); text-align: right; }
+  .bar.head { font-family: var(--head); font-size: 0.95rem; color: var(--pencil); }
+  .bar.top .fill { background: var(--hl-green); }
+  /* Paint swatches (weighted average) */
+  .sw { display: inline-block; width: 1.1em; height: 1.1em; border-radius: 50%; border: 1.5px solid var(--ink); vertical-align: middle; }
+  .bigsw { width: 84px; height: 84px; border-radius: 50%; border: 2px solid var(--ink); box-shadow: 0 10px 16px -12px rgba(20,24,50,.5); }
+  .mix { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: center; }
+  .mixrow { display: grid; grid-template-columns: 1.4em 7em 1fr 3.2em; gap: 10px; align-items: center; font-family: var(--mono); font-size: 0.9rem; }
+  .mixrow input { width: 100%; accent-color: var(--pen); }
+  .mixout { display: grid; justify-items: center; gap: 6px; font-family: var(--head); }
+  /* Matrices */
+  .mat { display: inline-grid; gap: 2px; padding: 3px 6px; border-left: 2px solid var(--ink); border-right: 2px solid var(--ink); border-radius: 6px; font-family: var(--mono); font-size: 0.9rem; vertical-align: middle; }
+  .mat span { min-width: 2.4em; padding: 2px 4px; text-align: center; border-radius: 3px; }
+  .mat span.on { background: var(--hl-yellow); color: var(--on-hl); }
+  .mat span.click { cursor: pointer; outline: 1.5px dashed var(--pen); }
+  .matrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--mono); }
+  .matlbl { display: grid; justify-items: center; gap: 4px; }
+  .matlbl small { font-family: var(--hand); color: var(--pencil); font-size: 0.95rem; }
+  /* Attention grid */
+  .agrid { display: grid; gap: 2px; font-family: var(--mono); font-size: 0.78rem; overflow-x: auto; }
+  .agrid .c { padding: 5px 2px; text-align: center; border-radius: 3px; background: color-mix(in srgb, var(--hl-yellow) calc(var(--w, 0) * 100%), var(--paper)); color: var(--ink); border: 1px solid var(--rule); min-width: 2.8em; }
+  .agrid .c.hot { color: #1D2238; }
+  .agrid .c.masked { background: var(--card); color: var(--pencil); border-style: dashed; }
+  .agrid .h { padding: 4px 2px; text-align: center; color: var(--pencil); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .agrid .rh { text-align: right; padding-right: 6px; cursor: pointer; }
+  .agrid .rh.sel { color: var(--redpen); font-weight: 700; }
+  .agrid .rowsel { outline: 2px solid var(--redpen); }
+  .agrid .swc { display: grid; place-items: center; }
+  .steps4 { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 10px; }
+  .steps4 button.done { opacity: 1; }
+  /* Diagrams */
+  .pic { width: 100%; max-width: 620px; display: block; margin: 6px 0 10px; }
+  .pic .bx { fill: var(--note-blue); stroke: var(--ink); stroke-width: 1.5; }
+  .pic .bx.y { fill: var(--note-yellow); } .pic .bx.g { fill: var(--note-green); } .pic .bx.p { fill: var(--note-pink); } .pic .bx.o { fill: var(--note-orange); }
+  .pic .bx.w { fill: var(--card); }
+  .pic .t { font-family: var(--head); font-size: 17px; text-anchor: middle; fill: var(--ink); }
+  .pic .ts { font-family: var(--hand); font-size: 13px; text-anchor: middle; fill: var(--pencil); }
+  .pic .tm { font-family: var(--mono); font-size: 12px; text-anchor: middle; fill: var(--ink); }
+  .pic .ar { stroke: var(--pen); stroke-width: 2.2; fill: none; marker-end: url(#hd); }
+  .pic .ar.r { stroke: var(--redpen); marker-end: url(#hdr); }
+  .pic .lit { stroke: var(--redpen); stroke-width: 3; }
+  .pic .dash { stroke-dasharray: 5 4; }
+  /* Step list (end-to-end) */
+  .flow { display: grid; grid-template-columns: minmax(0, 15em) 1fr; gap: 16px; align-items: start; }
+  .flow ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; counter-reset: s; }
+  .flow li { counter-increment: s; padding: 5px 10px; border: 1.5px solid var(--rule); border-radius: 6px; font-size: 0.92rem; color: var(--pencil); }
+  .flow li::before { content: counter(s) " "; font-family: var(--mono); color: var(--pencil); }
+  .flow li.now { border-color: var(--ink); background: var(--note-yellow); color: var(--ink); }
+  .flow li.past { color: var(--ink); }
+  .stage { display: grid; gap: 10px; }
+  .stage .shape { font-family: var(--mono); font-size: 0.9rem; color: var(--pen); }
+  /* Sizes */
+  .sizes { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; }
+  .rect { display: grid; justify-items: center; gap: 4px; font-family: var(--mono); font-size: 0.8rem; }
+  .rect > div { background: var(--note-blue); border: 1.5px solid var(--ink); border-radius: 3px; }
+  .rect.y > div { background: var(--note-yellow); } .rect.g > div { background: var(--note-green); } .rect.p > div { background: var(--note-pink); }
+  .rect b { font-family: var(--head); font-weight: 400; font-size: 1rem; }
+  /* Clock hands (positions) */
+  .clocks { display: flex; gap: 16px; flex-wrap: wrap; }
+  .clock { display: grid; justify-items: center; gap: 4px; font-family: var(--mono); font-size: 0.8rem; color: var(--pencil); }
+  .clock svg { width: 76px; height: 76px; }
+  .clock .face { fill: var(--card); stroke: var(--ink); stroke-width: 2; }
+  .clock .hand { stroke: var(--redpen); stroke-width: 3; stroke-linecap: round; }
+  /* Generation */
+  .gen { display: grid; gap: 10px; }
+  .genrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .genlbl { font-family: var(--head); font-size: 1.05rem; color: var(--pencil); width: 8.5em; }
+  .timeline { list-style: none; padding: 0; margin: 18px 0; display: grid; gap: 14px; }
+  .timeline li { display: grid; grid-template-columns: 5.5em 1fr; gap: 14px; align-items: start; }
+  .timeline .yr { font-family: var(--head); font-size: 1.5rem; color: var(--pen); line-height: 1.1; }
+  .timeline .what { padding: 10px 14px; border-radius: 2px 2px 6px 2px; color: var(--ink); box-shadow: 0 10px 18px -14px rgba(20,24,50,.45); }
+  .timeline .what > b:first-child { display: block; font-family: var(--head); font-weight: 400; font-size: 1.2rem; }
+  .n-y { background: var(--note-yellow); } .n-p { background: var(--note-pink); } .n-b { background: var(--note-blue); } .n-g { background: var(--note-green); }
+  table.mini { border-collapse: collapse; margin: 8px 0; font-size: 0.9rem; }
+  table.mini td, table.mini th { padding: 3px 10px 3px 0; text-align: left; }
+  table.mini th { font-family: var(--head); font-weight: 400; color: var(--pencil); }
+  @media (max-width: 640px) {
+    .bar { grid-template-columns: 7.6em 2.6em 1fr 2.8em; gap: 6px; font-size: 0.8rem; }
+    .bar.nosc { grid-template-columns: 7.6em 1fr 2.8em; }
+    .mix { grid-template-columns: 1fr; justify-items: center; }
+    .mixrow { grid-template-columns: 1.4em 6em 1fr 3em; }
+    .flow { grid-template-columns: 1fr; }
+    .timeline li { grid-template-columns: 1fr; gap: 4px; }
+    .agrid { font-size: 0.66rem; }
+    .agrid .c { min-width: 2.2em; padding: 4px 1px; }
+  }
+</style>
+</head>
+<body data-pen="blue">
+<div class="wrap">
+  <header class="topbar">
+    <a class="home" href="../">← Transformers & LLMs</a>
+    <span class="where">Lesson 1b of 10</span>
+  </header>
+
+  <main data-paged>
+    <div class="paged-head">
+      <h1>Attention and the Transformer</h1>
+      <div class="progress" aria-label="Lesson parts"></div>
+    </div>
+
+    <!-- 1 -->
+    <section class="part" data-title="2017: drop the RNN">
+      <h2>2017: let every word look at every word</h2>
+      <p class="say">An RNN reads one word at a time and passes a memory along. Far-away words fade.</p>
+      <p class="say">In 2017, the paper <mark data-peek="“Attention Is All You Need”, by Vaswani and others at Google, 2017. It was made for translation, and beat every model of its time.">Attention Is All You Need</mark> dropped the RNN. Every token looks <b>directly</b> at every other token. This is <mark>self-attention</mark>.</p>
+      <div class="activity">
+        <div class="do">Try it: switch between the two, and click any word.</div>
+        <div class="btnrow" style="margin:0 0 12px">
+          <button class="on" id="saRnn">RNN</button>
+          <button id="saSelf">Self-attention</button>
+        </div>
+        <div class="linkbox" id="saBox" style="padding-top:58px"><div class="toks" id="saToks"></div></div>
+        <p class="note" id="saSays"></p>
+      </div>
+      <p class="hook">But a word can't use every other word equally. How does it mix them?</p>
+    </section>
+
+    <!-- 2 -->
+    <section class="part" data-title="Quick basics: weighted average">
+      <h2>✏️ Quick basics: a weighted average</h2>
+      <p class="say">A <mark>weighted average</mark> mixes things, giving each one a <b>share</b>. The shares add up to 100%.</p>
+      <p class="say">Think of paint: more of one colour, and the mix looks more like it.</p>
+      <div class="activity">
+        <div class="do">Try it: drag the sliders and watch the mix.</div>
+        <div class="mix">
+          <div class="bars" id="mixRows"></div>
+          <div class="mixout"><div class="bigsw" id="mixSw"></div><span>the mix</span></div>
+        </div>
+        <div class="eq" id="mixEq"></div>
+      </div>
+      <p class="hook">Self-attention builds each word's new vector exactly like this. Who decides the shares?</p>
+    </section>
+
+    <!-- 3 -->
+    <section class="part" data-title="Query, key, value">
+      <h2>Query, key, value</h2>
+      <p class="say">Each token gets three vectors: a <mark>query</mark> (what am I looking for?), a <mark>key</mark> (what do I offer?) and a <mark>value</mark> (what I pass on).</p>
+      <div class="activity">
+        <div class="do">Try it: click a word to make it ask. Each value is shown as a colour.</div>
+        <button class="doubt" type="button" data-peek-from="libPeek" aria-label="Is there an everyday example?">🤔</button>
+        <div class="linkbox" id="qkvBox" style="padding-bottom:58px"><div class="toks" id="qkvToks"></div></div>
+        <div class="mix" style="margin-top:6px">
+          <div class="bars" id="qkvBars"></div>
+          <div class="mixout"><div class="bigsw" id="qkvSw"></div><span id="qkvSwL">new “teddy bear”</span></div>
+        </div>
+        <p class="note" id="qkvSays"></p>
+      </div>
+      <div hidden id="libPeek"><b>🤔 Is there an everyday example?</b>
+        <div style="margin-top:6px">A library search. The <b>query</b> is what you type. Each book's <b>key</b> is its title. The <b>value</b> is the book itself.</div>
+        <div style="margin-top:6px">Titles that match your search best get most of your reading time.</div>
+      </div>
+      <p class="say">Score = <span data-peek="Query · key: multiply matching numbers, then add, like in Lesson 1a. A big score means a good match.">query · key</span>. Softmax turns the scores into shares. The new vector is the weighted average of the values.</p>
+      <p class="hook">Where do these three vectors come from? First, one more tool.</p>
+    </section>
+
+    <!-- 4 -->
+    <section class="part" data-title="Quick basics: matrices">
+      <h2>✏️ Quick basics: multiplying by a matrix</h2>
+      <p class="say">A <mark>matrix</mark> is a table of numbers. Multiplying a vector by a matrix gives a new vector.</p>
+      <p class="say">Each new number is a dot product: the vector · one column.</p>
+      <div class="activity">
+        <div class="do">Try it: click a number in the answer to see where it comes from.</div>
+        <div class="matrow" id="mmRow"></div>
+        <p class="note" id="mmSays"></p>
+      </div>
+      <p class="hook">So a matrix turns one vector into another. That's how queries, keys and values are made.</p>
+    </section>
+
+    <!-- 5 -->
+    <section class="part" data-title="Where Q, K, V come from">
+      <h2>Where queries, keys and values come from</h2>
+      <p class="say">Each token's embedding is multiplied by three matrices: <b>W<sub>Q</sub></b> gives its query, <b>W<sub>K</sub></b> its key, <b>W<sub>V</sub></b> its value.</p>
+      <div class="activity">
+        <div class="do">Try it: pick a token and see its three vectors.</div>
+        <div class="toks" id="projToks" style="margin-bottom:10px"></div>
+        <div id="projRows" style="display:grid;gap:10px"></div>
+      </div>
+      <p class="say">The numbers in W<sub>Q</sub>, W<sub>K</sub> and W<sub>V</sub> are <mark data-peek="Like the knobs (weights) in Lesson 1a: they start random and get nudged a little after every guess. The numbers here are made up and tiny.">learned</mark> in training.</p>
+      <p class="hook">Now let's do this for all tokens at once.</p>
+    </section>
+
+    <!-- 6 -->
+    <section class="part" data-title="The attention formula">
+      <h2>The attention formula</h2>
+      <p class="say">Put all the queries in one matrix Q, all keys in K, all values in V. Then one line does everything:</p>
+      <div class="eq bigeq">Attention(Q, K, V) = softmax( <span class="frac"><span>Q <span data-peek="T means “transpose”: K flipped on its side, so each key becomes a column. Then Q × Kᵀ gives every query · every key at once.">K<sup>T</sup></span></span><span data-peek="dₖ is how many numbers each key has (here 4, so √dₖ = 2). Longer vectors give bigger dot products. Dividing keeps them small, so softmax doesn't give one word 100%.">√d<sub>k</sub></span></span> ) V</div>
+      <div class="activity">
+        <div class="do">Try it: press each step. Click a row to follow one word.</div>
+        <div class="steps4" id="fmSteps"></div>
+        <div class="agrid" id="fmGrid"></div>
+        <p class="note" id="fmSays"></p>
+      </div>
+      <p class="hook">That's self-attention. Now, the machine built around it.</p>
+    </section>
+
+    <!-- 7 -->
+    <section class="part" data-title="The Transformer">
+      <h2>The Transformer</h2>
+      <p class="say">The Transformer was made to <b>translate</b>: “A cute teddy bear is reading.” → “Un ours en peluche mignon lit.”</p>
+      <p class="say">It has two parts:</p>
+      <svg class="pic" viewBox="0 0 620 250" aria-label="The English sentence goes into the encoder. The encoder's output goes to the decoder, which writes the French sentence one token at a time.">
+        <defs><marker id="hd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
+        <rect x="40" y="50" width="220" height="120" rx="12" class="bx"/>
+        <text x="150" y="98" class="t">Encoder</text><text x="150" y="122" class="ts">understands the English</text>
+        <rect x="360" y="50" width="220" height="120" rx="12" class="bx g"/>
+        <text x="460" y="98" class="t">Decoder</text><text x="470" y="122" class="ts">writes the French</text>
+        <path d="M262,110 L356,110" class="ar"/>
+        <text x="310" y="100" class="ts">meaning</text>
+        <text x="150" y="232" class="tm">A cute teddy bear is reading.</text>
+        <path d="M150,214 L150,174" class="ar"/>
+        <text x="470" y="22" class="tm">Un ours en peluche mignon lit.</text>
+        <path d="M470,48 L470,30" class="ar"/>
+        <text x="470" y="232" class="tm">French written so far</text>
+        <path d="M470,214 L470,174" class="ar"/>
+      </svg>
+      <ul>
+        <li>The <mark>encoder</mark> reads the English and builds a meaningful embedding for each token.</li>
+        <li>The <mark>decoder</mark> writes the French, <b>one token at a time</b>, looking at the encoder's embeddings.</li>
+      </ul>
+      <p class="hook">Let's walk through it from the bottom: what goes into the encoder?</p>
+    </section>
+
+    <!-- 8 -->
+    <section class="part" data-title="Encoder input: embeddings">
+      <h2>Encoder input: one embedding per token</h2>
+      <p class="say">The text is split into tokens. Each token looks up its <b>own row</b> in a learned table: its embedding.</p>
+      <div class="activity">
+        <div class="do">Try it: click a token to find its row.</div>
+        <div class="toks" id="embToks" style="margin-bottom:10px"></div>
+        <div id="embTable"></div>
+      </div>
+      <p class="say">The table has <span data-peek="V is the vocabulary size: how many different tokens the model knows. Real models: tens of thousands.">V</span> rows and <span data-peek="d_model is how many numbers each embedding has. In the 2017 paper: 512.">d<sub>model</sub></span> columns.</p>
+      <p class="hook">One problem: these embeddings say nothing about <b>where</b> each word is.</p>
+    </section>
+
+    <!-- 9 -->
+    <section class="part" data-title="Self-attention ignores order">
+      <h2>Self-attention can't tell word order</h2>
+      <p class="say">Self-attention looks at every word directly, so it never notices which word came first.</p>
+      <div class="activity">
+        <div class="do">Try it: shuffle the words and watch the new “teddy bear”.</div>
+        <div class="toks" id="ordToks"></div>
+        <div class="mix" style="margin-top:12px">
+          <div class="bars" id="ordBars"></div>
+          <div class="mixout"><div class="bigsw" id="ordSw"></div><span>new “teddy bear”</span></div>
+        </div>
+        <div class="btnrow"><button class="primary" id="ordShuffle">Shuffle the words</button></div>
+        <p class="note" id="ordSays"></p>
+      </div>
+      <p class="say">The fix: add <b>position</b> information to each embedding before it goes in.</p>
+      <p class="hook">But how do you write “position 4” as a vector?</p>
+    </section>
+
+    <!-- 10 -->
+    <section class="part" data-title="Position vectors">
+      <h2>Position vectors, like a clock</h2>
+      <p class="say">A clock tells the time with hands turning at <b>different speeds</b>. Read them together, and you know the exact time.</p>
+      <p class="say">A <mark>position vector</mark> works the same way: numbers that turn at different speeds as the position grows. It's <b>added</b> to each token's embedding.</p>
+      <div class="activity">
+        <div class="do">Try it: move the position and watch the hands.</div>
+        <button class="doubt" type="button" data-peek-from="posPeek" aria-label="Why not just learn a vector for each position?">🤔</button>
+        <label for="posSl">Position: <b class="mono" id="posN">4</b></label>
+        <input type="range" id="posSl" min="0" max="40" value="4" style="width:100%;max-width:560px">
+        <div class="clocks" id="posClocks"></div>
+        <p class="mono small" id="posVec"></p>
+        <p class="note" id="posSays"></p>
+      </div>
+      <div hidden id="posPeek"><b>🤔 Why not just learn a vector for each position?</b>
+        <div style="margin-top:6px">You can, and the paper tried it. But if training only had texts up to 500 tokens, there's no vector for position 501.</div>
+        <div style="margin-top:6px">Turning hands work for any position, even ones never seen.</div>
+      </div>
+      <p class="say">Nearby positions look alike, and far ones look different: just what we want.</p>
+      <p class="hook">Now each token knows what it is and where it is. Into the encoder!</p>
+    </section>
+
+    <!-- 11 -->
+    <section class="part" data-title="Inside the encoder">
+      <h2>Inside the encoder</h2>
+      <p class="say">The encoder has two layers, and the pair is repeated <span data-peek="N = 6 in the 2017 paper. Each copy has its own weights.">6 times</span>:</p>
+      <svg class="pic" viewBox="0 0 620 300" aria-label="Position-aware embeddings go into a self-attention layer, then a feed-forward network. This pair repeats six times. Out come context-aware embeddings.">
+        <defs><marker id="hd2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
+        <rect x="150" y="70" width="320" height="170" rx="14" class="bx w dash"/>
+        <text x="510" y="160" class="t">× 6</text>
+        <rect x="190" y="170" width="240" height="50" rx="10" class="bx y"/>
+        <text x="310" y="201" class="t">Self-attention</text>
+        <rect x="190" y="90" width="240" height="50" rx="10" class="bx g"/>
+        <text x="310" y="121" class="t">Feed-forward network</text>
+        <path d="M310,168 L310,144" class="ar" style="marker-end:url(#hd2)"/>
+        <path d="M310,276 L310,224" class="ar" style="marker-end:url(#hd2)"/>
+        <text x="310" y="292" class="ts">position-aware embeddings</text>
+        <path d="M310,88 L310,40" class="ar" style="marker-end:url(#hd2)"/>
+        <text x="310" y="26" class="ts">context-aware embeddings</text>
+      </svg>
+      <ul>
+        <li><b>Self-attention:</b> each token mixes in the tokens it needs. “teddy bear” takes in “cute”.</li>
+        <li><mark data-peek="A small network that works on each token by itself. It makes the vector bigger (2,048 numbers in the paper), then small again. Most of the model's weights live here.">Feed-forward network</mark>: each token then thinks it over on its own.</li>
+      </ul>
+      <p class="say">What comes out: a vector per token that knows its <b>context</b>.</p>
+      <p class="hook">The English is understood. Now the decoder has to write.</p>
+    </section>
+
+    <!-- 12 -->
+    <section class="part" data-title="The decoder">
+      <h2>The decoder</h2>
+      <p class="say">The decoder starts with just <span class="tk sp">[BOS]</span> (“begin”) and adds one French token at a time. Its layers, repeated 6 times:</p>
+      <svg class="pic" viewBox="0 0 620 330" aria-label="French so far goes into masked self-attention, then encoder-decoder attention that also takes the encoder's output, then a feed-forward network. The pair repeats six times.">
+        <defs><marker id="hd3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
+        <rect x="200" y="50" width="300" height="230" rx="14" class="bx w dash"/>
+        <text x="540" y="170" class="t">× 6</text>
+        <rect x="230" y="210" width="240" height="50" rx="10" class="bx y"/><text x="350" y="241" class="t">Masked self-attention</text>
+        <rect x="230" y="140" width="240" height="50" rx="10" class="bx p"/><text x="350" y="171" class="t">Encoder–decoder attention</text>
+        <rect x="230" y="70" width="240" height="50" rx="10" class="bx g"/><text x="350" y="101" class="t">Feed-forward network</text>
+        <path d="M350,208 L350,194" style="marker-end:url(#hd3)" class="ar"/>
+        <path d="M350,138 L350,124" style="marker-end:url(#hd3)" class="ar"/>
+        <path d="M350,314 L350,264" style="marker-end:url(#hd3)" class="ar"/>
+        <text x="350" y="328" class="tm">[BOS] Un ours en peluche …</text>
+        <rect x="10" y="140" width="150" height="50" rx="10" class="bx"/><text x="85" y="171" class="t">Encoder</text>
+        <path d="M162,165 L226,165" style="marker-end:url(#hd3)" class="ar"/>
+        <path d="M350,68 L350,26" style="marker-end:url(#hd3)" class="ar"/>
+        <text x="350" y="16" class="ts">→ pick the next word</text>
+      </svg>
+      <ul>
+        <li><b>Masked self-attention:</b> each French token looks at the French written so far.</li>
+        <li><mark data-peek="Also called cross-attention. The query comes from the French token. The keys and values come from the encoder's English embeddings.">Encoder–decoder attention</mark>: it looks at the English, to see what to translate next.</li>
+        <li><b>Feed-forward network:</b> thinks it over, like in the encoder.</li>
+      </ul>
+      <p class="hook">At the top, how does a vector become a word?</p>
+    </section>
+
+    <!-- 13 -->
+    <section class="part" data-title="Picking the next word">
+      <h2>Picking the next word</h2>
+      <p class="say">The top vector gets a score for <b>every token in the vocabulary</b>. Softmax turns the scores into chances. Then we pick one.</p>
+      <div class="activity">
+        <div class="do">Try it: the decoder has only <span class="tk sp">[BOS]</span>. Pick the next word.</div>
+        <button class="doubt" type="button" data-peek-from="smTwicePeek" aria-label="Isn't this the same softmax as in attention?">🤔</button>
+        <div class="bars" id="pickBars"></div>
+        <div class="btnrow">
+          <button class="primary" id="pickGo">Pick the most likely</button>
+          <button id="pickAgain" hidden>↺ Start again</button>
+        </div>
+        <p class="note" id="pickSays"></p>
+      </div>
+      <div hidden id="smTwicePeek"><b>🤔 Isn't this the same softmax as in attention?</b>
+        <div style="margin-top:6px">Same maths, different job.</div>
+        <div style="margin-top:6px">In attention, it shares out a word's <b>attention</b> among the other words. Here, it shares out <b>chances</b> among all possible next words.</div>
+      </div>
+      <p class="say">“Un” goes back in, and the decoder runs again for the next word, until it writes <span class="tk sp">[EOS]</span> (“end”).</p>
+      <p class="hook">That's the whole Transformer. A few tricks make it train well. First: masking.</p>
+    </section>
+
+    <!-- 14 -->
+    <section class="part" data-title="Trick: masking">
+      <h2>Trick: masking</h2>
+      <p class="say">In training, the decoder gets the whole French sentence at once, to learn faster. But it must not peek at words it hasn't “written” yet.</p>
+      <p class="say"><mark>Masking</mark> hides every later word, so each token only sees itself and the words before it.</p>
+      <div class="activity">
+        <div class="do">Try it: turn the mask on and off. Each row is one token looking at the others.</div>
+        <div class="btnrow" style="margin:0 0 10px">
+          <button id="mkOff">Mask off</button>
+          <button class="on" id="mkOn">Mask on</button>
+        </div>
+        <div class="agrid" id="mkGrid"></div>
+        <p class="note" id="mkSays"></p>
+      </div>
+      <p class="say">That's why it's called <b>masked</b> (or <mark data-peek="“Causal” because each word can only depend on what came before it, like causes before effects.">causal</mark>) self-attention.</p>
+      <p class="hook">Next trick: why look just one way, when you can look several ways at once?</p>
+    </section>
+
+    <!-- 15 -->
+    <section class="part" data-title="Trick: multi-head attention">
+      <h2>Trick: multi-head attention</h2>
+      <p class="say">One attention looks for one kind of thing. <mark>Multi-head attention</mark> runs several at the same time, each with its own W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>.</p>
+      <div class="activity">
+        <div class="do">Try it: switch heads and see where “teddy bear” looks.</div>
+        <div class="btnrow" style="margin:0 0 10px" id="mhBtns"></div>
+        <div class="linkbox" id="mhBox" style="padding-bottom:58px"><div class="toks" id="mhToks"></div></div>
+        <p class="note" id="mhSays"></p>
+      </div>
+      <p class="say">The paper used <span data-peek="Each head gives its own new vector. They're glued end to end, then multiplied by one more learned matrix, W_O, to get back to d_model numbers.">8 heads</span>. Heads aren't told what to look for: each learns it.</p>
+      <p class="hook">Two more tricks help a tall stack of layers learn.</p>
+    </section>
+
+    <!-- 16 -->
+    <section class="part" data-title="Tricks: residuals and layer norm">
+      <h2>Tricks: residual connections and layer norm</h2>
+      <p class="say">With 6 layers on top of each other, learning gets hard. Two small tricks help:</p>
+      <svg class="pic" viewBox="0 0 620 170" aria-label="x goes into a layer, giving f of x. A skip arrow carries x around the layer, and the two are added: x plus f of x.">
+        <defs><marker id="hd4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>
+        <text x="40" y="105" class="t">x</text>
+        <path d="M56,100 L196,100" class="ar" style="marker-end:url(#hd4)"/>
+        <rect x="200" y="72" width="170" height="56" rx="10" class="bx y"/><text x="285" y="106" class="t">layer</text>
+        <path d="M372,100 L456,100" class="ar" style="marker-end:url(#hd4)"/>
+        <text x="414" y="90" class="tm">f(x)</text>
+        <circle cx="475" cy="100" r="17" class="bx w"/><text x="475" y="107" class="t">+</text>
+        <path d="M120,100 C120,26 475,26 475,78" class="ar" style="marker-end:url(#hd4)"/>
+        <text x="300" y="36" class="ts">skip: x goes around</text>
+        <path d="M494,100 L560,100" class="ar" style="marker-end:url(#hd4)"/>
+        <text x="590" y="105" class="tm">x + f(x)</text>
+      </svg>
+      <ul>
+        <li><mark>Residual connection</mark>: the layer's output is <b>x + f(x)</b>. The layer only <b>edits</b> its input, instead of rewriting it from scratch.</li>
+        <li><mark data-peek="For each token, it shifts and scales the numbers so they average 0 and spread about 1. E.g. [3, 9, 6] → [−1.2, 1.2, 0].">Layer normalization</mark>: keeps each token's numbers a steady size from layer to layer.</li>
+      </ul>
+      <p class="say">Both help learning reach every layer, and make training faster and steadier.</p>
+      <p class="hook">The last two tricks stop the model from being too sure of itself.</p>
+    </section>
+
+    <!-- 17 -->
+    <section class="part" data-title="Tricks: dropout and label smoothing">
+      <h2>Tricks: dropout and label smoothing</h2>
+      <p class="say"><mark>Dropout</mark>: in training, switch off a few random parts of the network each time, so it can't lean too hard on any one of them.</p>
+      <p class="say"><mark>Label smoothing</mark>: don't ask for 100% on the right word. Language has many good answers.</p>
+      <div class="activity">
+        <div class="do">Try it: the right word in training is “day”. Turn smoothing on.</div>
+        <p class="mono">What a nice ___</p>
+        <div class="btnrow" style="margin:0 0 10px">
+          <button class="on" id="lsOff">Smoothing off</button>
+          <button id="lsOn">Smoothing on</button>
+        </div>
+        <div class="bars" id="lsBars"></div>
+        <p class="note" id="lsSays"></p>
+      </div>
+      <p class="hook">We have every piece. Let's run the whole thing on our sentence.</p>
+    </section>
+
+    <!-- 18 -->
+    <section class="part" data-title="End to end: the encoder">
+      <h2>End to end, part 1: the encoder reads</h2>
+      <p class="say">Our sentence, all the way through the encoder.</p>
+      <div class="activity">
+        <div class="do">Try it: press Next step.</div>
+        <div class="flow">
+          <ol id="e2eList"></ol>
+          <div class="stage">
+            <div class="toks" id="e2eToks"></div>
+            <div class="shape" id="e2eShape"></div>
+            <p class="note" id="e2eSays"></p>
+          </div>
+        </div>
+        <div class="btnrow">
+          <button id="e2eBack" hidden>← Back</button>
+          <button class="primary" id="e2eNext">Next step</button>
+          <button id="e2eAgain" hidden>↺ Start again</button>
+        </div>
+      </div>
+      <p class="hook">Those shapes like “8 × 512” matter. Let's see how they fit.</p>
+    </section>
+
+    <!-- 19 -->
+    <section class="part" data-title="Keeping track of sizes">
+      <h2>Keeping track of sizes</h2>
+      <p class="say">n tokens go in. The matrices change shape along the way, but what comes out is the same shape that went in: <b>n × d<sub>model</sub></b>.</p>
+      <div class="activity">
+        <div class="do">Try it: change the number of tokens n.</div>
+        <button class="doubt" type="button" data-peek-from="dqPeek" aria-label="Why must queries and keys be the same length?">🤔</button>
+        <label for="szN">n = <b class="mono" id="szNv">8</b> tokens</label>
+        <input type="range" id="szN" min="2" max="16" value="8" style="width:100%;max-width:420px">
+        <div class="sizes" id="szBox" style="margin-top:12px"></div>
+        <p class="note" id="szSays"></p>
+      </div>
+      <div hidden id="dqPeek"><b>🤔 Why must queries and keys be the same length?</b>
+        <div style="margin-top:6px">Every score is query · key: multiply matching numbers, then add. That only works if both have the same count of numbers.</div>
+        <div style="margin-top:6px">So d<sub>q</sub> = d<sub>k</sub> (64 in the paper).</div>
+      </div>
+      <p class="say">Same shape in and out means layers can be stacked as high as we like.</p>
+      <p class="hook">The English is encoded. Now let's watch the decoder write.</p>
+    </section>
+
+    <!-- 20 -->
+    <section class="part" data-title="End to end: the decoder">
+      <h2>End to end, part 2: the decoder writes</h2>
+      <p class="say">Each round: the decoder reads what it has written so far (plus the English), picks one token, and adds it to its input.</p>
+      <div class="activity">
+        <div class="do">Try it: press Write the next token until it stops.</div>
+        <div class="gen" id="genBox"></div>
+        <div class="btnrow">
+          <button class="primary" id="genGo">Write the next token</button>
+          <button id="genAgain" hidden>↺ Start again</button>
+        </div>
+        <p class="note" id="genSays"></p>
+      </div>
+      <p class="say">Writing one token at a time, each one fed back in, is called <mark data-peek="“Auto” (self) + “regressive” (using earlier values): each new token depends on the ones the model wrote before.">autoregressive</mark>.</p>
+      <p class="hook">That was a lot of pieces. Which ones really matter?</p>
+    </section>
+
+    <!-- 21 -->
+    <section class="part" data-title="What matters most">
+      <h2>What matters most</h2>
+      <p class="say">If you remember two things about the Transformer:</p>
+      <div class="cards">
+        <div class="card"><h3>👀 Attention</h3><p>Every token looks directly at the tokens it needs. That's the paper's title.</p></div>
+        <div class="card"><h3>🧠 Feed-forward networks</h3><p>Where most of the weights live, and much of what the model learns.</p></div>
+      </div>
+      <p class="say">The rest are tricks to train it well. And, of course, it needs lots of good data.</p>
+      <div class="quiz" data-right="Right. Every token looks at every other token directly, so nothing has to survive a long chain of memory.">
+        <div class="q">Why does a Transformer not forget far-away words like an RNN?</div>
+        <div class="options">
+          <button data-why="Bigger memory helps an RNN a little, but the Transformer has no running memory at all.">It has a bigger memory</button>
+          <button data-right>Every word looks at every other word directly</button>
+          <button data-why="Position vectors say where words are. They don't help remember them.">Position vectors remember them</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+      <p class="hook">2017 was only the start.</p>
+    </section>
+
+    <!-- 22 -->
+    <section class="part" data-title="Where we go from here">
+      <h2>Where we go from here</h2>
+      <ul class="timeline">
+        <li><span class="yr">2010s</span><div class="what n-b"><b>Word2vec and RNNs</b>Lesson 1a.</div></li>
+        <li><span class="yr">2017</span><div class="what n-y"><b>The Transformer</b>This lesson. Made for translation.</div></li>
+        <li><span class="yr">2022</span><div class="what n-p"><b>Chatbots</b>Transformers trained on huge amounts of text, which you can talk to.</div></li>
+        <li><span class="yr">Now</span><div class="what n-g"><b>Agents</b>Models that use tools and get real work done.</div></li>
+      </ul>
+      <p class="say">In this lesson: self-attention (query, key, value) → the Transformer's encoder and decoder → tricks → our sentence, end to end. ✓</p>
+      <div class="open-question">
+        <div>This leaves a question</div>
+        <div class="big">The Transformer works. What turns it into a large language model?</div>
+        <div>Lesson 2 answers it. Coming soon.</div>
+      </div>
+      <p><button class="done-toggle" data-done="2">Mark lesson as done</button></p>
+    </section>
+  </main>
+</div>
+
+<nav class="pagebar" aria-label="Move between parts">
+  <div class="inner">
+    <button data-page-back>← Previous</button>
+    <span data-page-label></span>
+    <button class="primary" data-page-next>Next →</button>
+  </div>
+</nav>
+
+<script src="../assets/course.js"></script>
+<script src="https://mo-ri-ch.github.io/study-notebook-design/v1/common.js"></script>
+<script src="https://mo-ri-ch.github.io/study-notebook-design/v1/pen.js"></script>
+<script src="https://mo-ri-ch.github.io/study-notebook-design/v1/guide.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const pct = x => Math.round(x * 100) + "%";
+const softmax = sc => { const m = Math.max(...sc), e = sc.map(x => Math.exp(x - m)), t = e.reduce((a, b) => a + b, 0); return e.map(x => x / t); };
+const f2 = x => (Math.round(x * 100) / 100).toFixed(2);
+
+// Our sentence, the scores query·key/√dₖ (made up, but sensible), and each token's value as a colour
+const T6 = ["A", "cute", "teddy bear", "is", "reading", "."];
+const SCORES = [
+  [1.2, 0.3, 1.5, 0.2, 0.2, 0.0],  // A
+  [0.1, 1.0, 2.0, 0.1, 0.2, 0.0],  // cute
+  [0.2, 2.0, 1.4, 0.2, 1.0, 0.0],  // teddy bear
+  [0.0, 0.1, 1.2, 0.8, 1.4, 0.2],  // is
+  [0.1, 0.2, 1.8, 0.6, 1.2, 0.3],  // reading
+  [0.3, 0.2, 0.5, 0.4, 0.6, 1.0],  // .
+];
+const VCOL = [[165, 165, 165], [255, 110, 165], [150, 95, 50], [110, 185, 135], [70, 120, 230], [215, 215, 215]];
+const rgb = c => `rgb(${c.map(Math.round).join(",")})`;
+const mixCol = (w, cols) => rgb([0, 1, 2].map(k => w.reduce((s, wi, i) => s + wi * cols[i][k], 0)));
+const sw = c => `<span class="sw" style="background:${rgb(c)}"></span>`;
+const barHTML = (label, share, opts = {}) => `<div class="bar ${opts.score == null ? "nosc" : ""} ${opts.top ? "top" : ""}">
+  <span>${label}</span>${opts.score == null ? "" : `<span class="sc">${opts.score}</span>`}
+  <span class="track"><span class="fill" style="width:${share * 100}%"></span></span><span class="pct">${pct(share)}</span></div>`;
+
+// Arrows drawn over a row of chips. Ends on the top curve upward; ends on the bottom curve downward.
+const arrowWatch = new ResizeObserver(es => es.forEach(e => { const a = e.target._arrows; if (a) overlayArrows(e.target, a.links, a.opts); }));
+function overlayArrows(box, links, opts = {}) {
+  if (!box._arrows) arrowWatch.observe(box);
+  box._arrows = { links, opts };
+  let svg = box.querySelector(":scope > svg.links");
+  if (!svg) { svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.setAttribute("class", "links"); svg.setAttribute("aria-hidden", "true"); box.prepend(svg); }
+  // Words wrapped onto more than one line (small screens): arrows would cross them, so draw none
+  const tops = new Set(links.flatMap(l => [l.from, l.to]).map(el => Math.round(el.getBoundingClientRect().top)));
+  if (tops.size > 1) links = [];
+  const b = box.getBoundingClientRect();
+  svg.setAttribute("width", b.width); svg.setAttribute("height", b.height);
+  const side = opts.side || "top", dir = side === "top" ? -1 : 1;
+  const at = el => { const r = el.getBoundingClientRect(); return [r.left - b.left + r.width / 2, side === "top" ? r.top - b.top - 2 : r.bottom - b.top + 2]; };
+  const col = opts.color || "var(--pen)";
+  svg.innerHTML = `<defs><marker id="${opts.id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${col}"/></marker></defs>` +
+    links.map(l => {
+      let [x1, y1] = at(l.from), [x2, y2] = at(l.to);
+      const k = Math.max(-14, Math.min(14, (x2 - x1) * 0.08)); x1 += k; x2 -= k;
+      const lift = Math.min(50, 12 + Math.abs(x2 - x1) * 0.22);
+      return `<path d="M${x1},${y1} Q${(x1 + x2) / 2},${y1 + dir * lift} ${x2},${y2}" fill="none" stroke="${col}" stroke-width="${l.width || 2}" stroke-opacity="${l.opacity == null ? 1 : l.opacity}" stroke-linecap="round" ${l.noHead ? "" : `marker-end="url(#${opts.id})"`}/>`;
+    }).join("");
+}
+
+// ---------- 1: RNN chain vs self-attention ----------
+(function rnnVsSelf() {
+  let mode = "rnn", sel = 2;
+  function draw() {
+    const box = $("saToks");
+    box.innerHTML = T6.map((t, i) => `<button class="tk pick ${i === sel ? "q" : ""}" data-i="${i}">${t}</button>`).join("");
+    box.querySelectorAll("button").forEach(b => b.onclick = () => { sel = +b.dataset.i; draw(); });
+    const btns = [...box.children];
+    const links = mode === "rnn"
+      ? btns.slice(0, -1).map((b, i) => ({ from: b, to: btns[i + 1], width: 2 }))
+      : btns.filter((_, i) => i !== sel).map(b => ({ from: btns[sel], to: b, width: 2 }));
+    requestAnimationFrame(() => overlayArrows($("saBox"), links, { id: "saHead", color: mode === "rnn" ? "var(--pencil)" : "var(--redpen)" }));
+    const far = Math.max(sel, T6.length - 1 - sel);
+    $("saSays").innerHTML = mode === "rnn"
+      ? `In an RNN, words only meet through the chain of memory. From “${T6[sel]}”, the farthest word is <b>${far} steps</b> away.`
+      : `With self-attention, “${T6[sel]}” reaches <b>every</b> word in <b>one step</b>, near or far.`;
+    $("saRnn").classList.toggle("on", mode === "rnn"); $("saSelf").classList.toggle("on", mode === "self");
+  }
+  $("saRnn").onclick = () => { mode = "rnn"; draw(); };
+  $("saSelf").onclick = () => { mode = "self"; draw(); };
+  addReset("saToks", () => { mode = "rnn"; sel = 2; draw(); });
+  draw();
+})();
+
+// ---------- 2: weighted average with paint ----------
+(function paints() {
+  const P = [["cute", VCOL[1]], ["teddy bear", VCOL[2]], ["reading", VCOL[4]]], START = [50, 30, 20];
+  let raw = START.slice();
+  $("mixRows").innerHTML = P.map(([n, c], i) => `<div class="mixrow">${sw(c)}<span>${n}</span><input type="range" min="0" max="100" value="${raw[i]}" data-i="${i}" aria-label="Amount of ${n}"><span class="pct" id="mixP${i}"></span></div>`).join("");
+  const inputs = [...$("mixRows").querySelectorAll("input")];
+  function draw() {
+    const t = raw.reduce((a, b) => a + b, 0), w = t ? raw.map(r => r / t) : [1 / 3, 1 / 3, 1 / 3];
+    w.forEach((x, i) => { $("mixP" + i).textContent = pct(x); });
+    $("mixSw").style.background = mixCol(w, P.map(p => p[1]));
+    $("mixEq").innerHTML = `mix = ` + P.map(([n, c], i) => `${pct(w[i])} × ${sw(c)}`).join(" + ");
+  }
+  inputs.forEach(inp => inp.oninput = () => { raw[+inp.dataset.i] = +inp.value; draw(); });
+  addReset("mixRows", () => { raw = START.slice(); inputs.forEach((inp, i) => inp.value = raw[i]); draw(); });
+  draw();
+})();
+
+// ---------- 3: query, key, value ----------
+(function qkv() {
+  let q = 2;
+  function draw() {
+    const w = softmax(SCORES[q]), order = w.map((x, i) => i).sort((a, b) => w[b] - w[a]);
+    const box = $("qkvToks");
+    box.innerHTML = T6.map((t, i) => `<button class="tk pick ${i === q ? "q" : ""}" data-i="${i}">${sw(VCOL[i])} ${t}</button>`).join("");
+    box.querySelectorAll("button").forEach(b => b.onclick = () => { q = +b.dataset.i; draw(); });
+    const btns = [...box.children];
+    requestAnimationFrame(() => overlayArrows($("qkvBox"), btns.map((b, i) => i === q ? null : { from: btns[q], to: b, width: 1 + w[i] * 10, opacity: 0.3 + w[i] * 1.4, noHead: true }).filter(Boolean), { id: "qkvHead", side: "bottom", color: "var(--redpen)" }));
+    $("qkvBars").innerHTML = `<div class="bar head"><span>key</span><span>score</span><span>share</span><span></span></div>` +
+      T6.map((t, i) => barHTML(`${sw(VCOL[i])} ${t}`, w[i], { score: SCORES[q][i].toFixed(1), top: i === order[0] })).join("");
+    $("qkvSw").style.background = mixCol(w, VCOL);
+    $("qkvSwL").textContent = `new “${T6[q]}”`;
+    const a = order[0], b = order[1], nm = i => i === q ? "itself" : `“${T6[i]}”`;
+    $("qkvSays").innerHTML = `“${T6[q]}” matches ${nm(a)} best (${pct(w[a])}), then ${nm(b)} (${pct(w[b])}). Its new vector is mostly a mix of those two values.`;
+  }
+  addReset("qkvToks", () => { q = 2; draw(); });
+  draw();
+})();
+
+// ---------- 4: vector × matrix ----------
+(function matmul() {
+  const x = [2, 1], W = [[1, 0, 2], [3, 1, 0]], r = [0, 1, 2].map(j => x[0] * W[0][j] + x[1] * W[1][j]);
+  let sel = -1;
+  const mat = (rows, cls) => `<span class="mat" style="grid-template-columns:repeat(${rows[0].length},auto)">${rows.flat().map(cls).join("")}</span>`;
+  function draw() {
+    $("mmRow").innerHTML =
+      `<span class="matlbl">${mat([x], v => `<span class="${sel >= 0 ? "on" : ""}">${v}</span>`)}<small>vector</small></span><span>×</span>` +
+      `<span class="matlbl">${mat(W, (v, k) => `<span class="${k % 3 === sel ? "on" : ""}">${v}</span>`)}<small>matrix</small></span><span>=</span>` +
+      `<span class="matlbl">${mat([r], (v, j) => `<span class="click ${j === sel ? "on" : ""}" data-j="${j}" role="button" tabindex="0">${v}</span>`)}<small>new vector</small></span>`;
+    $("mmRow").querySelectorAll("[data-j]").forEach(s => s.onclick = s.onkeydown = e => { if (e.type === "keydown" && e.key !== "Enter") return; sel = +s.dataset.j; draw(); });
+    $("mmSays").innerHTML = sel < 0 ? "The answer has one number per column of the matrix."
+      : `<b>${x[0]} × ${W[0][sel]} + ${x[1]} × ${W[1][sel]} = ${r[sel]}</b>: the vector · column ${sel + 1}.`;
+  }
+  addReset("mmRow", () => { sel = -1; draw(); });
+  draw();
+})();
+
+// ---------- 5: queries, keys and values from the embedding ----------
+(function projections() {
+  const E = [[0.2, 0.1], [0.9, 0.3], [0.8, 0.6], [0.1, 0.4], [0.3, 0.9], [0.1, 0.1]];
+  const M = { Q: [[1, 0.5], [0, 1]], K: [[0.5, 1], [1, 0]], V: [[1, 0], [0.5, 1]] };
+  const NAME = { Q: "query", K: "key", V: "value" };
+  let t = 2;
+  const mat = rows => `<span class="mat" style="grid-template-columns:repeat(${rows[0].length},auto)">${rows.flat().map(v => `<span>${v}</span>`).join("")}</span>`;
+  function draw() {
+    $("projToks").innerHTML = T6.map((w, i) => `<button class="tk pick ${i === t ? "q" : ""}" data-i="${i}">${w}</button>`).join("");
+    $("projToks").querySelectorAll("button").forEach(b => b.onclick = () => { t = +b.dataset.i; draw(); });
+    const e = E[t];
+    $("projRows").innerHTML = Object.keys(M).map(k => {
+      const W = M[k], out = [0, 1].map(j => e[0] * W[0][j] + e[1] * W[1][j]);
+      return `<div class="matrow"><span class="matlbl">${mat([e])}<small>embedding</small></span><span>×</span><span class="matlbl">${mat(W)}<small>W<sub>${k}</sub></small></span><span>=</span><span class="matlbl">${mat([out.map(f2)])}<small>${NAME[k]}</small></span></div>`;
+    }).join("");
+  }
+  addReset("projToks", () => { t = 2; draw(); });
+  draw();
+})();
+
+// ---------- 6: the formula, step by step on a grid ----------
+(function formula() {
+  const STEPS = ["1 · Q K<sup>T</sup>", "2 · ÷ √d<sub>k</sub>", "3 · softmax", "4 · × V"];
+  let step = 0, row = 2;
+  $("fmSteps").innerHTML = STEPS.map((s, i) => `<button data-s="${i + 1}">${s}</button>`).join("");
+  $("fmSteps").querySelectorAll("button").forEach(b => b.onclick = () => { step = +b.dataset.s; draw(); });
+  function draw() {
+    $("fmSteps").querySelectorAll("button").forEach(b => b.classList.toggle("on", +b.dataset.s === step));
+    const cols = T6.length + (step === 4 ? 1 : 0);
+    const g = $("fmGrid");
+    g.style.gridTemplateColumns = `7.5em repeat(${cols}, minmax(2.4em, 1fr))`;
+    let h = `<span class="h"></span>` + T6.map(t => `<span class="h" title="${t}">${t}</span>`).join("") + (step === 4 ? `<span class="h">new</span>` : "");
+    SCORES.forEach((sc, i) => {
+      const w = softmax(sc), mx = Math.max(...sc);
+      h += `<span class="h rh ${i === row ? "sel" : ""}" data-r="${i}" role="button" tabindex="0">${T6[i]}</span>`;
+      sc.forEach((s, j) => {
+        let txt = "?", shade = 0;
+        if (step === 1) { txt = (s * 2).toFixed(1); shade = s / mx; }
+        if (step === 2) { txt = s.toFixed(1); shade = s / mx; }
+        if (step >= 3) { txt = pct(w[j]); shade = w[j] / Math.max(...w); }
+        h += `<span class="c ${i === row ? "rowsel" : ""} ${shade > 0.55 ? "hot" : ""}" style="--w:${shade * 0.9}">${txt}</span>`;
+      });
+      if (step === 4) h += `<span class="swc"><span class="sw" style="background:${mixCol(w, VCOL)}"></span></span>`;
+    });
+    g.innerHTML = h;
+    g.querySelectorAll("[data-r]").forEach(s => s.onclick = s.onkeydown = e => { if (e.type === "keydown" && e.key !== "Enter") return; row = +s.dataset.r; draw(); });
+    const sc = SCORES[row], w = softmax(sc), best = sc.indexOf(Math.max(...sc.filter((_, j) => j !== row)));
+    const R = `“${T6[row]}”`;
+    $("fmSays").innerHTML = [
+      "Each row is a token's query, each column a token's key. Press step 1.",
+      `Every cell is one query · one key. Row ${R}, column “${T6[best]}”: <b>${(sc[best] * 2).toFixed(1)}</b>, a strong match.`,
+      `Divided by √d<sub>k</sub> = 2, so the numbers stay small. Row ${R}, column “${T6[best]}”: <b>${sc[best].toFixed(1)}</b>.`,
+      `Softmax on each row: every row now adds up to 100%. Row ${R} gives <b>${pct(w[best])}</b> to “${T6[best]}”.`,
+      `Each row's shares mix the values (the colours). Out comes a new vector for <b>every</b> token, all at once.`][step];
+  }
+  addReset("fmGrid", () => { step = 0; row = 2; draw(); });
+  draw();
+})();
+
+// ---------- 8: the embedding table ----------
+(function embTable() {
+  const S = ["[BOS]", "A", "cute", "teddy bear", "is", "reading", ".", "[EOS]"];
+  const ROWS = [[0.1, -0.4, 0.2, 0.0], [0.3, 0.1, -0.2, 0.5], [0.9, 0.3, 0.1, -0.1], [0.8, 0.6, -0.3, 0.2], [0.1, 0.4, 0.6, -0.2], [0.3, 0.9, 0.2, 0.4], [-0.2, 0.0, 0.1, 0.1], [0.0, -0.3, -0.1, 0.3]];
+  let sel = 3;
+  function draw() {
+    $("embToks").innerHTML = S.map((t, i) => `<button class="tk pick ${t[0] === "[" ? "sp" : ""} ${i === sel ? "q" : ""}" data-i="${i}">${t}</button>`).join("");
+    $("embToks").querySelectorAll("button").forEach(b => b.onclick = () => { sel = +b.dataset.i; draw(); });
+    $("embTable").innerHTML = `<table class="mini"><tr><th>token</th><th>its embedding (4 numbers here)</th></tr>` +
+      S.map((t, i) => `<tr style="${i === sel ? "background:var(--hl-yellow);color:var(--on-hl)" : ""}"><td class="mono">${t}</td><td class="mono">[${ROWS[i].map(v => v.toFixed(1)).join(", ")}]</td></tr>`).join("") + `</table>`;
+  }
+  addReset("embToks", () => { sel = 3; draw(); });
+  draw();
+})();
+
+// ---------- 9: shuffle the words: self-attention doesn't notice ----------
+(function order() {
+  let ord = [0, 1, 2, 3, 4, 5], shuffled = false;
+  const w = softmax(SCORES[2]);
+  function draw() {
+    $("ordToks").innerHTML = ord.map(i => `<span class="tk ${i === 2 ? "q" : ""}">${T6[i]}</span>`).join("");
+    $("ordBars").innerHTML = ord.map(i => barHTML(`${sw(VCOL[i])} ${T6[i]}`, w[i])).join("");
+    $("ordSw").style.background = mixCol(w, VCOL);
+    $("ordSays").innerHTML = shuffled
+      ? "A different sentence, but the <b>same shares</b> and the <b>same colour</b>. Self-attention can't see the order."
+      : "In the real order, “teddy bear” gives 42% to “cute”.";
+  }
+  $("ordShuffle").onclick = () => {
+    const before = ord.join();
+    do { for (let i = ord.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ord[i], ord[j]] = [ord[j], ord[i]]; } } while (ord.join() === before);
+    shuffled = true; draw();
+  };
+  addReset("ordToks", () => { ord = [0, 1, 2, 3, 4, 5]; shuffled = false; draw(); });
+  draw();
+})();
+
+// ---------- 10: position vectors as clock hands ----------
+(function positions() {
+  const P = [8, 32, 128];  // positions per full turn, for each hand
+  const ang = (p, k) => 2 * Math.PI * p / P[k];
+  const vec = p => P.flatMap((_, k) => [Math.sin(ang(p, k)), Math.cos(ang(p, k))]);
+  const sim = (a, b) => P.reduce((s, _, k) => s + Math.cos(ang(a, k) - ang(b, k)), 0) / P.length;
+  function draw() {
+    const p = +$("posSl").value;
+    $("posN").textContent = p;
+    $("posClocks").innerHTML = P.map((n, k) => {
+      const a = ang(p, k), x = 38 + 26 * Math.sin(a), y = 38 - 26 * Math.cos(a);
+      return `<div class="clock"><svg viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="34" class="face"/><line x1="38" y1="38" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="hand"/><circle cx="38" cy="38" r="3" fill="var(--ink)"/></svg>turns every ${n}</div>`;
+    }).join("");
+    $("posVec").textContent = `position vector: [${vec(p).map(v => (Math.abs(v) < 0.005 ? 0 : v).toFixed(2)).join(", ")}]`;
+    $("posSays").innerHTML = `Position ${p} and ${p + 1} look alike: <b>${sim(p, p + 1).toFixed(2)}</b>. Position ${p} and ${p + 10} look different: <b>${sim(p, p + 10).toFixed(2)}</b>.`;
+  }
+  $("posSl").oninput = draw;
+  addReset("posSl", () => { $("posSl").value = 4; draw(); });
+  draw();
+})();
+
+// ---------- 13: picking the next word ----------
+(function pick() {
+  const V = [["Un", 0.40], ["Le", 0.22], ["Une", 0.15], ["Ce", 0.08], ["ours", 0.05], ["lit", 0.03]];
+  let picked = false;
+  function draw() {
+    $("pickBars").innerHTML = V.map(([w, p], i) => barHTML(w, p, { top: picked && i === 0 })).join("") +
+      `<p class="small" style="margin:2px 0 0;color:var(--pencil)">… and tens of thousands more tokens, each with a tiny chance.</p>`;
+    $("pickSays").innerHTML = picked ? "Picked <b>“Un”</b> (40%), the most likely. It's the first French word." : "";
+    $("pickGo").hidden = picked; $("pickAgain").hidden = !picked;
+  }
+  $("pickGo").onclick = () => { picked = true; draw(); };
+  $("pickAgain").onclick = () => { picked = false; draw(); };
+  addReset("pickBars", () => { picked = false; draw(); });
+  draw();
+})();
+
+// ---------- 14: masking ----------
+(function masking() {
+  const F = ["[BOS]", "Un", "ours en peluche", "mignon", "lit", "."];
+  const S = [[1.0, 0.6, 0.4, 0.3, 0.5, 0.2], [0.8, 1.2, 0.9, 0.2, 0.7, 0.1], [0.3, 1.1, 1.4, 1.0, 0.9, 0.2], [0.2, 0.4, 1.8, 0.9, 0.3, 0.1], [0.2, 0.3, 1.5, 0.4, 1.0, 0.6], [0.5, 0.2, 0.6, 0.3, 1.0, 0.9]];
+  let on = false, row = 3;
+  function draw() {
+    const g = $("mkGrid");
+    g.style.gridTemplateColumns = `8.5em repeat(${F.length}, minmax(2.4em, 1fr))`;
+    let h = `<span class="h"></span>` + F.map(t => `<span class="h" title="${t}">${t}</span>`).join("");
+    S.forEach((sc, i) => {
+      const keep = sc.map((_, j) => !on || j <= i), w = softmax(sc.map((s, j) => keep[j] ? s : -Infinity));
+      h += `<span class="h rh ${i === row ? "sel" : ""}" data-r="${i}" role="button" tabindex="0">${F[i]}</span>`;
+      sc.forEach((_, j) => { h += keep[j] ? `<span class="c ${i === row ? "rowsel" : ""} ${w[j] / Math.max(...w) > 0.55 ? "hot" : ""}" style="--w:${w[j] / Math.max(...w) * 0.9}">${pct(w[j])}</span>` : `<span class="c masked ${i === row ? "rowsel" : ""}">—</span>`; });
+    });
+    g.innerHTML = h;
+    g.querySelectorAll("[data-r]").forEach(s => s.onclick = s.onkeydown = e => { if (e.type === "keydown" && e.key !== "Enter") return; row = +s.dataset.r; draw(); });
+    const later = F.slice(row + 1);
+    $("mkSays").innerHTML = on
+      ? (later.length ? `Row “${F[row]}” sees only itself and the words before it. ${later.map(t => `“${t}”`).join(", ")} ${later.length > 1 ? "are" : "is"} hidden (—).` : `Row “${F[row]}” is last, so it may see everything.`)
+      : (later.length ? `Without the mask, “${F[row]}” could look at ${later.map(t => `“${t}”`).join(", ")} before writing ${later.length > 1 ? "them" : "it"}. That's cheating!` : `Click another row: earlier words could see the future.`);
+    $("mkOff").classList.toggle("on", !on); $("mkOn").classList.toggle("on", on);
+  }
+  $("mkOff").onclick = () => { on = false; draw(); };
+  $("mkOn").onclick = () => { on = true; draw(); };
+  addReset("mkGrid", () => { on = false; row = 3; draw(); });
+  draw();
+})();
+
+// ---------- 15: multi-head attention ----------
+(function heads() {
+  const H = [
+    { name: "Head 1", w: [0.08, 0.60, 0.20, 0.04, 0.05, 0.03], say: "Head 1 links “teddy bear” to <b>“cute”</b>: what describes it." },
+    { name: "Head 2", w: [0.03, 0.05, 0.10, 0.27, 0.52, 0.03], say: "Head 2 links “teddy bear” to <b>“reading”</b> and “is”: what it's doing." },
+    { name: "Head 3", w: [0.62, 0.10, 0.15, 0.05, 0.03, 0.05], say: "Head 3 links “teddy bear” to <b>“A”</b>: the little word that comes with it." },
+  ];
+  let h = 0;
+  $("mhBtns").innerHTML = H.map((x, i) => `<button data-h="${i}">${x.name}</button>`).join("");
+  $("mhBtns").querySelectorAll("button").forEach(b => b.onclick = () => { h = +b.dataset.h; draw(); });
+  function draw() {
+    $("mhBtns").querySelectorAll("button").forEach(b => b.classList.toggle("on", +b.dataset.h === h));
+    const w = H[h].w;
+    $("mhToks").innerHTML = T6.map((t, i) => `<span class="tk ${i === 2 ? "q" : ""}">${t}</span>`).join("");
+    const els = [...$("mhToks").children];
+    requestAnimationFrame(() => overlayArrows($("mhBox"), els.map((e, i) => i === 2 ? null : { from: els[2], to: e, width: 1 + w[i] * 10, opacity: 0.25 + w[i] * 1.4, noHead: true }).filter(Boolean), { id: "mhHead", side: "bottom", color: "var(--redpen)" }));
+    $("mhSays").innerHTML = H[h].say;
+  }
+  addReset("mhToks", () => { h = 0; draw(); });
+  draw();
+})();
+
+// ---------- 17: label smoothing ----------
+(function smoothing() {
+  let on = false;
+  function draw() {
+    const rows = on ? [["day", 0.9], ["class", 0.025], ["evening", 0.025], ["morning", 0.025], ["(all others)", 0.025]] : [["day", 1], ["class", 0], ["evening", 0], ["morning", 0], ["(all others)", 0]];
+    $("lsBars").innerHTML = `<div class="bar head nosc"><span>word</span><span>what we ask for</span><span></span></div>` + rows.map(([w, p], i) => barHTML(w, p, { top: i === 0 })).join("");
+    $("lsSays").innerHTML = on ? "Now we ask for <b>90%</b> on “day”, and share the other 10%. “What a nice class” isn't wrong either." : "We push the model to be <b>100% sure</b> of “day”, and 0% for everything else.";
+    $("lsOff").classList.toggle("on", !on); $("lsOn").classList.toggle("on", on);
+  }
+  $("lsOff").onclick = () => { on = false; draw(); };
+  $("lsOn").onclick = () => { on = true; draw(); };
+  addReset("lsBars", () => { on = false; draw(); });
+  draw();
+})();
+
+// ---------- 18: end to end through the encoder ----------
+(function e2e() {
+  const S = ["[BOS]", "A", "cute", "teddy bear", "is", "reading", ".", "[EOS]"];
+  const ST = [
+    ["Split into tokens", "n = 8 tokens", "The text is split, and [BOS] and [EOS] are added. (Any split works; this one is just an example.)"],
+    ["Look up embeddings", "8 × 512", "Each token gets its row from the embedding table: 512 numbers each. One row per token makes a matrix."],
+    ["Add position vectors", "8 × 512", "Each row gets its position vector added. Now they're position-aware embeddings."],
+    ["Make Q, K, V", "Q, K, V: 8 × 64 each", "× W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>: every token gets a query, a key and a value."],
+    ["Attention", "softmax(QKᵀ/√dₖ)V: 8 × 64 per head → 8 heads glued, × W<sub>O</sub> → 8 × 512", "Every token mixes in the tokens it needs. 8 heads do it at the same time."],
+    ["Feed-forward network", "8 × 2048 → 8 × 512", "Each token, on its own, goes up to 2,048 numbers and back down to 512."],
+    ["Repeat 6 times", "8 × 512", "After 6 rounds: <b>context-aware</b> embeddings. “teddy bear” now carries “cute” and “reading”. Ready for the decoder."],
+  ];
+  let s = 0;
+  function draw() {
+    $("e2eList").innerHTML = ST.map((x, i) => `<li class="${i === s ? "now" : i < s ? "past" : ""}">${x[0]}</li>`).join("");
+    $("e2eToks").innerHTML = S.map(t => `<span class="tk ${t[0] === "[" ? "sp" : ""} ${s >= 1 ? "lit" : ""}" style="${s >= 6 && t === "teddy bear" ? "outline:3px solid var(--redpen)" : ""}">${t}</span>`).join("");
+    $("e2eShape").innerHTML = ST[s][1];
+    $("e2eSays").innerHTML = ST[s][2];
+    $("e2eBack").hidden = s === 0; $("e2eNext").hidden = s === ST.length - 1; $("e2eAgain").hidden = s !== ST.length - 1;
+  }
+  $("e2eNext").onclick = () => { s++; draw(); };
+  $("e2eBack").onclick = () => { s--; draw(); };
+  $("e2eAgain").onclick = () => { s = 0; draw(); };
+  addReset("e2eList", () => { s = 0; draw(); });
+  draw();
+})();
+
+// ---------- 19: sizes ----------
+(function sizes() {
+  const px = v => Math.max(6, 6 * Math.sqrt(v));
+  function draw() {
+    const n = +$("szN").value;
+    $("szNv").textContent = n;
+    const R = [["X", "in", n, 512, "y"], ["W_Q", "", 512, 64, ""], ["Q", "", n, 64, "g"], ["Q Kᵀ", "attention grid", n, n, "p"], ["out", "out", n, 512, "y"]];
+    $("szBox").innerHTML = R.map(([name, note, r, c, cls]) => `<div class="rect ${cls}"><div style="width:${px(c)}px;height:${px(r)}px"></div><b>${name.replace("_Q", "<sub>Q</sub>")}</b><span>${r} × ${c}</span></div>`).join("");
+    $("szSays").innerHTML = `The attention grid has n × n = <b>${n * n}</b> cells. Double n, and it gets 4× bigger.`;
+  }
+  $("szN").oninput = draw;
+  addReset("szN", () => { $("szN").value = 8; draw(); });
+  draw();
+})();
+
+// ---------- 20: the decoder writes, one token at a time ----------
+(function generate() {
+  const OUT = [["Un", 0.40], ["ours en peluche", 0.62], ["mignon", 0.55], ["lit", 0.48], [".", 0.80], ["[EOS]", 0.90]];
+  let k = 0;
+  function draw() {
+    const done = OUT.slice(0, k), last = done[k - 1];
+    const chip = (t, cls = "") => `<span class="tk ${t[0] === "[" ? "sp" : ""} ${cls}">${t}</span>`;
+    $("genBox").innerHTML =
+      `<div class="genrow toks"><span class="genlbl">English (encoded)</span>${["A", "cute", "teddy bear", "is", "reading", "."].map(t => chip(t)).join("")}</div>` +
+      `<div class="genrow toks"><span class="genlbl">Decoder input</span>${chip("[BOS]")}${done.filter(([t]) => t !== "[EOS]").map(([t]) => chip(t)).join("")}</div>` +
+      `<div class="genrow toks"><span class="genlbl">Next token</span>${last ? chip(last[0], "lit") + `<span class="mono small">${pct(last[1])}</span>` : chip("?", "blank")}</div>`;
+    const end = k === OUT.length;
+    $("genSays").innerHTML = k === 0 ? "Only [BOS] so far." : end ? "It wrote <b>[EOS]</b>, so it stops: <b>“Un ours en peluche mignon lit.”</b>" : `Round ${k}: it picked “${last[0]}”. It goes back in as input for the next round.`;
+    $("genGo").hidden = end; $("genAgain").hidden = !end;
+  }
+  $("genGo").onclick = () => { k++; draw(); };
+  $("genAgain").onclick = () => { k = 0; draw(); };
+  addReset("genBox", () => { k = 0; draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>

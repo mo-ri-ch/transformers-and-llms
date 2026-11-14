@@ -7,7 +7,7 @@ const COURSE_LESSONS = [
   { part: "Part 1 · How the model works", n: 1, label: "1a", step: "words → numbers", title: "From words to numbers", file: "lesson1a.html", ready: true,
     summary: "Tokens, embeddings, a tiny neural network, word2vec, and RNNs: how text becomes numbers a model can use.",
     leaves: "RNNs forget what they read long ago. How can a model look straight back at any earlier word?" },
-  { n: 2, label: "1b", step: "attention", title: "Attention and the Transformer", file: "lesson1b.html", ready: false,
+  { n: 2, label: "1b", step: "attention", title: "Attention and the Transformer", file: "lesson1b.html", ready: true,
     summary: "Attention, query–key–value, and the Transformer, built up step by step and run end to end.",
     leaves: "The Transformer works. What turns it into a large language model?" },
   { n: 3, label: "2", step: "LLMs", title: "Large language models", file: "lesson2.html", ready: false,
