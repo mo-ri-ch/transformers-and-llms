@@ -1,0 +1,1796 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Training an LLM</title>
+<meta name="description" content="Lesson 3 of Transformers &amp; LLMs: pretraining, fine-tuning and LoRA, preference tuning with RLHF and DPO, reasoning models trained with GRPO, and on-policy distillation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Kalam:wght@400&family=Patrick+Hand&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("notebook-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+<link rel="stylesheet" href="https://mo-ri-ch.github.io/study-notebook-design/v1/style.css">
+<style>
+  .mono { font-family: var(--mono); }
+  .small { font-size: 0.85rem; }
+  .btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  button.on { background: var(--ink); color: var(--paper); }
+  /* Token chips */
+  .toks { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--mono); align-items: center; }
+  .tk { padding: 3px 8px; border: 1.5px solid var(--ink); border-radius: 5px; background: var(--paper); color: var(--ink); white-space: pre; }
+  .tk.sp { color: var(--pen); border-color: var(--pen); font-weight: 600; }
+  .tk.pick { cursor: pointer; }
+  .tk.q { outline: 3px solid var(--redpen); }
+  .tk.lit { background: var(--note-yellow); }
+  .tk.blank { border-style: dashed; color: var(--pencil); }
+  .linkbox { position: relative; }
+  svg.links { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+  /* Equations */
+  .eq { margin: 8px 0; font-family: var(--mono); font-size: 0.95rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .frac { display: inline-flex; flex-direction: column; text-align: center; vertical-align: middle; }
+  .frac > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 4px 2px; }
+  .frac > span:last-child { padding: 2px 4px 0; }
+  .eq sup, .eq sub { font-size: 0.75em; }
+  .bigeq { font-size: 1.15rem; justify-content: center; padding: 12px; background: var(--card); border: 1.5px solid var(--rule); border-radius: 8px; }
+  /* Bars */
+  .bars { display: grid; gap: 6px; max-width: 560px; }
+  .bar { display: grid; grid-template-columns: 8.6em 3.4em 1fr 3.2em; gap: 10px; align-items: center; font-family: var(--mono); font-size: 0.88rem; }
+  .bar.nosc { grid-template-columns: 8.6em 1fr 3.2em; }
+  .bar .track { height: 16px; background: var(--paper); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+  .bar .fill { display: block; height: 100%; background: var(--hl-yellow); border-right: 2px solid var(--ink); transition: width .25s; }
+  .bar .pct { text-align: right; color: var(--pencil); }
+  .bar .sc { color: var(--pen); text-align: right; }
+  .bar.head { font-family: var(--head); font-size: 0.95rem; color: var(--pencil); }
+  .bar.top .fill { background: var(--hl-green); }
+  /* Paint swatches (weighted average) */
+  .sw { display: inline-block; width: 1.1em; height: 1.1em; border-radius: 50%; border: 1.5px solid var(--ink); vertical-align: middle; }
+  .bigsw { width: 84px; height: 84px; border-radius: 50%; border: 2px solid var(--ink); box-shadow: 0 10px 16px -12px rgba(20,24,50,.5); }
+  .mix { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: center; }
+  .mixrow { display: grid; grid-template-columns: 1.4em 7em 1fr 3.2em; gap: 10px; align-items: center; font-family: var(--mono); font-size: 0.9rem; }
+  .mixrow input { width: 100%; accent-color: var(--pen); }
+  .mixout { display: grid; justify-items: center; gap: 6px; font-family: var(--head); }
+  /* Matrices */
+  .mat { display: inline-grid; gap: 2px; padding: 3px 6px; border-left: 2px solid var(--ink); border-right: 2px solid var(--ink); border-radius: 6px; font-family: var(--mono); font-size: 0.9rem; vertical-align: middle; }
+  .mat span { min-width: 2.4em; padding: 2px 4px; text-align: center; border-radius: 3px; }
+  .mat span.on { background: var(--hl-yellow); color: var(--on-hl); }
+  .mat span.click { cursor: pointer; outline: 1.5px dashed var(--pen); }
+  .matrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--mono); }
+  .matlbl { display: grid; justify-items: center; gap: 4px; }
+  .matlbl small { font-family: var(--hand); color: var(--pencil); font-size: 0.95rem; }
+  /* Attention grid */
+  .agrid { display: grid; gap: 2px; font-family: var(--mono); font-size: 0.78rem; overflow-x: auto; }
+  .agrid .c { padding: 5px 2px; text-align: center; border-radius: 3px; background: color-mix(in srgb, var(--hl-yellow) calc(var(--w, 0) * 100%), var(--paper)); color: var(--ink); border: 1px solid var(--rule); min-width: 2.8em; }
+  .agrid .c.hot { color: #1D2238; }
+  .agrid .c.masked { background: var(--card); color: var(--pencil); border-style: dashed; }
+  .agrid .h { padding: 4px 2px; text-align: center; color: var(--pencil); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .agrid .rh { text-align: right; padding-right: 6px; cursor: pointer; }
+  .agrid .rh.sel { color: var(--redpen); font-weight: 700; }
+  .agrid .rowsel { outline: 2px solid var(--redpen); }
+  .agrid .swc { display: grid; place-items: center; }
+  .steps4 { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 10px; }
+  .steps4 button.done { opacity: 1; }
+  /* Diagrams */
+  .pic { width: 100%; max-width: 620px; display: block; margin: 6px 0 10px; }
+  .pic .bx { fill: var(--note-blue); stroke: var(--ink); stroke-width: 1.5; }
+  .pic .bx.y { fill: var(--note-yellow); } .pic .bx.g { fill: var(--note-green); } .pic .bx.p { fill: var(--note-pink); } .pic .bx.o { fill: var(--note-orange); }
+  .pic .bx.w { fill: var(--card); }
+  .pic .t { font-family: var(--head); font-size: 17px; text-anchor: middle; fill: var(--ink); }
+  .pic .ts { font-family: var(--hand); font-size: 13px; text-anchor: middle; fill: var(--pencil); }
+  .pic .tm { font-family: var(--mono); font-size: 12px; text-anchor: middle; fill: var(--ink); }
+  .pic .ar { stroke: var(--pen); stroke-width: 2.2; fill: none; marker-end: url(#hd); }
+  .pic .ar.r { stroke: var(--redpen); marker-end: url(#hdr); }
+  .pic .lit { stroke: var(--redpen); stroke-width: 3; }
+  .pic .dash { stroke-dasharray: 5 4; }
+  /* Step list (end-to-end) */
+  .flow { display: grid; grid-template-columns: minmax(0, 15em) 1fr; gap: 16px; align-items: start; }
+  .flow ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; counter-reset: s; }
+  .flow li { counter-increment: s; padding: 5px 10px; border: 1.5px solid var(--rule); border-radius: 6px; font-size: 0.92rem; color: var(--pencil); }
+  .flow li::before { content: counter(s) " "; font-family: var(--mono); color: var(--pencil); }
+  .flow li.now { border-color: var(--ink); background: var(--note-yellow); color: var(--ink); }
+  .flow li.past { color: var(--ink); }
+  .stage { display: grid; gap: 10px; }
+  .stage .shape { font-family: var(--mono); font-size: 0.9rem; color: var(--pen); }
+  /* Sizes */
+  .sizes { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; }
+  .rect { display: grid; justify-items: center; gap: 4px; font-family: var(--mono); font-size: 0.8rem; }
+  .rect > div { background: var(--note-blue); border: 1.5px solid var(--ink); border-radius: 3px; }
+  .rect.y > div { background: var(--note-yellow); } .rect.g > div { background: var(--note-green); } .rect.p > div { background: var(--note-pink); }
+  .rect b { font-family: var(--head); font-weight: 400; font-size: 1rem; }
+  /* Clock hands (positions) */
+  .clocks { display: flex; gap: 16px; flex-wrap: wrap; }
+  .clock { display: grid; justify-items: center; gap: 4px; font-family: var(--mono); font-size: 0.8rem; color: var(--pencil); }
+  .clock svg { width: 76px; height: 76px; }
+  .clock .face { fill: var(--card); stroke: var(--ink); stroke-width: 2; }
+  .clock .hand { stroke: var(--redpen); stroke-width: 3; stroke-linecap: round; }
+  /* Generation */
+  .gen { display: grid; gap: 10px; }
+  .genrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .genlbl { font-family: var(--head); font-size: 1.05rem; color: var(--pencil); width: 8.5em; }
+  .timeline { list-style: none; padding: 0; margin: 18px 0; display: grid; gap: 14px; }
+  .timeline li { display: grid; grid-template-columns: 5.5em 1fr; gap: 14px; align-items: start; }
+  .timeline .yr { font-family: var(--head); font-size: 1.5rem; color: var(--pen); line-height: 1.1; }
+  .timeline .what { padding: 10px 14px; border-radius: 2px 2px 6px 2px; color: var(--ink); box-shadow: 0 10px 18px -14px rgba(20,24,50,.45); }
+  .timeline .what > b:first-child { display: block; font-family: var(--head); font-weight: 400; font-size: 1.2rem; }
+  .n-y { background: var(--note-yellow); } .n-p { background: var(--note-pink); } .n-b { background: var(--note-blue); } .n-g { background: var(--note-green); }
+  table.mini { border-collapse: collapse; margin: 8px 0; font-size: 0.9rem; }
+  table.mini td, table.mini th { padding: 3px 10px 3px 0; text-align: left; }
+  table.mini th { font-family: var(--head); font-weight: 400; color: var(--pencil); }
+  @media (max-width: 640px) {
+    .bar { grid-template-columns: 7.6em 2.6em 1fr 2.8em; gap: 6px; font-size: 0.8rem; }
+    .bar.nosc { grid-template-columns: 7.6em 1fr 2.8em; }
+    .mix { grid-template-columns: 1fr; justify-items: center; }
+    .mixrow { grid-template-columns: 1.4em 6em 1fr 3em; }
+    .flow { grid-template-columns: 1fr; }
+    .timeline li { grid-template-columns: 1fr; gap: 4px; }
+    .agrid { font-size: 0.66rem; }
+    .agrid .c { min-width: 2.2em; padding: 4px 1px; }
+  }
+  /* ---- Lesson 2 extras ---- */
+  .tk.mask { background: var(--card); color: var(--redpen); border-color: var(--redpen); border-style: dashed; }
+  .tk.dim { opacity: .35; }
+  .tk.out { background: var(--note-green); }
+  .tk.bad { text-decoration: line-through; color: var(--pencil); border-style: dashed; }
+  .tk.ok { background: var(--note-green); }
+  .tagrow { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--mono); }
+  .tagcol { display: grid; justify-items: center; gap: 3px; }
+  .tagcol small { font-family: var(--hand); color: var(--pen); font-size: 0.95rem; min-height: 1.2em; }
+  .pic .faded { opacity: .18; }
+  .pic .gone { opacity: .12; }
+  .pic .x { stroke: var(--redpen); stroke-width: 3; }
+  .chart { width: 100%; max-width: 560px; display: block; }
+  .chart .ax { stroke: var(--ink); stroke-width: 1.2; }
+  .chart .gr { stroke: var(--rule); stroke-width: 1; }
+  .chart .tl { font-family: var(--mono); font-size: 11px; fill: var(--pencil); }
+  .chart .tt { font-family: var(--hand); font-size: 14px; fill: var(--pencil); }
+  .chart .cv { fill: none; stroke-width: 2.6; }
+  .chart .c1 { stroke: var(--pencil); } .chart .c2 { stroke: var(--pen); } .chart .c3 { stroke: var(--redpen); }
+  .chart .f1 { fill: var(--pencil); } .chart .f2 { fill: var(--pen); } .chart .f3 { fill: var(--redpen); }
+  .chart .hl { stroke: var(--good, #2a8a4a); stroke-width: 1.6; stroke-dasharray: 5 4; }
+  .chart .cl { font-family: var(--head); font-size: 15px; }
+  .readout .f1 { color: var(--pencil); } .readout .f2 { color: var(--pen); } .readout .f3 { color: var(--redpen); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-family: var(--mono); font-size: 0.85rem; }
+  .legend i { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 5px; }
+  .readout { font-family: var(--mono); font-size: 0.9rem; display: grid; gap: 3px; }
+  .slrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--mono); font-size: 0.92rem; margin: 6px 0; }
+  .slrow input[type=range] { flex: 1; min-width: 160px; max-width: 360px; accent-color: var(--pen); }
+  /* Experts */
+  .experts { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .ex { min-width: 5.6em; padding: 6px 8px; border: 1.5px solid var(--ink); border-radius: 8px; background: var(--card); text-align: center; font-family: var(--head); transition: opacity .2s, background .2s; }
+  .ex small { display: block; font-family: var(--mono); font-size: 0.78rem; color: var(--pencil); }
+  .ex.on { background: var(--note-yellow); }
+  .ex.off { opacity: .3; }
+  .exgrid { display: grid; grid-template-columns: repeat(32, 1fr); gap: 2px; max-width: 520px; }
+  .exgrid span { aspect-ratio: 1; background: var(--card); border: 1px solid var(--rule); border-radius: 2px; }
+  .exgrid span.r { background: var(--hl-yellow); border-color: var(--ink); }
+  .exgrid span.s { background: var(--hl-green); border-color: var(--ink); }
+  table.facts { border-collapse: collapse; font-size: 0.9rem; margin-top: 8px; }
+  table.facts td, table.facts th { border-bottom: 1px solid var(--rule); padding: 4px 12px 4px 0; text-align: left; }
+  table.facts th { font-family: var(--head); font-weight: 400; color: var(--pencil); }
+  table.facts td.mono { text-align: right; }
+  table.facts tr.chg td { background: var(--note-yellow); }
+  /* Chat bubbles */
+  .chat { display: grid; gap: 6px; max-height: 260px; overflow-y: auto; padding: 4px; }
+  .bub { max-width: 80%; padding: 6px 12px; border-radius: 12px; border: 1.5px solid var(--ink); font-size: 0.95rem; }
+  .bub.me { justify-self: start; background: var(--card); }
+  .bub.bot { justify-self: end; background: var(--note-blue); color: var(--ink); }
+  /* Prompt box */
+  .prompt { font-family: var(--mono); font-size: 0.88rem; white-space: pre-wrap; background: var(--card); border: 1.5px solid var(--rule); border-radius: 8px; padding: 10px 12px; line-height: 1.5; }
+  .prompt .ans { background: var(--note-green); color: var(--ink); border-radius: 3px; padding: 0 2px; }
+  .prompt .eg { color: var(--pen); }
+  /* KV / heads */
+  .heads { display: grid; gap: 4px; font-family: var(--mono); font-size: 0.8rem; }
+  .hrow { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+  .hrow b { width: 5.5em; font-weight: 400; color: var(--pencil); font-family: var(--head); font-size: 0.95rem; }
+  .sq { width: 30px; height: 26px; display: grid; place-items: center; border: 1.5px solid var(--ink); border-radius: 4px; background: var(--card); }
+  .sq.q { background: var(--note-pink); } .sq.k { background: var(--note-blue); } .sq.v { background: var(--note-green); }
+  .sq.wide { transition: width .25s; }
+  .kvstack { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-end; min-height: 74px; }
+  .kvcol { display: grid; gap: 2px; justify-items: center; font-family: var(--mono); font-size: 0.75rem; }
+  .kvcol .sq { width: 26px; height: 18px; font-size: 0.7rem; }
+  .eqline { font-family: var(--mono); font-size: 0.92rem; margin: 6px 0; line-height: 1.6; }
+  .vote { display: flex; gap: 6px; flex-wrap: wrap; }
+  .numin { width: 4.2em; font-family: var(--mono); font-size: 1rem; padding: 3px 5px; border: 1.5px solid var(--ink); border-radius: 5px; background: var(--paper); color: var(--ink); }
+  #abBars .bar { grid-template-columns: 12.5em 3.4em 1fr 3.2em; }
+  @media (max-width: 640px) {
+    #abBars .bar { grid-template-columns: 8.5em 2.6em 1fr 3em; }
+    #peGrid .c { min-width: 1.5em; }
+    #peGrid { grid-template-columns: 2em repeat(12, minmax(1.5em, 1fr)) !important; }
+    .exgrid { grid-template-columns: repeat(24, 1fr); }
+    .bub { max-width: 92%; }
+  }
+  /* ---- Lesson 3 extras ---- */
+  .tk.pr { background: var(--note-blue); color: var(--ink); }
+  .tk.an { background: var(--note-pink); color: var(--ink); }
+  .tk.lo { background: var(--card); color: var(--pencil); border-style: dashed; }
+  .tk.sel { outline: 3px solid var(--redpen); }
+  .tk.seen { background: var(--note-yellow); color: var(--ink); }
+  .tcol { display: grid; justify-items: center; gap: 4px; font-family: var(--mono); font-size: 0.85rem; }
+  .tcol small { font-family: var(--hand); font-size: 0.95rem; color: var(--pencil); min-height: 1.2em; }
+  .trow { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 10px; }
+  .sorter { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  .bin { min-height: 74px; border: 1.5px dashed var(--rule); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .bin > b { font-family: var(--head); font-weight: 400; font-size: 1.05rem; color: var(--pencil); }
+  .chip { padding: 4px 10px; border: 1.5px solid var(--ink); border-radius: 14px; background: var(--card); font-size: 0.9rem; }
+  .chip.ok { background: var(--note-green); color: var(--ink); }
+  .chip.no { background: var(--note-pink); color: var(--ink); }
+  .askcard { display: grid; gap: 8px; }
+  .wins { display: grid; gap: 6px; font-family: var(--mono); font-size: 0.78rem; }
+  .win { display: flex; height: 30px; border: 1.5px solid var(--ink); border-radius: 4px; overflow: hidden; background: var(--paper); }
+  .win span { display: grid; place-items: center; border-right: 1px solid var(--ink); color: #1D2238; white-space: nowrap; overflow: hidden; }
+  .win span.pad { background: repeating-linear-gradient(45deg, var(--card), var(--card) 4px, var(--paper) 4px, var(--paper) 8px); color: var(--pencil); }
+  .win span.cut { border-right: 2.5px dashed var(--redpen); }
+  .grid2 { display: grid; grid-template-columns: auto 1fr 1fr; gap: 4px; font-size: 0.9rem; max-width: 560px; }
+  .grid2 > div { padding: 8px; border: 1.5px solid var(--rule); border-radius: 6px; min-height: 3.2em; }
+  .grid2 > .hd { border: none; font-family: var(--head); color: var(--pencil); padding: 4px; min-height: 0; }
+  .grid2 .lit { background: var(--note-yellow); border-color: var(--ink); color: var(--ink); }
+  .grid2 .empty { border-style: dashed; color: var(--pencil); }
+  .stagebar { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+  .stagebar button { font-size: 0.85rem; padding: 4px 9px; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 10px; border: 1.5px solid var(--ink); font-family: var(--mono); font-size: 0.8rem; }
+  .pill.g { background: var(--note-green); color: var(--ink); } .pill.r { background: var(--note-pink); color: var(--ink); }
+  .bar.neg .fill { background: var(--note-pink); }
+  .think { font-family: var(--mono); font-size: 0.82rem; color: var(--pencil); border-left: 3px solid var(--rule); padding: 4px 10px; margin: 4px 0; white-space: pre-wrap; }
+  .costrow { display: flex; height: 22px; max-width: 520px; border: 1.5px solid var(--ink); border-radius: 4px; overflow: hidden; font-family: var(--mono); font-size: 0.75rem; }
+  .costrow span { display: grid; place-items: center; transition: width .25s; color: #1D2238; white-space: nowrap; overflow: hidden; }
+  .costrow .th { background: var(--hl-yellow); } .costrow .an { background: var(--hl-green); }
+  .lowrank { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--mono); }
+  .lowrank .mat input { width: 2.6em; font-family: var(--mono); font-size: 0.9rem; text-align: center; border: 1.5px dashed var(--pen); border-radius: 3px; background: var(--paper); color: var(--ink); padding: 1px 0; }
+  .boxes { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; font-family: var(--mono); font-size: 0.85rem; }
+  .boxes .m { border: 1.5px solid var(--ink); border-radius: 3px; display: grid; place-items: center; transition: width .25s, height .25s; color: var(--ink); }
+  .boxes .m.w0 { background: var(--note-blue); } .boxes .m.b { background: var(--note-pink); } .boxes .m.a { background: var(--note-green); }
+  .codebox { font-family: var(--mono); font-size: 0.82rem; white-space: pre; background: var(--card); border: 1.5px solid var(--rule); border-radius: 8px; padding: 8px 12px; overflow-x: auto; }
+  #dpBars .bar.nosc, #rmBars .bar.nosc, #pkBox .bar.nosc { grid-template-columns: 11em 1fr 4em; }
+  @media (max-width: 640px) {
+    #dpBars .bar.nosc, #rmBars .bar.nosc, #pkBox .bar.nosc { grid-template-columns: 8em 1fr 3.4em; }
+    .sorter { grid-template-columns: 1fr; }
+    .grid2 { grid-template-columns: auto 1fr 1fr; font-size: 0.8rem; }
+    .win { height: 26px; }
+  }
+
+</style>
+</head>
+<body data-pen="blue">
+<div class="wrap">
+  <header class="topbar">
+    <a class="home" href="../">← Transformers & LLMs</a>
+    <span class="where">Lesson 3 of 10</span>
+  </header>
+
+  <main data-paged>
+    <div class="paged-head">
+      <h1>Training an LLM</h1>
+      <div class="progress" aria-label="Lesson parts"></div>
+    </div>
+
+    <!-- 1 -->
+    <section class="part" data-title="One model, many jobs">
+      <h2>One model, many jobs</h2>
+      <p class="say">Fifteen years ago, each job had its own model, trained from zero: one to catch spam, one to tell if a review is happy, one to translate.</p>
+      <p class="say">Each model learned language all over again. Today we learn language <b>once</b>, then reuse it. Reusing what a model has learned is called <mark>transfer learning</mark>.</p>
+      <div class="activity">
+        <div class="do">Try it: compare the two ways.</div>
+        <div class="btnrow" style="margin:0 0 8px">
+          <button class="on" id="pdOld">One model per job</button>
+          <button id="pdNew">Learn once, then tune</button>
+        </div>
+        <svg class="pic" id="pdPic" viewBox="0 0 620 210" aria-label="Three job models, and in the second way a shared pretrained model feeding all three."></svg>
+        <p class="note" id="pdSays"></p>
+      </div>
+      <p class="say">Step 1, learning language, is called <mark>pretraining</mark>.</p>
+      <p class="hook">So how does a model learn language?</p>
+    </section>
+
+    <!-- 2 -->
+    <section class="part" data-title="Pretraining: guess the next token">
+      <h2>Pretraining: guess the next token</h2>
+      <p class="say">The model reads huge amounts of text and code. Its only task: <b>guess the next token</b>.</p>
+      <p class="say">It starts with <span class="tk sp">[BOS]</span>, a token that marks the beginning of a text. After each guess, it is shown the real next token and moves on.</p>
+      <div class="activity">
+        <div class="do">Try it: step through the text. Watch how sure the model is of the real next token.</div>
+        <div class="toks" id="ntToks"></div>
+        <div id="ntBars" class="bars" style="margin-top:12px"></div>
+        <div class="btnrow"><button class="primary" id="ntNext">Next token →</button></div>
+        <p class="note" id="ntSays"></p>
+      </div>
+      <p class="say">The chances are made up for this page, but they behave like a real model's: “bear” after “teddy” is easy; “Persian” is a surprise.</p>
+      <p class="hook">Going one token at a time is slow. Can we do better?</p>
+    </section>
+
+    <!-- 3 -->
+    <section class="part" data-title="All positions at once">
+      <h2>All positions at once</h2>
+      <p class="say">During training we already have the whole text. So we feed it all in at once, and the model guesses the next token at <b>every position</b> together.</p>
+      <p class="say">Masked self-attention keeps it fair: each position sees only itself and the tokens before it, never the answer.</p>
+      <div class="activity">
+        <div class="do">Try it: click an input to see what it can look at, and what it must guess.</div>
+        <button class="doubt" type="button" data-peek-from="tfPeek" aria-label="Isn't training different from real use?">🤔</button>
+        <div class="trow" id="tfRow"></div>
+        <p class="note" id="tfSays"></p>
+      </div>
+      <div hidden id="tfPeek"><b>🤔 Isn't training different from real use?</b>
+        <div style="margin-top:6px">Yes. In training, each input is the <b>real</b> text, even where the model guessed wrong. This is called <b>teacher forcing</b>.</div>
+        <div style="margin-top:6px">In real use, the model reads its <b>own</b> earlier words, mistakes included. Later in this lesson we'll see training that uses the model's own writing.</div>
+      </div>
+      <p class="hook">How do we score all those guesses?</p>
+    </section>
+
+    <!-- 4 -->
+    <section class="part" data-title="Quick basics: logs">
+      <h2>✏️ Quick basics: the log</h2>
+      <p class="say">The chance of a whole text is all its token chances multiplied. Multiply many numbers below 1 and you get something tiny: 20 tokens at 0.5 each give 0.5<sup>20</sup> ≈ 0.000001. Computers lose accuracy with numbers that small.</p>
+      <p class="say">The <mark data-peek="Here “log” is the natural log (ln), with base e ≈ 2.718.">log</mark> fixes this. It turns multiplying into adding:<br><b class="eqbox">log(a × b) = log a + log b</b></p>
+      <div class="activity">
+        <div class="do">Try it: move the chance and watch −log of it.</div>
+        <div class="slrow">chance p <input type="range" id="lgP" min="1" max="100" value="50"> <b id="lgPv"></b></div>
+        <svg class="chart" id="lgChart" viewBox="0 0 560 200" aria-label="The curve of minus log p, high near zero and falling to zero at p equals one."></svg>
+        <p class="note" id="lgSays"></p>
+      </div>
+      <p class="say">So −log p is a good “surprise” score: 0 when the model was sure and right, large when it gave the right token a small chance.</p>
+      <p class="hook">Now we can write the loss.</p>
+    </section>
+
+    <!-- 5 -->
+    <section class="part" data-title="The loss: cross-entropy">
+      <h2>The loss: cross-entropy</h2>
+      <p class="say">Training wants the model to give the real text a high chance. With logs, that means a small average surprise:</p>
+      <p class="say"><span class="near"><b class="eqbox">loss = −<span class="frac"><span>1</span><span>T</span></span> Σ log p(right token | tokens before it)</b><button class="doubt" type="button" data-peek-from="cePeek" aria-label="Where does this come from?">🤔</button></span></p>
+      <p class="say">T is the number of tokens. This is the <mark>cross-entropy loss</mark>.</p>
+      <div class="activity">
+        <div class="do">Try it: train a little and watch the loss fall.</div>
+        <div id="ceBars" class="bars"></div>
+        <div class="eqline" id="ceEq"></div>
+        <div class="btnrow"><button class="primary" id="ceGo">Train a little</button></div>
+      </div>
+      <div hidden id="cePeek"><b>🤔 Where does this come from?</b>
+        <div style="margin-top:6px">We want weights that make the training text as likely as possible:<br>p(text) = p(x₁) × p(x₂ | x₁) × … × p(x<sub>T</sub> | x₁…x<sub>T−1</sub>)</div>
+        <div style="margin-top:6px">Take the log: the product becomes a sum.<br>Training likes to make things small, so flip the sign.<br>Divide by T so long and short texts compare fairly.</div>
+      </div>
+      <p class="hook">There's a catch: the loss depends on how the text was cut into tokens.</p>
+    </section>
+
+    <!-- 6 -->
+    <section class="part" data-title="Bits per byte">
+      <h2>Comparing models with different tokenizers</h2>
+      <p class="say">Two models can cut the same text into different numbers of tokens. Then their cross-entropy is an average over different T, so the numbers don't compare.</p>
+      <p class="say"><mark>Bits per byte</mark> fixes this. It shares the loss over the text's bytes (letters, spaces, dots), which don't depend on the tokenizer:<br><b class="eqbox">BPB = loss × <span class="frac"><span>T</span><span>B</span></span> × <span class="frac"><span>1</span><span>log 2</span></span></b></p>
+      <div class="activity">
+        <div class="do">Try it: switch tokenizers. Both models are equally good here.</div>
+        <div class="btnrow" style="margin:0 0 10px">
+          <button class="on" id="bpBig">Big pieces</button>
+          <button id="bpSmall">Small pieces</button>
+        </div>
+        <div class="toks" id="bpToks"></div>
+        <div class="eqline" id="bpEq"></div>
+      </div>
+      <p class="say">B is the number of bytes. Dividing by log 2 turns the log's units into <mark data-peek="A bit is a yes-or-no answer. 1 bit per byte means: on average, one yes-or-no question per letter to guess the text.">bits</mark>.</p>
+      <p class="hook">What text does the model read?</p>
+    </section>
+
+    <!-- 7 -->
+    <section class="part" data-title="What the model reads">
+      <h2>What the model reads</h2>
+      <p class="say">Pretraining text comes from three main places: the web (pages and Wikipedia), code (GitHub, Stack Overflow), and maths and science.</p>
+      <p class="say">The mix matters a lot. How much code? How much maths? Good data often helps more than a better model design.</p>
+      <div class="activity">
+        <div class="do">Try it: open each source.</div>
+        <button class="doubt" type="button" data-peek-from="mixPeek" aria-label="How do people choose the mix?">🤔</button>
+        <div class="tabs">
+          <button class="on" id="dmWeb">🌐 Web</button>
+          <button id="dmCode">💻 Code</button>
+          <button id="dmMath">➗ Maths and science</button>
+        </div>
+        <div class="prompt" id="dmText"></div>
+        <p class="note" id="dmSays"></p>
+      </div>
+      <div hidden id="mixPeek"><b>🤔 How do people choose the mix?</b>
+        <div style="margin-top:6px">Training a huge model many times would cost too much. So people train many <b>small</b> models, each on a different mix, and see which does best.</div>
+        <div style="margin-top:6px">Then they guess the best mix for the big model from those results.</div>
+      </div>
+      <p class="hook">And how much of it?</p>
+    </section>
+
+    <!-- 8 -->
+    <section class="part" data-title="How much text">
+      <h2>How much text?</h2>
+      <p class="say">Trillions of tokens. GLM-5, an open model from 2026, read about 30 trillion.</p>
+      <p class="say">Sometimes we run out of good text. Is reading the same text again worth it? A 2023 study says yes, up to about 4 times: almost as good as new text. After that, each extra pass helps less and less.</p>
+      <div class="activity">
+        <div class="do">Try it: read 100 billion unique tokens many times.</div>
+        <div class="slrow">passes <input type="range" id="rpN" min="1" max="40" value="4"> <b id="rpNv"></b></div>
+        <svg class="chart" id="rpChart" viewBox="0 0 560 220" aria-label="Tokens read against what they're worth: the curve follows new text at first, then flattens."></svg>
+        <p class="note" id="rpSays"></p>
+      </div>
+      <p class="hook">Pretraining was once the whole first step. Now there's a second.</p>
+    </section>
+
+    <!-- 9 -->
+    <section class="part" data-title="Midtraining">
+      <h2>Midtraining</h2>
+      <p class="say">After pretraining, many models get <mark>midtraining</mark>: more next-token guessing, but on <b>better</b> text that matches what we want the model to be good at, like reasoning or code.</p>
+      <p class="say">It also teaches the model to read much longer texts.</p>
+      <div class="activity">
+        <div class="do">Try it: which stage would read each text?</div>
+        <div class="chip" id="mtItem" style="justify-self:start;display:inline-block"></div>
+        <div class="btnrow">
+          <button id="mtPre">Pretraining</button>
+          <button id="mtMid">Midtraining</button>
+          <button class="primary" id="mtNext" hidden>Next text →</button>
+        </div>
+        <p class="note" id="mtSays"></p>
+      </div>
+      <p class="hook">Why is reading long texts something to teach?</p>
+    </section>
+
+    <!-- 10 -->
+    <section class="part" data-title="Longer texts">
+      <h2>Teaching longer texts</h2>
+      <p class="say">Pretraining uses short windows, about 4,000 tokens, because it's cheaper. RoPE turns each query and key by an angle that grows with position, like clock hands at different speeds.</p>
+      <p class="say">The slow hand only ever turned a little during training. At position 16,000 it points somewhere the model has never seen.</p>
+      <div class="activity">
+        <div class="do">Try it: move to a far position, then squeeze the slow hand.</div>
+        <button class="doubt" type="button" data-peek-from="lcPeek" aria-label="Why is long-context training hard?">🤔</button>
+        <div class="slrow">position <input type="range" id="lcPos" min="0" max="16000" step="100" value="2000"> <b id="lcPosv"></b></div>
+        <div class="clocks" id="lcClocks"></div>
+        <div class="btnrow"><button id="lcSq">Squeeze the slow hand</button></div>
+        <p class="note" id="lcSays"></p>
+      </div>
+      <div hidden id="lcPeek"><b>🤔 Why is long-context training hard?</b>
+        <div style="margin-top:6px"><b>Cost.</b> Every token looks at every other: 32 times more tokens means 1,024 times more pairs.</div>
+        <div style="margin-top:6px"><b>Data.</b> We need texts where a word near the end really depends on something far back. Those are rare.</div>
+      </div>
+      <p class="say">Methods like <mark data-peek="Yet another RoPE extensioN method, 2023. It squeezes the slow hands and leaves the fast ones alone, so nearby words stay easy to tell apart.">YaRN</mark> squeeze the slow hands. Then the window grows step by step: 4K → 32K → 128K → 1M tokens.</p>
+      <p class="hook">After all that, what do we have?</p>
+    </section>
+
+    <!-- 11 -->
+    <section class="part" data-title="What pretraining can't do">
+      <h2>What pretraining costs, and what it can't do</h2>
+      <div class="cards">
+        <div class="card"><h3>💸 Cost</h3><p>Millions of dollars at least, weeks of time, and a lot of electricity.</p></div>
+        <div class="card"><h3>📅 Knowledge cutoff</h3><p>The model knows only what was in its text, up to the day it was collected.</p></div>
+        <div class="card"><h3>✏️ Hard to edit</h3><p>A wrong fact is spread across billions of weights. You can't just fix one line.</p></div>
+        <div class="card"><h3>📋 Copying</h3><p>It can repeat text it read, word for word.</p></div>
+      </div>
+      <div class="quiz" data-right="Right. It never saw June 2026, so it can't know. It may even make something up.">
+        <div class="q">A model's knowledge cutoff is 30 April 2026. You ask about news from June 2026. What happens, with no extra help?</div>
+        <div class="options">
+          <button data-why="It can't look anything up by itself: everything it knows came from its training text.">It looks up the news</button>
+          <button data-right>It doesn't know, and might guess</button>
+          <button data-why="Its weights were fixed when training ended. Nothing updates them while you chat.">It learned it since</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+      <p class="hook">Let's ask our pretrained model a question.</p>
+    </section>
+
+    <!-- 12 -->
+    <section class="part" data-title="Asking the pretrained model">
+      <h2>Asking the pretrained model</h2>
+      <p class="say">Our model now knows a lot about text and code. Let's ask it something simple.</p>
+      <div class="activity">
+        <div class="do">Try it: ask the question.</div>
+        <div class="chat" id="ptChat" style="max-height:none"></div>
+        <div class="btnrow"><button class="primary" id="ptGo">Ask</button></div>
+        <p class="note" id="ptSays"></p>
+      </div>
+      <p class="hook">How do we turn it into a helpful assistant?</p>
+    </section>
+    <!-- 13 -->
+    <section class="part" data-title="Supervised fine-tuning">
+      <h2>Supervised fine-tuning</h2>
+      <p class="say">To change how the model behaves, we show it examples of the behaviour we want. Each example is a pair: an <b>input</b> and the <b>output</b> we'd like for it.</p>
+      <p class="say">This is <mark>supervised fine-tuning</mark>, or <mark>SFT</mark>. For an assistant, the pairs are instructions and good answers. Teaching that is called <mark>instruction tuning</mark>.</p>
+      <div class="activity">
+        <div class="do">Try it: look at four example pairs.</div>
+        <div class="tabs" id="sfTabs"></div>
+        <div class="chat" id="sfChat" style="max-height:none"></div>
+      </div>
+      <p class="say">The training is still next-token guessing, with one change.</p>
+      <p class="hook">What changes?</p>
+    </section>
+
+    <!-- 14 -->
+    <section class="part" data-title="Learning only the answer">
+      <h2>Learning only the answer</h2>
+      <p class="say">The instruction is given to the model. We don't want it to learn to write instructions, only answers. So only the <b>answer</b> tokens count in the loss:</p>
+      <p class="say"><b class="eqbox">loss = −<span class="frac"><span>1</span><span>T</span></span> Σ log p(answer token | instruction, answer so far)</b></p>
+      <p class="say">Here T counts only the answer tokens.</p>
+      <div class="activity">
+        <div class="do">Try it: compare with pretraining, where every token counts.</div>
+        <button class="doubt" type="button" data-peek-from="sftPeek" aria-label="How is this different from midtraining?">🤔</button>
+        <div class="btnrow" style="margin:0 0 10px">
+          <button class="on" id="slSft">Fine-tuning</button>
+          <button id="slPre">Pretraining</button>
+        </div>
+        <div class="trow" id="slRow"></div>
+        <p class="note" id="slSays"></p>
+      </div>
+      <div hidden id="sftPeek"><b>🤔 How is this different from midtraining?</b>
+        <div style="margin-top:6px">Midtraining still reads plain text and guesses every token. It's just better text.</div>
+        <div style="margin-top:6px">Fine-tuning reads input–output pairs and learns only the outputs. It changes <b>behaviour</b>, not knowledge.</div>
+      </div>
+      <p class="hook">What data, and how much?</p>
+    </section>
+
+    <!-- 15 -->
+    <section class="part" data-title="After fine-tuning">
+      <h2>After fine-tuning</h2>
+      <p class="say">SFT data can be written by people or made by other models: chats with an assistant, all kinds of instructions, maths and code, and safe answers to risky requests.</p>
+      <p class="say">It's small next to pretraining: thousands to millions of examples, against trillions of tokens. But it must be very good, because the model copies it exactly.</p>
+      <div class="activity">
+        <div class="do">Try it: ask both models the same question.</div>
+        <div class="tabs">
+          <button id="afPre">Pretrained</button>
+          <button class="on" id="afSft">+ Fine-tuned</button>
+        </div>
+        <div class="chat" id="afChat" style="max-height:none"></div>
+        <p class="note small">Example answers written for this page.</p>
+      </div>
+      <p class="say">Fine-tuning has a cost: changing billions of weights needs a lot of memory and big machines.</p>
+      <p class="hook">Do we really need to change all of them?</p>
+    </section>
+
+    <!-- 16 -->
+    <section class="part" data-title="Quick basics: low-rank">
+      <h2>✏️ Quick basics: big tables from small ones</h2>
+      <p class="say">A column of 4 numbers times a row of 4 numbers gives a 4 × 4 table: each cell is its row's number times its column's number.</p>
+      <p class="say">That's 16 numbers made from only 8. Such a table is called <mark data-peek="Rank is how many column-times-row pieces it takes to build a table. One piece gives rank 1; adding r pieces gives at most rank r.">low-rank</mark>.</p>
+      <div class="activity">
+        <div class="do">Try it: change the dashed numbers.</div>
+        <div class="lowrank" id="lrBox"></div>
+        <p class="note" id="lrSays"></p>
+      </div>
+      <p class="say">The bigger the table, the bigger the saving. A 4,096 × 4,096 table has about 16.8 million numbers; one column and one row have 8,192.</p>
+      <p class="hook">Now we can make fine-tuning cheap.</p>
+    </section>
+
+    <!-- 17 -->
+    <section class="part" data-title="LoRA">
+      <h2>LoRA: change a little, not everything</h2>
+      <p class="say">The pretrained model is almost there. So we freeze its weights W₀ and learn only a small change, built from two thin tables B and A:</p>
+      <p class="say"><b class="eqbox">W = W₀ + B × A</b></p>
+      <p class="say">This is <mark data-peek="Low-Rank Adaptation, by Hu and others, 2021. Other cheap methods exist, like prefix tuning and adapters.">LoRA</mark>. B is d × r, A is r × d, and r is small. Results are often about as good as changing everything.</p>
+      <div class="activity">
+        <div class="do">Try it: change the size of the table and the rank r.</div>
+        <div class="slrow">size d <input type="range" id="loD" min="0" max="3" value="2"> <b id="loDv"></b></div>
+        <div class="slrow">rank r <input type="range" id="loR" min="0" max="6" value="3"> <b id="loRv"></b></div>
+        <div class="boxes" id="loBoxes"></div>
+        <p class="note" id="loSays"></p>
+      </div>
+      <p class="hook">There's another nice side to this.</p>
+    </section>
+
+    <!-- 18 -->
+    <section class="part" data-title="One model, many adapters">
+      <h2>One model, many small add-ons</h2>
+      <p class="say">Take the three jobs from the start: spam, reviews, translation. With LoRA we keep <b>one</b> copy of W₀ and a small B and A for each job. Swapping B and A swaps the job.</p>
+      <div class="activity">
+        <div class="do">Try it: switch jobs and compare storage.</div>
+        <div class="tabs">
+          <button class="on" id="adSpam">Catch spam</button>
+          <button id="adSent">Happy or unhappy?</button>
+          <button id="adTr">Translate</button>
+        </div>
+        <div class="boxes" id="adBoxes"></div>
+        <div class="eqline" id="adSays" style="margin-top:10px"></div>
+      </div>
+      <p class="say">For a general assistant, one big model does everything. LoRA shines for very specific jobs.</p>
+      <p class="hook">Which tables get B and A?</p>
+    </section>
+
+    <!-- 19 -->
+    <section class="part" data-title="Where to put LoRA">
+      <h2>Where to put LoRA</h2>
+      <p class="say">Each Transformer layer has tables in attention (W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>, W<sub>O</sub>) and in the feed-forward network (W₁, W₂).</p>
+      <p class="say">The first LoRA paper put B and A on attention only. Today the advice is to use them everywhere, <b>especially in the feed-forward network</b>, where most weights are.</p>
+      <div class="activity">
+        <div class="do">Try it: compare the two choices.</div>
+        <div class="btnrow" style="margin:0 0 8px">
+          <button class="on" id="wlOld">2021: W<sub>Q</sub> and W<sub>V</sub></button>
+          <button id="wlNew">Today: every table</button>
+        </div>
+        <svg class="pic" id="wlPic" viewBox="0 0 620 170" aria-label="One Transformer layer: four attention tables and two feed-forward tables, sized by their weights."></svg>
+        <p class="note" id="wlSays"></p>
+      </div>
+      <p class="hook">Fine-tuning shows the model what to do. Can it learn what <i>not</i> to do?</p>
+    </section>
+
+    <!-- 20 -->
+    <section class="part" data-title="What not to do">
+      <h2>Teaching what not to do</h2>
+      <p class="say">Even a fine-tuned model can give a bad answer. SFT only ever showed it good examples; it never said “not like this”.</p>
+      <p class="say">So we collect <mark>preference pairs</mark>: one prompt, a better answer and a worse one. Then we train the model to prefer the better one. This is <mark>preference tuning</mark>.</p>
+      <div class="activity">
+        <div class="do">Try it: which answer is better?</div>
+        <button class="doubt" type="button" data-peek-from="whyPrefPeek" aria-label="Why pairs?">🤔</button>
+        <div class="bub me" style="max-width:100%">Suggest a new activity I could do with my teddy bear.</div>
+        <div class="btnrow" id="wpBtns" style="flex-direction:column;align-items:stretch">
+          <button id="wpA" style="text-align:left">A: I'd suggest you don't spend much time with your teddy bear at all.</button>
+          <button id="wpB" style="text-align:left">B: Of course! How about a movie night together, with popcorn and a blanket?</button>
+        </div>
+        <p class="note" id="wpSays"></p>
+      </div>
+      <div hidden id="whyPrefPeek"><b>🤔 Why pairs?</b>
+        <div style="margin-top:6px"><b>Comparing is easy.</b> Writing the perfect answer is slow and hard.</div>
+        <div style="margin-top:6px"><b>SFT is fragile.</b> Its data must be perfect and well spread; it's hard to get much of it.</div>
+        <div style="margin-top:6px">A bad answer is also a hint to check the SFT data for mistakes.</div>
+      </div>
+      <p class="hook">Pairs aren't the only way to collect preferences.</p>
+    </section>
+
+    <!-- 21 -->
+    <section class="part" data-title="Three kinds of preference data">
+      <h2>Three kinds of preference data</h2>
+      <p class="say">Say we have four answers to the same prompt. We can mark them in three ways:</p>
+      <p class="say"><b>Pointwise</b>: a score for each answer. <b>Pairwise</b>: which of two is better. <b>Listwise</b>: a ranking, best to worst.</p>
+      <div class="activity">
+        <div class="do">Try it: see the same four answers in each form.</div>
+        <div class="tabs">
+          <button class="on" id="pkPoint">Pointwise</button>
+          <button id="pkPair">Pairwise</button>
+          <button id="pkList">Listwise</button>
+        </div>
+        <div id="pkBox"></div>
+        <p class="note" id="pkSays"></p>
+      </div>
+      <p class="say">Pairwise is used most: easiest for people. The pairs come from the fine-tuned model's own answers, marked by <mark data-peek="Or by cheaper stand-ins, like another LLM acting as judge.">people</mark>.</p>
+      <p class="hook">Next, a model that learns to score answers. First, one tool.</p>
+    </section>
+
+    <!-- 22 -->
+    <section class="part" data-title="Quick basics: the sigmoid">
+      <h2>✏️ Quick basics: the sigmoid</h2>
+      <p class="say">The <mark>sigmoid</mark> squashes any number into a chance between 0 and 1:<br><b class="eqbox">σ(x) = <span class="frac"><span>1</span><span>1 + e<sup>−x</sup></span></span></b></p>
+      <p class="say">Very negative x gives nearly 0. Zero gives exactly 0.5. Very positive x gives nearly 1.</p>
+      <div class="activity">
+        <div class="do">Try it: move x.</div>
+        <div class="slrow">x <input type="range" id="sgX" min="-60" max="60" value="15"> <b id="sgXv"></b></div>
+        <svg class="chart" id="sgChart" viewBox="0 0 560 200" aria-label="The S-shaped sigmoid curve from 0 to 1."></svg>
+      </div>
+      <p class="hook">Now we can turn two scores into a chance.</p>
+    </section>
+
+    <!-- 23 -->
+    <section class="part" data-title="The reward model">
+      <h2>The reward model</h2>
+      <p class="say">A <mark>reward model</mark> reads a prompt and an answer, and gives one number: the answer's <b>reward</b>. Higher means better.</p>
+      <p class="say">It learns from pairs with the <mark data-peek="Bradley and Terry, 1952, first used for ranking players from the games they won.">Bradley–Terry</mark> rule. The chance that answer i is preferred over answer j is:<br><b class="eqbox">p(i better than j) = σ(r<sub>i</sub> − r<sub>j</sub>)</b></p>
+      <div class="activity">
+        <div class="do">Try it: set two rewards.</div>
+        <div class="slrow">r<sub>A</sub> <input type="range" id="btA" min="-40" max="40" value="10"> <b id="btAv"></b></div>
+        <div class="slrow">r<sub>B</sub> <input type="range" id="btB" min="-40" max="40" value="-5"> <b id="btBv"></b></div>
+        <div class="eqline" id="btEq"></div>
+      </div>
+      <p class="say">Only the <b>difference</b> matters. Equal rewards give 50–50.</p>
+      <p class="hook">How does the reward model learn its rewards?</p>
+    </section>
+
+    <!-- 24 -->
+    <section class="part" data-title="Training the reward model">
+      <h2>Training the reward model</h2>
+      <p class="say">For each pair, we want the winner's reward above the loser's. Like before, we take the chance of what really happened, log it and flip the sign:</p>
+      <p class="say"><b class="eqbox">loss = −log σ(r<sub>winner</sub> − r<sub>loser</sub>)</b></p>
+      <div class="activity">
+        <div class="do">Try it: train on the six pairs from the four answers.</div>
+        <div id="rmBars" class="bars"></div>
+        <div class="eqline" id="rmEq"></div>
+        <div class="btnrow"><button class="primary" id="rmGo">Training step</button></div>
+      </div>
+      <p class="say">In practice: about 10,000 pairs marked by people (the “human feedback”). The reward model is often an LLM with its next-token layer swapped for a <mark data-peek="It reads the embedding of the last token and turns it into one number. An encoder like BERT can do it from [CLS] instead.">one-number output</mark>.</p>
+      <p class="hook">Now we use the reward model to train our LLM.</p>
+    </section>
+
+    <!-- 25 -->
+    <section class="part" data-title="Reinforcement learning">
+      <h2>Chasing the reward, but not too far</h2>
+      <p class="say">The LLM writes answers to about 100,000 prompts. The reward model ❄ (frozen) scores each one, and the LLM 🔥 (being trained) changes its weights to get higher rewards. This is <mark>reinforcement learning</mark>. Together with the reward model, it's <mark data-peek="Reinforcement Learning from Human Feedback.">RLHF</mark>.</p>
+      <p class="say">But the reward model isn't perfect. So the goal also keeps the LLM close to where it started, the fine-tuned model:<br><b class="eqbox">goal = reward − β × distance from start</b></p>
+      <div class="activity">
+        <div class="do">Try it: change β. Which answer wins?</div>
+        <div class="slrow">β <input type="range" id="rlB" min="0" max="20" value="0"> <b id="rlBv"></b></div>
+        <div id="rlBars" class="bars"></div>
+        <p class="note" id="rlSays"></p>
+      </div>
+      <p class="hook">RLHF needs a reward model and tricky training. Is there a simpler way?</p>
+    </section>
+
+    <!-- 26 -->
+    <section class="part" data-title="DPO">
+      <h2>DPO: no reward model needed</h2>
+      <p class="say"><mark data-peek="Direct Preference Optimization, by Rafailov and others, 2023.">DPO</mark> trains on the preference pairs directly. It uses the same loss as the reward model, with a special reward: how much <b>more likely</b> the LLM now makes an answer than the starting model did.</p>
+      <p class="say"><b class="eqbox">r = β log <span class="frac"><span>p<sub>now</sub>(answer)</span><span>p<sub>start</sub>(answer)</span></span></b></p>
+      <div class="activity">
+        <div class="do">Try it: train on one pair, the movie-night answer over the stay-away one.</div>
+        <div id="dpBars" class="bars"></div>
+        <div class="eqline" id="dpEq"></div>
+        <div class="btnrow"><button class="primary" id="dpGo">Training step</button></div>
+      </div>
+      <p class="say">β = 0.5 here. To shrink the loss, the winner must get more likely and the loser less likely.</p>
+      <p class="hook">So which one do people use?</p>
+    </section>
+
+    <!-- 27 -->
+    <section class="part" data-title="RLHF or DPO?">
+      <h2>RLHF or DPO?</h2>
+      <table class="facts">
+        <tr><th></th><th>RLHF</th><th>DPO</th></tr>
+        <tr><td>Steps</td><td>Train a reward model, then RL</td><td>One supervised step</td></tr>
+        <tr><td>Extra models</td><td>Reward model and more</td><td>Only the starting model</td></tr>
+        <tr><td>Answers it learns from</td><td>Its own, written during training</td><td>Fixed ones, collected before</td></tr>
+      </table>
+      <p class="say">Which works better? No clear winner: it depends on the task and the details.</p>
+      <div class="activity">
+        <div class="do">Try it: ask the model after each stage.</div>
+        <div class="tabs">
+          <button id="stPre">Pretrained</button>
+          <button id="stSft">+ Fine-tuned</button>
+          <button class="on" id="stPref">+ Preference-tuned</button>
+        </div>
+        <div class="chat" id="stChat" style="max-height:none"></div>
+        <p class="note small">Example answers written for this page.</p>
+      </div>
+      <p class="hook">Friendly is nice. Can the model also work things out?</p>
+    </section>
+    <!-- 28 -->
+    <section class="part" data-title="What is reasoning?">
+      <h2>What is reasoning?</h2>
+      <p class="say">Here, <mark>reasoning</mark> simply means the ability to <b>solve a problem</b>.</p>
+      <p class="say">Some questions you either know or you don't, like “What is the course code of Stanford's Transformers & LLMs class?”. Others need working out, like “The bear was born in 2020. How old is it now?”: you must know the year and subtract.</p>
+      <div class="activity">
+        <div class="do">Try it: sort each question.</div>
+        <div class="chip" id="rsItem" style="display:inline-block"></div>
+        <div class="btnrow">
+          <button id="rsKnow">Know it</button>
+          <button id="rsWork">Work it out</button>
+        </div>
+        <div class="sorter">
+          <div class="bin" id="rsBinK"><b>Know it</b></div>
+          <div class="bin" id="rsBinW"><b>Work it out</b></div>
+        </div>
+      </div>
+      <p class="hook">How can a model get better at working things out?</p>
+    </section>
+
+    <!-- 29 -->
+    <section class="part" data-title="Thinking before answering">
+      <h2>Thinking before answering</h2>
+      <p class="say">Chain of thought showed it: a model answers better when it writes its reasoning first. But we had to ask for it, with examples in the prompt.</p>
+      <p class="say">A <mark>reasoning model</mark> is trained to do it by itself. Its output is <b>reasoning, then answer</b>. The reasoning is usually hidden, but you still <b>pay for every token</b> of it.</p>
+      <div class="activity">
+        <div class="do">Try it: change the thinking effort.</div>
+        <button class="doubt" type="button" data-peek-from="hidePeek" aria-label="Why hide the reasoning?">🤔</button>
+        <div class="tabs">
+          <button id="thLow">Low</button>
+          <button class="on" id="thMed">Medium</button>
+          <button id="thHigh">High</button>
+          <button id="thShow">Show the thinking</button>
+        </div>
+        <div class="bub me" style="max-width:100%">The bear was born in 2020. How old is it now?</div>
+        <div class="think" id="thText"></div>
+        <div class="bub bot" style="justify-self:start">It's 6 years old.</div>
+        <div class="costrow" id="thCost" style="margin-top:10px"></div>
+        <p class="note small" id="thSays"></p>
+      </div>
+      <div hidden id="hidePeek"><b>🤔 Why hide the reasoning?</b>
+        <div style="margin-top:6px"><b>Privacy and safety.</b> It can repeat private details from earlier in the chat.</div>
+        <div style="margin-top:6px"><b>Copying.</b> Good reasoning text can train other models, so companies keep it to themselves.</div>
+      </div>
+      <p class="say">OpenAI showed the first such model in September 2024. DeepSeek-R1 (January 2025) was the first open one to explain how.</p>
+      <p class="hook">How do we train a model to reason?</p>
+    </section>
+
+    <!-- 30 -->
+    <section class="part" data-title="Rewards you can check">
+      <h2>Rewards you can check</h2>
+      <p class="say">For maths and code, we don't need a reward model. We can <b>check</b> the answer: compare it with the known right answer, or run tests on the code.</p>
+      <p class="say">So the reward is simple: is the answer right? And did it reason first, inside <span class="tk sp">&lt;think&gt;</span>…<span class="tk sp">&lt;/think&gt;</span>?</p>
+      <div class="activity">
+        <div class="do">Try it: check each answer to “born in 2020, how old now?”. The right answer is 6.</div>
+        <div class="tabs" id="vrTabs"></div>
+        <div class="prompt" id="vrText"></div>
+        <div class="eqline" id="vrEq"></div>
+      </div>
+      <p class="say">For code, the check is a set of tests: the code gets the reward if every test passes.</p>
+      <p class="hook">How does the model learn from these rewards?</p>
+    </section>
+
+    <!-- 31 -->
+    <section class="part" data-title="GRPO">
+      <h2>GRPO: compare answers in a group</h2>
+      <p class="say"><mark data-peek="Group Relative Policy Optimization, from DeepSeek, 2024.">GRPO</mark> asks the LLM to answer the same question several times. Each answer gets its reward. Then each is compared with the group:<br><b class="eqbox">advantage = reward − group average</b></p>
+      <p class="say">Above average: write more like that. Below: write less like that. And like RLHF, don't drift too far from the starting model.</p>
+      <div class="activity">
+        <div class="do">Try it: make the model answer 6 times.</div>
+        <button class="doubt" type="button" data-peek-from="grpoPeek" aria-label="Is that the whole formula?">🤔</button>
+        <div id="grBars" class="bars"></div>
+        <div class="eqline" id="grEq"></div>
+        <div class="btnrow"><button class="primary" id="grGo">New group</button></div>
+      </div>
+      <div hidden id="grpoPeek"><b>🤔 Is that the whole formula?</b>
+        <div style="margin-top:6px">Almost. GRPO also divides by how spread out the rewards are, so every question pushes about equally hard.</div>
+        <div style="margin-top:6px">The full maths comes with reinforcement learning, next.</div>
+      </div>
+      <p class="hook">What happens as this training goes on?</p>
+    </section>
+
+    <!-- 32 -->
+    <section class="part" data-title="Reasoning grows">
+      <h2>Reasoning grows by itself</h2>
+      <p class="say">DeepSeek trained a model this way, rewarding only right answers and the think format. Nobody told it to think longer.</p>
+      <p class="say">Yet as training went on, it got much better at hard maths, and its reasoning got much <b>longer</b>, all on its own.</p>
+      <div class="activity">
+        <div class="do">Try it: move through training.</div>
+        <div class="slrow">RL step <input type="range" id="rgS" min="0" max="8000" step="100" value="0"> <b id="rgSv"></b></div>
+        <svg class="chart" id="rgChart" viewBox="0 0 560 210" aria-label="Accuracy rising from about 16 to about 71 percent, and reasoning length rising too."></svg>
+        <p class="note" id="rgSays"></p>
+      </div>
+      <p class="say small">Shapes as in the DeepSeek-R1 report (2025); numbers rounded.</p>
+      <p class="hook">Let's see a reasoning model at work.</p>
+    </section>
+
+    <!-- 33 -->
+    <section class="part" data-title="A reasoning model at work">
+      <h2>A reasoning model at work</h2>
+      <p class="say">Here's a question that needs a few steps. Try it yourself first.</p>
+      <div class="activity">
+        <div class="do">Try it: which bear can you wash <b>and</b> dry?</div>
+        <div class="bub me" style="max-width:100%">I have 3 teddy bears. Brown: hand-wash only. Panda: washer-safe, no dryer. Polar: washer and dryer safe. Washing and drying take 15 min each. I leave in 30 min. Which bear can I wash and dry?</div>
+        <div class="btnrow" id="bwBtns">
+          <button id="bwBrown">Brown</button>
+          <button id="bwPanda">Panda</button>
+          <button id="bwPolar">Polar</button>
+        </div>
+        <div id="bwOut"></div>
+      </div>
+      <p class="hook">There are two kinds of training signal. Let's put them side by side.</p>
+    </section>
+
+    <!-- 34 -->
+    <section class="part" data-title="Off-policy and on-policy">
+      <h2>Off-policy and on-policy</h2>
+      <p class="say">Two questions describe any training method. <b>Who wrote the text it learns from</b>: someone else (<mark>off-policy</mark>) or the model itself (<mark>on-policy</mark>)?</p>
+      <p class="say">And <b>how detailed is the feedback</b>: a mark for every token (<mark>dense</mark>), or one reward for the whole answer (<mark>sparse</mark>)?</p>
+      <div class="activity">
+        <div class="do">Try it: place each method.</div>
+        <div class="tabs" id="opTabs"></div>
+        <div class="grid2" id="opGrid"></div>
+        <p class="note" id="opSays"></p>
+      </div>
+      <p class="hook">Can we fill the empty corner?</p>
+    </section>
+
+    <!-- 35 -->
+    <section class="part" data-title="On-policy distillation">
+      <h2>On-policy distillation</h2>
+      <p class="say">The model being trained, the <b>student</b>, writes an answer. A stronger <b>teacher</b> model then marks <b>every token</b>: how likely would it have written that token itself?</p>
+      <p class="say">The student is pushed toward the teacher's choices. The text is the student's own (on-policy), and the feedback is per token (dense). This is <mark>on-policy distillation</mark>.</p>
+      <div class="activity">
+        <div class="do">Try it: compare the two kinds of feedback.</div>
+        <button class="doubt" type="button" data-peek-from="opdPeek" aria-label="What if there's no stronger teacher?">🤔</button>
+        <div class="tabs">
+          <button id="odOne">One reward for all</button>
+          <button class="on" id="odEach">Teacher marks each token</button>
+        </div>
+        <div class="trow" id="odRow"></div>
+        <p class="note" id="odSays"></p>
+      </div>
+      <div hidden id="opdPeek"><b>🤔 What if there's no stronger teacher?</b>
+        <div style="margin-top:6px"><b>Self-distillation:</b> the same model plays teacher, but it is shown the right answer first, so it knows where to steer.</div>
+        <div style="margin-top:6px"><b>Many teachers:</b> one expert in maths, one in coding, and so on. The student learns from each.</div>
+      </div>
+      <p class="hook">Let's see all these stages in one real model.</p>
+    </section>
+
+    <!-- 36 -->
+    <section class="part" data-title="A real recipe: GLM-5">
+      <h2>A real recipe: GLM-5</h2>
+      <p class="say">Open-weight models often publish how they were trained. <mark data-peek="By Z.ai, released in 2026. Among the strongest open models on the Artificial Analysis rankings, which combine many tests into one score.">GLM-5</mark> has a detailed report. Here are its stages.</p>
+      <div class="activity">
+        <div class="do">Try it: step through the stages.</div>
+        <div class="stagebar" id="glBar"></div>
+        <div id="glOut"></div>
+        <div class="btnrow"><button id="glBack" hidden>← Back</button><button class="primary" id="glNext">Next stage →</button></div>
+      </div>
+      <p class="hook">Pretraining and midtraining fill their windows in different ways.</p>
+    </section>
+
+    <!-- 37 -->
+    <section class="part" data-title="Packing text into windows">
+      <h2>Packing text into windows</h2>
+      <p class="say">Training reads text in fixed-size windows. Documents have all sorts of lengths. How do we fill the windows?</p>
+      <p class="say"><b>Concatenate and chunk</b> (pretraining): join all documents end to end and cut every window full, even mid-document. <b>Best-fit packing</b> (midtraining): fit whole documents where they fit best, and fill the gaps with <span class="tk sp">[PAD]</span>.</p>
+      <div class="activity">
+        <div class="do">Try it: pack 7 documents into windows of 8 tokens.</div>
+        <div class="tabs">
+          <button class="on" id="pkChunk">Concatenate and chunk</button>
+          <button id="pkFit">Best-fit packing</button>
+        </div>
+        <div class="wins" id="pkWins"></div>
+        <p class="note" id="pkSays2"></p>
+      </div>
+      <p class="hook">There's one more danger in the data itself.</p>
+    </section>
+
+    <!-- 38 -->
+    <section class="part" data-title="Model collapse">
+      <h2>Model collapse</h2>
+      <p class="say">The first LLMs read text written by people. Today, much of the web is written by AI.</p>
+      <p class="say">Train on AI text, and the model learns from a <b>finite sample</b> of another model's writing. Rare words and ideas get missed, and once missed, they are gone for good. Repeat this, and the model <mark data-peek="Also, each provider's models overuse their own pet phrases, like “load-bearing” or “zero in”. Those spread too. So data is filtered with rules and classifiers, and sorted by quality.">collapses</mark> into a dull, narrow version of language.</p>
+      <div class="activity">
+        <div class="do">Try it: each generation learns only from 60 words written by the one before.</div>
+        <div id="mcBars" class="bars"></div>
+        <div class="btnrow"><button class="primary" id="mcGo">Next generation</button></div>
+        <p class="note" id="mcSays"></p>
+      </div>
+      <p class="hook">That was a lot. What matters most?</p>
+    </section>
+
+    <!-- 39 -->
+    <section class="part" data-title="What matters most">
+      <h2>What matters most</h2>
+      <div class="cards">
+        <div class="card"><h3>📚 Pretraining</h3><p>Guess the next token over trillions of tokens. The model learns language, code and facts, up to a cutoff.</p></div>
+        <div class="card"><h3>🧑‍🏫 Fine-tuning</h3><p>Input–output pairs teach behaviour, with loss on the answer only. LoRA makes it cheap.</p></div>
+        <div class="card"><h3>⚖️ Preferences</h3><p>Pairs teach what's better. RLHF uses a reward model; DPO skips it.</p></div>
+        <div class="card"><h3>🧠 Reasoning</h3><p>Checkable rewards and GRPO teach the model to think before it answers.</p></div>
+      </div>
+      <div class="quiz" data-right="Right. Maths answers can be checked against the known answer, so no reward model is needed.">
+        <div class="q">You want a model better at maths competition problems. Which training fits best?</div>
+        <div class="options">
+          <button data-why="SFT copies answers people wrote. It helps, but it doesn't let the model discover its own reasoning.">More fine-tuning pairs</button>
+          <button data-right>RL with checkable rewards, like GRPO</button>
+          <button data-why="A preference reward model judges tone and helpfulness. For maths we can simply check the answer.">RLHF with a reward model of human tastes</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+      <p class="hook">Where does this leave us?</p>
+    </section>
+
+    <!-- 40 -->
+    <section class="part" data-title="Where we go from here">
+      <h2>Where we go from here</h2>
+      <ul class="timeline">
+        <li><span class="yr">1</span><div class="what n-b"><b>Pretraining and midtraining</b>Learn language, code and facts; then better text and longer windows.</div></li>
+        <li><span class="yr">2</span><div class="what n-y"><b>Fine-tuning</b>Become a helpful assistant, cheaply with LoRA.</div></li>
+        <li><span class="yr">3</span><div class="what n-p"><b>Preference tuning</b>Prefer better answers: RLHF or DPO.</div></li>
+        <li><span class="yr">4</span><div class="what n-g"><b>Reasoning</b>Think first, trained with checkable rewards and distillation.</div></li>
+      </ul>
+      <p class="say">In this lesson: pretraining → fine-tuning → preferences → reasoning → distillation → a real recipe. ✓</p>
+      <div class="open-question">
+        <div>This leaves a question</div>
+        <div class="big">Much of this training uses rewards instead of right answers. How does a model learn from a reward?</div>
+        <div>The next lesson answers it. Coming soon.</div>
+      </div>
+      <p><button class="done-toggle" data-done="4">Mark lesson as done</button></p>
+    </section>
+  </main>
+</div>
+
+<nav class="pagebar" aria-label="Move between parts">
+  <div class="inner">
+    <button data-page-back>← Previous</button>
+    <span data-page-label></span>
+    <button class="primary" data-page-next>Next →</button>
+  </div>
+</nav>
+
+<script src="../assets/course.js"></script>
+<script src="https://mo-ri-ch.github.io/study-notebook-design/v1/common.js"></script>
+<script src="https://mo-ri-ch.github.io/study-notebook-design/v1/pen.js"></script>
+<script src="https://mo-ri-ch.github.io/study-notebook-design/v1/guide.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const pct = x => Math.round(x * 100) + "%";
+const f2 = x => (Math.round(x * 100) / 100).toFixed(2);
+const sig = x => 1 / (1 + Math.exp(-x));
+const setOn = (pairs, which) => pairs.forEach(([id, v]) => $(id).classList.toggle("on", v === which));
+const barHTML = (label, share, opts = {}) => `<div class="bar ${opts.score == null ? "nosc" : ""} ${opts.top ? "top" : ""} ${opts.neg ? "neg" : ""}">
+  <span>${label}</span>${opts.score == null ? "" : `<span class="sc">${opts.score}</span>`}
+  <span class="track"><span class="fill" style="width:${Math.max(0, Math.min(1, share)) * 100}%"></span></span><span class="pct">${opts.right == null ? pct(share) : opts.right}</span></div>`;
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+// Seeded random numbers, so every reader sees the same "random" run
+function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+// A small line chart: xs → ys, in a viewBox 560 × H
+function lineChart(svg, { xmin, xmax, ymin, ymax, H = 200, xt = [], yt = [], xl = "", yl = "", series = [], dots = [], extra = "" }) {
+  const L = 52, R = 540, T = 14, B = H - 36;
+  const X = x => L + (x - xmin) / (xmax - xmin) * (R - L), Y = y => B - (y - ymin) / (ymax - ymin) * (B - T);
+  let s = `<line class="ax" x1="${L}" y1="${B}" x2="${R}" y2="${B}"/><line class="ax" x1="${L}" y1="${T}" x2="${L}" y2="${B}"/>`;
+  s += xt.map(([v, t]) => `<line class="gr" x1="${X(v)}" y1="${T}" x2="${X(v)}" y2="${B}"/><text class="tl" x="${X(v)}" y="${B + 15}" text-anchor="middle">${t}</text>`).join("");
+  s += yt.map(([v, t]) => `<line class="gr" x1="${L}" y1="${Y(v)}" x2="${R}" y2="${Y(v)}"/><text class="tl" x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${t}</text>`).join("");
+  s += `<text class="tt" x="${(L + R) / 2}" y="${H - 3}" text-anchor="middle">${xl}</text><text class="tt" x="12" y="${(T + B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(T + B) / 2})">${yl}</text>`;
+  s += series.map(se => `<path class="cv ${se.cls}" ${se.dash ? 'stroke-dasharray="6 5"' : ""} d="${se.pts.map(([x, y], i) => (i ? "L" : "M") + X(x).toFixed(1) + "," + Y(y).toFixed(1)).join(" ")}"/>`).join("");
+  s += dots.map(d => `<circle cx="${X(d.x)}" cy="${Y(d.y)}" r="6" class="${d.cls}" stroke="var(--ink)" stroke-width="1.5"/>` + (d.label ? `<text class="cl ${d.cls}" x="${X(d.x) + (d.left ? -10 : 10)}" y="${Y(d.y) - 10}" text-anchor="${d.left ? "end" : "start"}">${d.label}</text>` : "")).join("");
+  svg.innerHTML = s + (typeof extra === "function" ? extra(X, Y) : extra);
+}
+// The same question, asked of the model after each stage of training
+const WASH_Q = "Can I put my teddy bear in the washer?";
+const WASH_A = {
+  pre: "Teddy bears are often made of materials like polyester and cotton, with plastic eyes and sometimes small accessories such as ribbons or bells. Many collectors…",
+  sft: "No, it might get damaged. Try hand-washing it instead.",
+  pref: "It's better not to. Your teddy could get hurt! A gentle hand wash is safer. 🧸",
+};
+
+// ---------- 1: one model per job, or learn once ----------
+(function paradigm() {
+  let mode = "old";
+  const JOBS = ["Catch spam", "Happy or unhappy?", "Translate"];
+  function draw() {
+    const nw = mode === "new";
+    let s = `<defs><marker id="hdP" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--pen)"/></marker></defs>`;
+    if (nw) s += `<rect x="30" y="70" width="190" height="70" rx="12" class="bx y"/><text x="125" y="102" class="t">Pretrained model</text><text x="125" y="124" class="ts">learns language once</text>`;
+    JOBS.forEach((j, i) => {
+      const y = 12 + i * 66, x = nw ? 380 : 210;
+      if (nw) s += `<path d="M222,105 C300,105 300,${y + 26} ${x - 4},${y + 26}" class="ar" style="marker-end:url(#hdP)"/>`;
+      else s += `<text x="${x - 18}" y="${y + 31}" class="tm" text-anchor="end">from zero →</text>`;
+      s += `<rect x="${x}" y="${y}" width="200" height="52" rx="10" class="bx"/><text x="${x + 100}" y="${y + 24}" class="t">${j}</text><text x="${x + 100}" y="${y + 42}" class="ts">${nw ? "tuned a little" : "learns language again"}</text>`;
+    });
+    $("pdPic").innerHTML = s;
+    $("pdSays").innerHTML = nw
+      ? "<b>Learn once, then tune.</b> The costly part, learning language, is done one time. Each job only needs a small, cheap tuning step."
+      : "<b>One model per job.</b> Three models, three trainings from zero, and each has to learn what words mean all over again.";
+    setOn([["pdOld", "old"], ["pdNew", "new"]], mode);
+  }
+  $("pdOld").onclick = () => { mode = "old"; draw(); };
+  $("pdNew").onclick = () => { mode = "new"; draw(); };
+  addReset("pdPic", () => { mode = "old"; draw(); });
+  draw();
+})();
+
+// ---------- 2 & 5: our text and the model's (made-up) chances ----------
+const NT = ["[BOS]", "A", "teddy", "bear", "is", "reading", "Persian", "poetry", "."];
+// After NT[i], the chance of the real next token NT[i+1], and the model's other top guesses
+const NTG = [
+  { p: 0.09, alt: [["The", 0.18], ["I", 0.07]] },
+  { p: 0.04, alt: [["few", 0.07], ["lot", 0.06]] },
+  { p: 0.92, alt: [["bears", 0.03], ["’s", 0.02]] },
+  { p: 0.31, alt: [["was", 0.20], ["sat", 0.12]] },
+  { p: 0.06, alt: [["a", 0.14], ["sitting", 0.09]] },
+  { p: 0.01, alt: [["a", 0.38], ["the", 0.21]] },
+  { p: 0.34, alt: [["literature", 0.12], ["books", 0.08]] },
+  { p: 0.41, alt: [[",", 0.18], ["and", 0.11]] },
+];
+(function nextToken() {
+  let t = 0;
+  function draw() {
+    $("ntToks").innerHTML = NT.map((w, i) => `<span class="tk ${i === 0 ? "sp" : ""} ${i <= t ? "" : "blank"} ${i === t ? "seen" : ""}">${i <= t ? w : "?"}</span>`).join("");
+    const g = NTG[t];
+    if (!g) {
+      $("ntBars").innerHTML = "";
+      $("ntSays").innerHTML = "That's the whole text. A real model does this over trillions of tokens, and each wrong guess nudges its weights a little.";
+      $("ntNext").hidden = true;
+      return;
+    }
+    const rows = [[NT[t + 1], g.p, true], ...g.alt.map(([w, p]) => [w, p, false])].sort((a, b) => b[1] - a[1]);
+    $("ntBars").innerHTML = `<div class="bar head nosc"><span>next token?</span><span>model's chance</span><span></span></div>` +
+      rows.map(([w, p, r]) => barHTML(r ? `<b>${w}</b> ✓` : w, p, { top: r })).join("");
+    $("ntSays").innerHTML = `After “${NT[t]}”, the real next token is <b>${NT[t + 1]}</b>. The model gave it <b>${pct(g.p)}</b>. ` +
+      (g.p > 0.5 ? "Easy: it was sure." : rows[0][2] ? "Its top guess, and right." : `Its top guess was “${rows[0][0]}”, so it learns from this.`);
+    $("ntNext").hidden = false;
+  }
+  $("ntNext").onclick = () => { t++; draw(); };
+  addReset("ntToks", () => { t = 0; draw(); });
+  draw();
+})();
+
+// ---------- 3: all positions at once ----------
+(function teacherForcing() {
+  const IN = NT.slice(0, 6), OUT = NT.slice(1, 7);
+  let sel = 3;
+  function draw() {
+    $("tfRow").innerHTML = IN.map((w, i) => `<div class="tcol"><small>guess: ${i === sel ? "<b>" + OUT[i] + "</b>" : OUT[i]}</small>
+      <span class="tk pick ${i === 0 ? "sp" : ""} ${i === sel ? "sel" : i < sel ? "seen" : "lo"}" data-i="${i}">${w}</span><small>${i < sel ? "seen" : i === sel ? "itself" : "hidden"}</small></div>`).join("");
+    $("tfRow").querySelectorAll(".tk").forEach(el => el.onclick = () => { sel = +el.dataset.i; draw(); });
+    $("tfSays").innerHTML = `Position <b>${sel + 1}</b> (“${IN[sel]}”) may look at ${sel === 0 ? "only itself" : `“${IN.slice(0, sel + 1).join(" ")}”`}. It must guess <b>${OUT[sel]}</b>, which it can't see. All ${IN.length} positions make their guesses in the same pass.`;
+  }
+  addReset("tfRow", () => { sel = 3; draw(); });
+  draw();
+})();
+
+// ---------- 4: the log ----------
+(function logs() {
+  function draw() {
+    const p = +$("lgP").value / 100, s = -Math.log(p);
+    $("lgPv").textContent = p.toFixed(2);
+    const pts = []; for (let x = 0.01; x <= 1.0001; x += 0.01) pts.push([x, -Math.log(x)]);
+    lineChart($("lgChart"), { xmin: 0, xmax: 1, ymin: 0, ymax: 4.7, xt: [[0, "0"], [0.25, "0.25"], [0.5, "0.5"], [0.75, "0.75"], [1, "1"]], yt: [[0, "0"], [1, "1"], [2, "2"], [3, "3"], [4, "4"]],
+      xl: "chance of the right token, p", yl: "−log p", series: [{ cls: "c2", pts }], dots: [{ x: p, y: s, cls: "f3", label: s.toFixed(2), left: p > 0.7 }] });
+    $("lgSays").innerHTML = `−log ${p.toFixed(2)} = <b>${s.toFixed(2)}</b>. ` + (p >= 0.95 ? "Almost no surprise." : p < 0.1 ? "A big surprise: the model gave the right token a tiny chance." : "Some surprise.");
+  }
+  $("lgP").oninput = draw;
+  addReset("lgP", () => { $("lgP").value = 50; draw(); });
+  draw();
+})();
+
+// ---------- 5: cross-entropy ----------
+(function crossEntropy() {
+  let ps = NTG.map(g => g.p), steps = 0;
+  function draw() {
+    const T = ps.length, sum = ps.reduce((s, p) => s - Math.log(p), 0);
+    $("ceBars").innerHTML = `<div class="bar head"><span>right token</span><span>−log p</span><span>its chance p</span><span></span></div>` +
+      ps.map((p, i) => barHTML(NT[i + 1], p, { score: (-Math.log(p)).toFixed(2) })).join("");
+    $("ceEq").innerHTML = `loss = (${ps.map(p => (-Math.log(p)).toFixed(2)).join(" + ")}) ÷ ${T}<br>= ${sum.toFixed(2)} ÷ ${T} = <b>${(sum / T).toFixed(2)}</b>` +
+      (steps ? `<br><span class="small">After ${steps} training step${steps > 1 ? "s" : ""}: the model gives this text a higher chance.</span>` : "");
+    $("ceGo").hidden = steps >= 6;
+  }
+  $("ceGo").onclick = () => { ps = ps.map(p => p + 0.3 * (1 - p)); steps++; draw(); };
+  addReset("ceBars", () => { ps = NTG.map(g => g.p); steps = 0; draw(); });
+  draw();
+})();
+
+// ---------- 6: bits per byte ----------
+(function bpb() {
+  const TEXT = "A teddy bear is reading Persian poetry.", B = TEXT.length, NATS = 13.5;
+  const TOK = { big: ["A", "teddy", "bear", "is", "reading", "Persian", "poetry", "."], small: ["A", "ted", "dy", "bear", "is", "read", "ing", "Pers", "ian", "po", "etry", "."] };
+  let k = "big";
+  function draw() {
+    const t = TOK[k], T = t.length, ce = NATS / T, b = ce * T / B / Math.LN2;
+    $("bpToks").innerHTML = t.map(w => `<span class="tk">${w}</span>`).join("");
+    $("bpEq").innerHTML = `T = ${T} tokens, B = ${B} bytes. Total surprise over the text: ${NATS} (the same for both).<br>
+      loss = ${NATS} ÷ ${T} = <b>${ce.toFixed(2)}</b> per token<br>
+      BPB = ${ce.toFixed(2)} × ${T}/${B} × 1/${Math.LN2.toFixed(3)} = <b>${b.toFixed(2)}</b> bits per byte`;
+    setOn([["bpBig", "big"], ["bpSmall", "small"]], k);
+  }
+  $("bpBig").onclick = () => { k = "big"; draw(); };
+  $("bpSmall").onclick = () => { k = "small"; draw(); };
+  addReset("bpToks", () => { k = "big"; draw(); });
+  draw();
+})();
+
+// ---------- 7: data sources ----------
+(function dataMix() {
+  const SRC = {
+    web: ["<b>Teddy bear</b> — from an online encyclopedia\nA teddy bear is a stuffed toy in the form of a bear. It was named after\nTheodore “Teddy” Roosevelt, a US president, in the early 1900s…",
+      "Billions of pages. Most of the raw web is junk or repeats, so it gets heavily filtered first."],
+    code: ["# teddy_bear.py\nclass TeddyBear:\n    def __init__(self, name):\n        self.name = name\n\n    def hug(self):\n        return f\"{self.name} gives you a big hug!\"",
+      "Code from places like GitHub teaches exact, step-by-step thinking. Agents later rely on it."],
+    math: ["A bear sits on a shelf 2 m high. It falls.\nHow long until it reaches the floor? (g = 9.8 m/s²)\n\nt = √(2h / g) = √(4 / 9.8) ≈ 0.64 s",
+      "Worked maths and science problems, from papers and textbooks, help the model learn to reason."],
+  };
+  let k = "web";
+  function draw() {
+    $("dmText").innerHTML = SRC[k][0];
+    $("dmSays").textContent = SRC[k][1];
+    setOn([["dmWeb", "web"], ["dmCode", "code"], ["dmMath", "math"]], k);
+  }
+  $("dmWeb").onclick = () => { k = "web"; draw(); };
+  $("dmCode").onclick = () => { k = "code"; draw(); };
+  $("dmMath").onclick = () => { k = "math"; draw(); };
+  addReset("dmText", () => { k = "web"; draw(); });
+  draw();
+})();
+
+// ---------- 8: reading the same text again ----------
+(function repeat() {
+  // Data-constrained scaling (Muennighoff et al., 2023): worth = U × (1 + R*(1 − e^(−(n−1)/R*))), R* ≈ 15.4
+  const U = 100, RS = 15.4, worth = n => U * (1 + RS * (1 - Math.exp(-(n - 1) / RS)));
+  function draw() {
+    const n = +$("rpN").value, w = worth(n);
+    $("rpNv").textContent = n + (n === 1 ? " pass" : " passes");
+    const pts = []; for (let x = 1; x <= 40; x += 0.5) pts.push([x * U / 1000, worth(x) / 1000]);
+    lineChart($("rpChart"), { H: 220, xmin: 0, xmax: 4, ymin: 0, ymax: 4, xt: [[0, "0"], [1, "1T"], [2, "2T"], [3, "3T"], [4, "4T"]], yt: [[0, "0"], [1, "1T"], [2, "2T"], [3, "3T"], [4, "4T"]],
+      xl: "tokens read", yl: "worth this much new text",
+      series: [{ cls: "c1", dash: true, pts: [[0, 0], [4, 4]] }, { cls: "c2", pts: [[0, 0], ...pts] }], dots: [{ x: n * U / 1000, y: w / 1000, cls: "f3", label: "", left: n > 25 }],
+      extra: (X, Y) => `<text class="tl" x="${X(2.1)}" y="${Y(2.75)}" text-anchor="end">all new text</text>` });
+    const share = w / (n * U);
+    $("rpSays").innerHTML = `${n} × 100B = <b>${n * U >= 1000 ? (n * U / 1000).toFixed(1) + "T" : n * U + "B"}</b> tokens read, worth about <b>${w >= 1000 ? (w / 1000).toFixed(2) + "T" : Math.round(w) + "B"}</b> of new text (${pct(share)}). ` +
+      (n <= 4 ? "Almost as good as new." : n <= 16 ? "Still useful, but each pass adds less." : "Most extra passes now add little.");
+  }
+  $("rpN").oninput = draw;
+  addReset("rpN", () => { $("rpN").value = 4; draw(); });
+  draw();
+})();
+
+// ---------- 9: pretraining or midtraining? ----------
+(function midSort() {
+  const ITEMS = [
+    ["A random forum post about the weather", "pre", "Everyday web text: good for learning how language works, but not high quality."],
+    ["A maths competition problem, solved carefully step by step", "mid", "High-quality reasoning text, matching a skill we want."],
+    ["A GitHub issue, plus the code change that fixed it", "mid", "Long, high-quality code work: the kind of task we want the model good at."],
+    ["A web page listing teddy bear shops", "pre", "Ordinary web text, read in bulk during pretraining."],
+    ["A whole book, read from start to end", "mid", "Very long text: it teaches the model to use things said far back."],
+  ];
+  let i = 0, ans = null, right = 0;
+  function draw() {
+    const [txt, k, why] = ITEMS[i];
+    $("mtItem").textContent = "📄 " + txt;
+    const done = ans != null;
+    $("mtPre").hidden = $("mtMid").hidden = done;
+    $("mtNext").hidden = !done || i === ITEMS.length - 1;
+    $("mtSays").innerHTML = !done ? `Text ${i + 1} of ${ITEMS.length}.` :
+      `${ans === k ? "✓ Right." : "✗ Not quite."} <b>${k === "pre" ? "Pretraining" : "Midtraining"}</b>: ${why}` + (i === ITEMS.length - 1 ? ` You got ${right} of ${ITEMS.length}.` : "");
+  }
+  const pick = k => { ans = k; if (k === ITEMS[i][1]) right++; draw(); };
+  $("mtPre").onclick = () => pick("pre");
+  $("mtMid").onclick = () => pick("mid");
+  $("mtNext").onclick = () => { i++; ans = null; draw(); };
+  addReset("mtItem", () => { i = 0; ans = null; right = 0; draw(); });
+  draw();
+})();
+
+// ---------- 10: RoPE hands at far positions ----------
+(function longCtx() {
+  // Fast hand: many turns in 4K positions. Slow hand: only 90° in 4K positions.
+  const FAST = 2 * Math.PI / 37, SLOW = (Math.PI / 2) / 4000, SEEN = Math.PI / 2;
+  let sq = false;
+  const clock = (ang, seenArc, label, bad) => {
+    const a = ang - Math.PI / 2, x = 38 + 28 * Math.cos(a), y = 38 + 28 * Math.sin(a);
+    const arc = seenArc >= 2 * Math.PI - 0.01 ? `<circle cx="38" cy="38" r="33" fill="var(--hl-green)" opacity=".45"/>` :
+      `<path d="M38,38 L38,5 A33,33 0 ${seenArc > Math.PI ? 1 : 0} 1 ${38 + 33 * Math.sin(seenArc)},${38 - 33 * Math.cos(seenArc)} Z" fill="var(--hl-green)" opacity=".45"/>`;
+    return `<div class="clock"><svg viewBox="0 0 76 76"><circle cx="38" cy="38" r="33" class="face"/>${arc}<line x1="38" y1="38" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="hand" ${bad ? "" : 'style="stroke:var(--pen)"'}/></svg>${label}</div>`;
+  };
+  function draw() {
+    const pos = +$("lcPos").value, slowPos = sq ? pos / 4 : pos;
+    const fa = (pos * FAST) % (2 * Math.PI), sa = slowPos * SLOW, bad = sa > SEEN + 1e-9;
+    $("lcPosv").textContent = pos.toLocaleString("en");
+    $("lcClocks").innerHTML = clock(fa, 2 * Math.PI, "fast hand", false) + clock(Math.min(sa, 2 * Math.PI - 0.001), SEEN, `slow hand: ${Math.round(sa * 180 / Math.PI)}°`, bad);
+    $("lcSq").textContent = sq ? "Don't squeeze" : "Squeeze the slow hand";
+    $("lcSq").classList.toggle("on", sq);
+    $("lcSays").innerHTML = `Green = angles seen in training (positions 0 to 4,000). ` +
+      (bad ? `At ${pos.toLocaleString("en")}, the slow hand is at ${Math.round(sa * 180 / Math.PI)}°: <b>never seen</b>. The model may get confused.` :
+        sq && pos > 4000 ? `Squeezed: the slow hand turns 4 times slower, so position ${pos.toLocaleString("en")} lands at ${Math.round(sa * 180 / Math.PI)}°, inside what it knows. A little more training gets it used to the change.` :
+          "Both hands point to angles the model knows. The fast hand went round many times, so it has seen every angle.");
+  }
+  $("lcPos").oninput = draw;
+  $("lcSq").onclick = () => { sq = !sq; draw(); };
+  addReset("lcPos", () => { $("lcPos").value = 2000; sq = false; draw(); });
+  draw();
+})();
+
+// ---------- 12: ask the pretrained model ----------
+(function askPre() {
+  let asked = false;
+  function draw() {
+    $("ptChat").innerHTML = `<div class="bub me">${WASH_Q}</div>` + (asked ? `<div class="bub bot">${WASH_A.pre}</div>` : "");
+    $("ptGo").hidden = asked;
+    $("ptSays").innerHTML = asked ? "It doesn't answer. It <b>continues the text</b>, the way a web page about teddy bears might. That's all it was trained to do: guess the next token.<br><span class=\"small\">Example answer written for this page.</span>" : "";
+  }
+  $("ptGo").onclick = () => { asked = true; draw(); };
+  addReset("ptChat", () => { asked = false; draw(); });
+  draw();
+})();
+
+// ---------- 13: SFT example pairs ----------
+(function sftPairs() {
+  const P = [
+    ["Story", "Write a short story about a teddy bear who likes to read poetry.", "Every night, when the house went quiet, Pip the teddy bear climbed onto the bookshelf. He opened his favourite book of poems and read by moonlight, whispering each line, until he fell asleep smiling."],
+    ["List", "List three fun activities a teddy bear might do on a rainy day.", "Sure!<br>1. Build a blanket fort.<br>2. Read poems by the window.<br>3. Have a tea party with friends."],
+    ["Poem", "Create a poem about my cute teddy bear.", "Soft brown fur and button eyes,<br>you listen to my long goodbyes.<br>Through every storm and sleepy night,<br>you hold me close and hug me tight."],
+    ["Explain", "Explain why a teddy bear is a great friend.", "A teddy bear is always there for you. It's soft to hug when you feel sad, it never gets tired of listening, and it keeps you company at night."],
+  ];
+  let k = 0;
+  function draw() {
+    $("sfTabs").innerHTML = P.map((p, i) => `<button class="${i === k ? "on" : ""}" data-i="${i}">${p[0]}</button>`).join("");
+    $("sfTabs").querySelectorAll("button").forEach(b => b.onclick = () => { k = +b.dataset.i; draw(); });
+    $("sfChat").innerHTML = `<div class="small" style="color:var(--pencil)">Input</div><div class="bub me">${P[k][1]}</div><div class="small" style="color:var(--pencil);justify-self:end">Output we want</div><div class="bub bot">${P[k][2]}</div>`;
+  }
+  addReset("sfChat", () => { k = 0; draw(); });
+  draw();
+})();
+
+// ---------- 14: loss only on the answer ----------
+(function sftLoss() {
+  const INS = ["[BOS]", "Explain", "why", "a", "teddy", "bear", "is", "a", "great", "friend", "."], ANS = ["It", "gives", "comfort", "and", "hugs", ".", "[EOS]"];
+  let mode = "sft";
+  function draw() {
+    const all = mode === "pre";
+    $("slRow").innerHTML = INS.map((w, i) => `<div class="tcol"><span class="tk ${i === 0 ? "sp" : ""} ${all ? "an" : "pr"}">${w}</span><small>${all ? (i ? "✓" : "") : ""}</small></div>`).join("") +
+      ANS.map(w => `<div class="tcol"><span class="tk an">${w}</span><small>✓</small></div>`).join("");
+    const n = all ? INS.length - 1 + ANS.length : ANS.length;
+    $("slSays").innerHTML = all
+      ? `<b>Pretraining:</b> every token after [BOS] is a guess that counts (✓): <b>${n}</b> tokens in the loss.`
+      : `<b>Fine-tuning:</b> the instruction (blue) is only read. Only the answer (pink, ✓) is guessed and counts: <b>${n}</b> tokens in the loss, so T = ${n}.`;
+    setOn([["slSft", "sft"], ["slPre", "pre"]], mode);
+  }
+  $("slSft").onclick = () => { mode = "sft"; draw(); };
+  $("slPre").onclick = () => { mode = "pre"; draw(); };
+  addReset("slRow", () => { mode = "sft"; draw(); });
+  draw();
+})();
+
+// ---------- 15 & 27: ask the model after each stage ----------
+function stageChat(box, btns, start) {
+  let k = start;
+  function draw() {
+    $(box).innerHTML = `<div class="bub me">${WASH_Q}</div><div class="bub bot">${WASH_A[k]}</div>`;
+    setOn(btns, k);
+  }
+  btns.forEach(([id, v]) => $(id).onclick = () => { k = v; draw(); });
+  addReset(box, () => { k = start; draw(); });
+  draw();
+}
+stageChat("afChat", [["afPre", "pre"], ["afSft", "sft"]], "sft");
+stageChat("stChat", [["stPre", "pre"], ["stSft", "sft"], ["stPref", "pref"]], "pref");
+
+// ---------- 16: a big table from a column and a row ----------
+(function lowRank() {
+  const B0 = [1, 2, 0, -1], A0 = [3, 1, 2, 1];
+  let b = B0.slice(), a = A0.slice();
+  function draw() {
+    const inp = (v, k, i) => `<input type="text" inputmode="numeric" value="${v}" data-k="${k}" data-i="${i}" aria-label="${k === "b" ? "column" : "row"} number ${i + 1}">`;
+    $("lrBox").innerHTML = `<div class="matlbl"><div class="mat" style="grid-template-columns:auto">${b.map((v, i) => `<span>${inp(v, "b", i)}</span>`).join("")}</div><small>column (4)</small></div>
+      <span>×</span>
+      <div class="matlbl"><div class="mat" style="grid-template-columns:repeat(4,auto)">${a.map((v, i) => `<span>${inp(v, "a", i)}</span>`).join("")}</div><small>row (4)</small></div>
+      <span>=</span>
+      <div class="matlbl"><div class="mat" style="grid-template-columns:repeat(4,auto)">${b.map(x => a.map(y => `<span>${x * y}</span>`).join("")).join("")}</div><small>table (16)</small></div>`;
+    $("lrBox").querySelectorAll("input").forEach(el => el.onchange = () => {
+      const v = Math.max(-9, Math.min(9, Math.round(+el.value) || 0));
+      (el.dataset.k === "b" ? b : a)[+el.dataset.i] = v; draw();
+    });
+    $("lrSays").innerHTML = `Row ${1}, column ${2}: ${b[0]} × ${a[1]} = <b>${b[0] * a[1]}</b>. Every cell comes from just two numbers.`;
+  }
+  addReset("lrBox", () => { b = B0.slice(); a = A0.slice(); draw(); });
+  draw();
+})();
+
+// ---------- 17: LoRA sizes ----------
+(function lora() {
+  const DS = [1024, 2048, 4096, 8192], RS = [1, 2, 4, 8, 16, 32, 64];
+  const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(1) + " million" : n.toLocaleString("en");
+  function draw() {
+    const d = DS[+$("loD").value], r = RS[+$("loR").value], full = d * d, lo = 2 * d * r;
+    $("loDv").textContent = d.toLocaleString("en"); $("loRv").textContent = r;
+    const S = 110, w = 4 + Math.sqrt(r) * 3;
+    $("loBoxes").innerHTML = `<div class="matlbl"><div class="m w0" style="width:${S}px;height:${S}px">W₀ ❄</div><small>${d} × ${d}</small></div><span>+</span>
+      <div class="matlbl"><div class="m b" style="width:${w}px;height:${S}px"></div><small>B: ${d} × ${r}</small></div><span>×</span>
+      <div class="matlbl"><div class="m a" style="width:${S}px;height:${w}px"></div><small>A: ${r} × ${d}</small></div>`;
+    $("loSays").innerHTML = `Changing all of W: <b>${fmt(full)}</b> numbers to learn.<br>LoRA: 2 × ${d.toLocaleString("en")} × ${r} = <b>${fmt(lo)}</b>, which is <b>${(100 * lo / full).toFixed(lo / full < 0.01 ? 2 : 1)}%</b> of them.<br><span class="small">B and A are drawn wider than real, so you can see them.</span>`;
+  }
+  $("loD").oninput = draw; $("loR").oninput = draw;
+  addReset("loD", () => { $("loD").value = 2; $("loR").value = 3; draw(); });
+  draw();
+})();
+
+// ---------- 18: swap the small tables, swap the job ----------
+(function adapters() {
+  const J = { spam: ["Catch spam", "var(--note-pink)"], sent: ["Happy or unhappy?", "var(--note-green)"], tr: ["Translate", "var(--note-orange)"] };
+  let k = "spam";
+  function draw() {
+    $("adBoxes").innerHTML = `<div class="matlbl"><div class="m w0" style="width:110px;height:110px">W₀ ❄<br>shared</div><small>one copy</small></div><span>+</span>
+      ${Object.entries(J).map(([key, [name, col]]) => `<div class="matlbl" style="opacity:${key === k ? 1 : .28}"><div class="m" style="width:12px;height:110px;background:${col}"></div><small>${key === k ? name : ""}</small></div>`).join("")}`;
+    $("adSays").innerHTML = `Now doing: <b>${J[k][0]}</b>. Only its B and A are switched in.<br>
+      For a model with 7 billion weights (16-bit): 3 full copies ≈ 3 × 14 GB = <b>42 GB</b>.<br>
+      One W₀ + 3 small add-ons ≈ 14 GB + 3 × 0.04 GB ≈ <b>14.1 GB</b>.`;
+    setOn([["adSpam", "spam"], ["adSent", "sent"], ["adTr", "tr"]], k);
+  }
+  $("adSpam").onclick = () => { k = "spam"; draw(); };
+  $("adSent").onclick = () => { k = "sent"; draw(); };
+  $("adTr").onclick = () => { k = "tr"; draw(); };
+  addReset("adBoxes", () => { k = "spam"; draw(); });
+  draw();
+})();
+
+// ---------- 19: where to put LoRA ----------
+(function where() {
+  // Weights per table, in units of d²: attention 1 each; feed-forward 4 each (hidden size 4d)
+  const T = [["W_Q", 1, "att"], ["W_K", 1, "att"], ["W_V", 1, "att"], ["W_O", 1, "att"], ["W₁", 4, "ff"], ["W₂", 4, "ff"]];
+  let mode = "old";
+  function draw() {
+    const on = n => mode === "new" || n === "W_Q" || n === "W_V";
+    let x = 20, s = `<text x="110" y="22" class="ts">attention</text><text x="410" y="22" class="ts">feed-forward network</text>`;
+    T.forEach(([n, u, g]) => {
+      const w = u * 36 + (g === "ff" ? 24 : 0);
+      if (n === "W₁") x += 30;
+      s += `<rect x="${x}" y="40" width="${w}" height="80" rx="6" class="bx ${on(n) ? "y" : "w"} ${on(n) ? "lit" : ""}"/>
+        <text x="${x + w / 2}" y="86" class="tm">${n.replace("_", "")}</text>`;
+      x += w + 8;
+    });
+    s += `<text x="310" y="150" class="ts">box width = number of weights</text>`;
+    $("wlPic").innerHTML = s;
+    const tot = T.reduce((a, t) => a + t[1], 0), cov = T.filter(t => on(t[0])).reduce((a, t) => a + t[1], 0);
+    $("wlSays").innerHTML = `LoRA touches tables holding <b>${pct(cov / tot)}</b> of the layer's weights. ` +
+      (mode === "old" ? "The feed-forward network, with two-thirds of the weights, is left out." : "Including the feed-forward network, where most of the work happens, gives clearly better results.");
+    setOn([["wlOld", "old"], ["wlNew", "new"]], mode);
+  }
+  $("wlOld").onclick = () => { mode = "old"; draw(); };
+  $("wlNew").onclick = () => { mode = "new"; draw(); };
+  addReset("wlPic", () => { mode = "old"; draw(); });
+  draw();
+})();
+
+// ---------- 20: pick the better answer ----------
+(function whyPref() {
+  let pick = null;
+  function draw() {
+    $("wpA").classList.toggle("on", pick === "A"); $("wpB").classList.toggle("on", pick === "B");
+    $("wpSays").innerHTML = pick == null ? "" : pick === "B"
+      ? "✓ That took you a second. Writing the perfect answer from scratch would take much longer. That's why we collect comparisons."
+      : "Most people would pick B: A refuses for no reason. Still, notice how quick deciding was.";
+  }
+  $("wpA").onclick = () => { pick = "A"; draw(); };
+  $("wpB").onclick = () => { pick = "B"; draw(); };
+  addReset("wpBtns", () => { pick = null; draw(); });
+  draw();
+})();
+
+// ---------- 21, 24: four answers and their preferences ----------
+const PREF = [
+  ["1 picnic", "Have a picnic together in the park.", 0.6],
+  ["2 movie night", "Of course! How about a movie night together, with popcorn?", 0.9],
+  ["3 stay away", "I'd suggest you don't spend much time with your teddy bear.", 0.1],
+  ["4 read aloud", "Read a book aloud to it.", 0.4],
+];
+const PAIRS = []; // [winner, loser] indices
+for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) PAIRS.push(PREF[i][2] > PREF[j][2] ? [i, j] : [j, i]);
+(function prefKinds() {
+  let k = "point";
+  function draw() {
+    let h = "";
+    if (k === "point") h = `<div class="bars">` + PREF.map(([n, t, s]) => barHTML(n, s, { right: s.toFixed(1) })).join("") + `</div>`;
+    if (k === "pair") h = `<div class="vote">` + PAIRS.map(([w, l]) => `<span class="chip">${PREF[w][0].split(" ")[0]} better than ${PREF[l][0].split(" ")[0]}</span>`).join("") + `</div>`;
+    if (k === "list") h = `<ol style="margin:0;padding-left:1.4em">` + PREF.slice().sort((a, b) => b[2] - a[2]).map(([n, t]) => `<li>${n}</li>`).join("") + `</ol>`;
+    $("pkBox").innerHTML = `<div class="small" style="margin-bottom:8px;color:var(--pencil)">${PREF.map(([n, t]) => `<b>${n.split(" ")[0]}</b>: ${t}`).join("<br>")}</div>` + h;
+    $("pkSays").innerHTML = { point: "A score for each answer. Hard for people: is that answer a 0.6 or a 0.7?", pair: "Six pairs from four answers. Each one is a quick, easy choice.", list: "One ranking holds all six pairs, but ranking many answers at once is tiring." }[k];
+    setOn([["pkPoint", "point"], ["pkPair", "pair"], ["pkList", "list"]], k);
+  }
+  $("pkPoint").onclick = () => { k = "point"; draw(); };
+  $("pkPair").onclick = () => { k = "pair"; draw(); };
+  $("pkList").onclick = () => { k = "list"; draw(); };
+  addReset("pkBox", () => { k = "point"; draw(); });
+  draw();
+})();
+
+// ---------- 22: sigmoid ----------
+(function sigmoid() {
+  function draw() {
+    const x = +$("sgX").value / 10, y = sig(x);
+    $("sgXv").textContent = x.toFixed(1) + "  →  σ = " + y.toFixed(3);
+    const pts = []; for (let t = -6; t <= 6.001; t += 0.1) pts.push([t, sig(t)]);
+    lineChart($("sgChart"), { xmin: -6, xmax: 6, ymin: 0, ymax: 1, xt: [[-6, "−6"], [-3, "−3"], [0, "0"], [3, "3"], [6, "6"]], yt: [[0, "0"], [0.5, "0.5"], [1, "1"]],
+      xl: "x", yl: "σ(x)", series: [{ cls: "c2", pts }], dots: [{ x, y, cls: "f3", label: y.toFixed(2), left: x > 3 }] });
+  }
+  $("sgX").oninput = draw;
+  addReset("sgX", () => { $("sgX").value = 15; draw(); });
+  draw();
+})();
+
+// ---------- 23: Bradley–Terry ----------
+(function bradleyTerry() {
+  function draw() {
+    const a = +$("btA").value / 10, b = +$("btB").value / 10, p = sig(a - b);
+    $("btAv").textContent = a.toFixed(1); $("btBv").textContent = b.toFixed(1);
+    $("btEq").innerHTML = `r<sub>A</sub> − r<sub>B</sub> = ${a.toFixed(1)} − (${b.toFixed(1)}) = ${(a - b).toFixed(1)}<br>
+      p(A better than B) = σ(${(a - b).toFixed(1)}) = <b>${pct(p)}</b>. p(B better than A) = <b>${pct(1 - p)}</b>.`;
+  }
+  $("btA").oninput = draw; $("btB").oninput = draw;
+  addReset("btA", () => { $("btA").value = 10; $("btB").value = -5; draw(); });
+  draw();
+})();
+
+// ---------- 24: training the reward model ----------
+(function rewardModel() {
+  let r = [0, 0, 0, 0], steps = 0;
+  const loss = () => PAIRS.reduce((s, [w, l]) => s - Math.log(sig(r[w] - r[l])), 0) / PAIRS.length;
+  function draw() {
+    $("rmBars").innerHTML = `<div class="bar head nosc"><span>answer</span><span>reward it gives</span><span></span></div>` +
+      PREF.map(([n], i) => barHTML(n, (r[i] + 3) / 6, { right: r[i].toFixed(2), top: r[i] === Math.max(...r) && steps > 0 })).join("");
+    const L = loss();
+    $("rmEq").innerHTML = `Average loss over the 6 pairs: <b>${L.toFixed(3)}</b>` +
+      (steps === 0 ? `<br><span class="small">All rewards start at 0, so every pair is 50–50: −log 0.5 = 0.693.</span>` :
+        `<br><span class="small">After ${steps} step${steps > 1 ? "s" : ""}: answer 2 (most liked) rises, answer 3 (least liked) sinks.</span>`);
+    $("rmGo").hidden = steps >= 12;
+  }
+  $("rmGo").onclick = () => {
+    const g = [0, 0, 0, 0];
+    PAIRS.forEach(([w, l]) => { const d = 1 - sig(r[w] - r[l]); g[w] += d; g[l] -= d; });
+    r = r.map((v, i) => v + 0.6 * g[i]); steps++; draw();
+  };
+  addReset("rmBars", () => { r = [0, 0, 0, 0]; steps = 0; draw(); });
+  draw();
+})();
+
+// ---------- 25: reward minus distance ----------
+(function rlBeta() {
+  const C = [
+    ["Teddy bears love picnics! Try one in the park together.", 6.0, 1],
+    ["Of course! How about a movie night together, with popcorn and a blanket?", 7.5, 2],
+    ["WOW!!! What an AMAZING question!!! Teddy teddy fun fun fun!!!", 9.0, 8],
+  ];
+  function draw() {
+    const b = +$("rlB").value / 10, g = C.map(([, r, d]) => r - b * d), best = g.indexOf(Math.max(...g));
+    $("rlBv").textContent = b.toFixed(1);
+    $("rlBars").innerHTML = `<div class="small" style="color:var(--pencil);margin-bottom:6px">${C.map(([t, r, d], i) => `<b>${"ABC"[i]}</b>: “${t}” · reward ${r}, distance ${d}`).join("<br>")}</div>
+      <div class="bar head"><span>answer</span><span>goal</span><span></span><span></span></div>` +
+      C.map(([, r, d], i) => barHTML(`answer ${"ABC"[i]}`, Math.max(0, g[i]) / 9, { score: g[i].toFixed(1), right: i === best ? "wins" : "", top: i === best })).join("");
+    $("rlSays").innerHTML = `goal = reward − ${b.toFixed(1)} × distance. ` + (best === 2
+      ? "<b>Reward hacking!</b> The reward model happens to love excited words, so the LLM learns to please it with nonsense."
+      : best === 1 ? "A good balance: a high reward, without drifting far from the fine-tuned model."
+        : "So careful that it barely changes: a plainer answer wins.");
+  }
+  $("rlB").oninput = draw;
+  addReset("rlB", () => { $("rlB").value = 0; draw(); });
+  draw();
+})();
+
+// ---------- 26: DPO ----------
+(function dpo() {
+  const BETA = 0.5;
+  let dw = 0, dl = 0, steps = 0;
+  function draw() {
+    const m = BETA * (dw - dl), L = -Math.log(sig(m));
+    $("dpBars").innerHTML = `<div class="bar head nosc"><span>answer</span><span>how likely now, against the start</span><span></span></div>` +
+      barHTML("winner: movie night", Math.exp(dw) / 3, { right: "×" + Math.exp(dw).toFixed(2), top: true }) +
+      barHTML("loser: stay away", Math.exp(dl) / 3, { right: "×" + Math.exp(dl).toFixed(2), neg: true });
+    $("dpEq").innerHTML = `r<sub>winner</sub> − r<sub>loser</sub> = 0.5 × (log ${Math.exp(dw).toFixed(2)} − log ${Math.exp(dl).toFixed(2)}) = ${m.toFixed(2)}<br>
+      loss = −log σ(${m.toFixed(2)}) = <b>${L.toFixed(3)}</b>`;
+    $("dpGo").hidden = steps >= 10;
+  }
+  $("dpGo").onclick = () => { const g = BETA * (1 - sig(BETA * (dw - dl))); dw += 1.2 * g; dl -= 1.2 * g; steps++; draw(); };
+  addReset("dpBars", () => { dw = dl = 0; steps = 0; draw(); });
+  draw();
+})();
+
+// ---------- 28: know it, or work it out? ----------
+(function reasonSort() {
+  const Q = [
+    ["What is the capital of France?", "k"],
+    ["My bear was born in 2019. How old will it be in 2030?", "w"],
+    ["3 bears share 7 cookies equally. How many are left over?", "w"],
+    ["Who wrote Hamlet?", "k"],
+    ["A train leaves at 9:40 and takes 85 minutes. When does it arrive?", "w"],
+  ];
+  let i = 0, placed = [];
+  function draw() {
+    const done = i >= Q.length;
+    $("rsItem").textContent = done ? `All sorted: ${placed.filter(p => p.ok).length} of ${Q.length} right.` : "❓ " + Q[i][0];
+    $("rsKnow").hidden = $("rsWork").hidden = done;
+    const chip = p => `<span class="chip ${p.ok ? "ok" : "no"}">${p.ok ? "✓" : "✗"} ${p.q}</span>`;
+    $("rsBinK").innerHTML = "<b>Know it</b>" + placed.filter(p => p.to === "k").map(chip).join("");
+    $("rsBinW").innerHTML = "<b>Work it out</b>" + placed.filter(p => p.to === "w").map(chip).join("");
+  }
+  const put = to => { placed.push({ q: Q[i][0], to, ok: Q[i][1] === to }); i++; draw(); };
+  $("rsKnow").onclick = () => put("k");
+  $("rsWork").onclick = () => put("w");
+  addReset("rsItem", () => { i = 0; placed = []; draw(); });
+  draw();
+})();
+
+// ---------- 29: thinking effort ----------
+(function thinking() {
+  const E = {
+    low: [40, "It's 2026. 2026 − 2020 = 6."],
+    med: [300, "The bear was born in 2020. What year is it now? 2026.\nAge = current year − birth year = 2026 − 2020 = 6.\nCheck: has its birthday passed this year? Not given, so answer the plain difference: 6."],
+    high: [1500, "The bear was born in 2020. I need the current year: 2026.\nAge = 2026 − 2020 = 6.\nWait, is the question about a real bear or a teddy bear? Either way, age is years since it was made or born.\nLet me double-check the subtraction: 2020 + 6 = 2026. ✓\nCould the birthday not have come yet this year? Then it would be 5. The question gives no month, so the usual answer is 6.\n…(and much more)"],
+  };
+  const ANS = 8;
+  let k = "med", show = false;
+  function draw() {
+    const [n, txt] = E[k], tot = n + ANS;
+    $("thText").textContent = show ? txt : `🧠 Thought for a moment (${n} tokens, hidden)`;
+    $("thCost").innerHTML = `<span class="th" style="width:${100 * n / tot}%">thinking ${n}</span><span class="an" style="width:${Math.max(100 * ANS / tot, 9)}%">${ANS}</span>`;
+    $("thSays").innerHTML = `You pay for <b>${tot}</b> output tokens: ${n} of thinking + ${ANS} of answer. Example text written for this page.`;
+    setOn([["thLow", "low"], ["thMed", "med"], ["thHigh", "high"]], k);
+    $("thShow").classList.toggle("on", show);
+    $("thShow").textContent = show ? "Hide the thinking" : "Show the thinking";
+  }
+  $("thLow").onclick = () => { k = "low"; draw(); };
+  $("thMed").onclick = () => { k = "med"; draw(); };
+  $("thHigh").onclick = () => { k = "high"; draw(); };
+  $("thShow").onclick = () => { show = !show; draw(); };
+  addReset("thCost", () => { k = "med"; show = false; draw(); });
+  draw();
+})();
+
+// ---------- 30: checkable rewards ----------
+(function verifiable() {
+  const R = [
+    ["<think> It is 2026 now. 2026 − 2020 = 6. </think>\nAnswer: 6", 6, true],
+    ["<think> Born in 2020, and I think it's 2025. 2025 − 2020 = 5. </think>\nAnswer: 5", 5, true],
+    ["Answer: 6", 6, false],
+    ["The bear is 7.", 7, false],
+  ];
+  let k = 0;
+  function draw() {
+    $("vrTabs").innerHTML = R.map((r, i) => `<button class="${i === k ? "on" : ""}" data-i="${i}">Answer ${i + 1}</button>`).join("");
+    $("vrTabs").querySelectorAll("button").forEach(b => b.onclick = () => { k = +b.dataset.i; draw(); });
+    const [t, a, f] = R[k], ok = a === 6;
+    $("vrText").innerHTML = esc(t).replace(/&lt;\/?think&gt;/g, m => `<span class="eg">${m}</span>`);
+    $("vrEq").innerHTML = `right answer? ${a} vs 6 → <span class="pill ${ok ? "g" : "r"}">${ok ? "+1" : "0"}</span> &nbsp; reasoned in &lt;think&gt;? <span class="pill ${f ? "g" : "r"}">${f ? "+1" : "0"}</span><br>reward = <b>${(ok ? 1 : 0) + (f ? 1 : 0)}</b> of 2`;
+  }
+  addReset("vrText", () => { k = 0; draw(); });
+  draw();
+})();
+
+// ---------- 31: GRPO advantages ----------
+(function grpo() {
+  let seed = 7, rnd = rng(seed), group = [], n = 0;
+  const make = () => { group = Array.from({ length: 6 }, () => rnd() < 0.5 ? [6, 1] : [[5, 7, 8][Math.floor(rnd() * 3)], 0]); n++; };
+  function draw() {
+    const mean = group.reduce((s, g) => s + g[1], 0) / 6, adv = group.map(g => g[1] - mean);
+    $("grBars").innerHTML = `<div class="bar head"><span>answer</span><span>reward</span><span>advantage</span><span></span></div>` +
+      group.map((g, i) => barHTML(`${i + 1}: says ${g[0]} ${g[1] ? "✓" : "✗"}`, Math.abs(adv[i]), { score: g[1], right: (adv[i] > 0 ? "+" : "") + adv[i].toFixed(2), top: adv[i] > 0, neg: adv[i] < 0 })).join("");
+    const right = group.filter(g => g[1]).length;
+    $("grEq").innerHTML = `group average = ${right} right ÷ 6 = <b>${mean.toFixed(2)}</b>.<br>` +
+      (right === 0 || right === 6 ? "All answers got the same reward, so every advantage is 0: this group teaches nothing. Try a new group."
+        : `Right answers get +${(1 - mean).toFixed(2)} (more like these); wrong ones get −${mean.toFixed(2)} (less like these).`);
+  }
+  $("grGo").onclick = () => { make(); draw(); };
+  addReset("grBars", () => { rnd = rng(seed); n = 0; make(); draw(); });
+  make(); draw();
+})();
+
+// ---------- 32: reasoning grows during RL ----------
+(function grows() {
+  const acc = s => 16 + 57 * (1 - Math.exp(-s / 2600)), len = s => 600 + 9400 * Math.pow(s / 8000, 1.15);
+  function draw() {
+    const s = +$("rgS").value;
+    $("rgSv").textContent = s.toLocaleString("en");
+    const A = [], Ln = []; for (let x = 0; x <= 8000; x += 100) { A.push([x, acc(x)]); Ln.push([x, len(x) / 120]); }
+    lineChart($("rgChart"), { H: 210, xmin: 0, xmax: 8000, ymin: 0, ymax: 100, xt: [[0, "0"], [2000, "2k"], [4000, "4k"], [6000, "6k"], [8000, "8k"]], yt: [[0, "0%"], [25, "25%"], [50, "50%"], [75, "75%"], [100, "100%"]],
+      xl: "RL training steps", yl: "accuracy on hard maths",
+      series: [{ cls: "c2", pts: A }, { cls: "c3", dash: true, pts: Ln }],
+      dots: [{ x: s, y: acc(s), cls: "f2", label: Math.round(acc(s)) + "%", left: s > 6000 }, { x: s, y: len(s) / 120, cls: "f3", label: "", left: false }],
+      extra: (X, Y) => `<text class="tl" x="${X(8000)}" y="${Y(len(8000) / 120) - 8}" text-anchor="end" style="fill:var(--redpen)">reasoning length</text>` +
+        [0, 3, 6, 9, 12].map(k => `<text class="tl" x="546" y="${Y(k * 1000 / 120) + 4}" style="fill:var(--redpen)">${k}K</text>`).join("") });
+    $("rgSays").innerHTML = `Step ${s.toLocaleString("en")}: about <b>${Math.round(acc(s))}%</b> right, with about <b>${(Math.round(len(s) / 100) * 100).toLocaleString("en")}</b> tokens of reasoning per answer (red, dashed).`;
+  }
+  $("rgS").oninput = draw;
+  addReset("rgS", () => { $("rgS").value = 0; draw(); });
+  draw();
+})();
+
+// ---------- 33: three bears ----------
+(function bears() {
+  let pick = null;
+  const WHY = { Brown: "Brown is hand-wash only, so no washer.", Panda: "Panda can't go in the dryer.", Polar: "Right!" };
+  function draw() {
+    ["Brown", "Panda", "Polar"].forEach(b => $("bw" + b).classList.toggle("on", pick === b));
+    $("bwOut").innerHTML = pick == null ? "" :
+      `<p class="note">${pick === "Polar" ? "✓ " + WHY.Polar : "✗ " + WHY[pick]} Here's how a reasoning model works it out (example written for this page):</p>
+      <div class="think">&lt;think&gt; Brown: hand-wash only → can't use the washer. ✗
+Panda: washer OK, but no dryer → can't be dried. ✗
+Polar: washer and dryer OK. Time: 15 + 15 = 30 min. I leave in 30. Just fits. ✓ &lt;/think&gt;</div>
+      <div class="bub bot" style="justify-self:start">Only Polar. Brown can't use the washer and Panda can't use the dryer; Polar fits in exactly 30 minutes.</div>`;
+  }
+  ["Brown", "Panda", "Polar"].forEach(b => $("bw" + b).onclick = () => { pick = b; draw(); });
+  addReset("bwBtns", () => { pick = null; draw(); });
+  draw();
+})();
+
+// ---------- 34: off-policy / on-policy ----------
+(function policies() {
+  const M = { SFT: ["off", "dense", "Learns from answers people wrote, token by token."], DPO: ["off", "sparse", "Learns from fixed pairs collected before, judged as whole answers."],
+    RLHF: ["on", "sparse", "The LLM writes its own answers; the reward model gives one score per answer."], GRPO: ["on", "sparse", "Its own answers, one checkable reward per answer."] };
+  let k = "SFT";
+  function draw() {
+    $("opTabs").innerHTML = Object.keys(M).map(m => `<button class="${m === k ? "on" : ""}" data-m="${m}">${m}</button>`).join("");
+    $("opTabs").querySelectorAll("button").forEach(b => b.onclick = () => { k = b.dataset.m; draw(); });
+    const cell = (who, sig) => {
+      const names = Object.keys(M).filter(m => M[m][0] === who && M[m][1] === sig);
+      const lit = M[k][0] === who && M[k][1] === sig;
+      return `<div class="${lit ? "lit" : ""} ${names.length ? "" : "empty"}">${names.length ? names.join(", ") : "? empty"}</div>`;
+    };
+    $("opGrid").innerHTML = `<div class="hd"></div><div class="hd">someone else's text<br>(off-policy)</div><div class="hd">its own text<br>(on-policy)</div>
+      <div class="hd">every token<br>(dense)</div>${cell("off", "dense")}${cell("on", "dense")}
+      <div class="hd">whole answer<br>(sparse)</div>${cell("off", "sparse")}${cell("on", "sparse")}`;
+    $("opSays").innerHTML = `<b>${k}</b>: ${M[k][2]} ` + (M[k][0] === "off" ? "But in real use the model reads its own text, which may differ." : "But one score can't say which tokens were good and which were bad.");
+  }
+  addReset("opGrid", () => { k = "SFT"; draw(); });
+  draw();
+})();
+
+// ---------- 35: on-policy distillation ----------
+(function opd() {
+  const S = [["[BOS]", null], ["A", 0.55], ["teddy", 0.40], ["bear", 0.96], ["is", 0.62], ["swimming", 0.03], ["in", 0.70], ["the", 0.85], ["bath", 0.30], [".", 0.80]];
+  let mode = "each";
+  function draw() {
+    const each = mode === "each";
+    $("odRow").innerHTML = S.map(([w, p]) => {
+      if (p == null) return `<div class="tcol"><span class="tk sp">${w}</span><small></small></div>`;
+      const col = each ? (p < 0.1 ? "bad" : p > 0.6 ? "ok" : "") : "";
+      return `<div class="tcol"><span class="tk ${col}" ${each && p < 0.1 ? 'style="text-decoration:none;color:var(--redpen);border-color:var(--redpen)"' : ""}>${w}</span><small>${each ? pct(p) : "0"}</small></div>`;
+    }).join("");
+    $("odSays").innerHTML = each
+      ? "Numbers: the teacher's chance for each token the student wrote. The teacher points straight at <b>“swimming”</b> (3%): it would have written “reading”. Everything else is fine."
+      : "The bear was really reading, not swimming, so the whole answer gets reward 0. Every token is blamed equally, even the good ones. Which word was wrong? The student can't tell.";
+    setOn([["odOne", "one"], ["odEach", "each"]], mode);
+  }
+  $("odOne").onclick = () => { mode = "one"; draw(); };
+  $("odEach").onclick = () => { mode = "each"; draw(); };
+  addReset("odRow", () => { mode = "each"; draw(); });
+  draw();
+})();
+
+// ---------- 36: the GLM-5 recipe ----------
+(function glm5() {
+  const ST = [
+    ["Pretraining 1", 4, "18T tokens", "General text from the web. Fast rules throw out junk; classifiers help keep rare facts. Common facts come in naturally."],
+    ["Pretraining 2", 4, "9T tokens", "Code and reasoning: mostly GitHub, with extra care for rarer programming languages; good books, papers, maths and science."],
+    ["Midtraining 1", 32, "1T tokens", "Long code and reasoning: GitHub issues with the code changes that fixed them, papers and books."],
+    ["Midtraining 2", 200, "500B + 50B", "Long context and agent data: 500B tokens at 128K, then 50B at 200K. Long made-up chats, and facts hidden deep in long texts to find later (“needle in a haystack”)."],
+    ["SFT", null, "", "Chat, reasoning and coding, including calling tools. The reasoning sits between think tokens, and only the assistant's part counts in the loss."],
+    ["RL", null, "", "Three rounds: reasoning RL (maths, science, code), agentic RL (fixing code, terminal tasks), then general RL (correctness, emotional intelligence, task quality)."],
+    ["Distillation", null, "", "Each RL round can make the model forget earlier skills (“catastrophic forgetting”). So at the end, earlier checkpoints, the SFT model and the reasoning-RL model, act as teachers in on-policy distillation."],
+  ];
+  let i = 0;
+  function draw() {
+    $("glBar").innerHTML = ST.map((s, j) => `<button class="${j === i ? "on" : ""}" data-j="${j}">${j + 1}. ${s[0]}</button>`).join("");
+    $("glBar").querySelectorAll("button").forEach(b => b.onclick = () => { i = +b.dataset.j; draw(); });
+    const [name, win, toks, what] = ST[i];
+    const w = win ? Math.log2(win) / Math.log2(200) * 100 : 0;
+    $("glOut").innerHTML = `<div class="card" style="margin:0"><h3>${name}</h3><p>${what}</p>` +
+      (win ? `<div class="small mono" style="margin-top:6px">reads ${toks} · window ${win}K tokens</div><div class="costrow" style="margin-top:4px"><span class="th" style="width:${Math.max(w, 12)}%">${win}K</span></div>` : "") + `</div>`;
+    $("glBack").hidden = i === 0;
+    $("glNext").hidden = i === ST.length - 1;
+  }
+  $("glNext").onclick = () => { i++; draw(); };
+  $("glBack").onclick = () => { i--; draw(); };
+  addReset("glOut", () => { i = 0; draw(); });
+  draw();
+})();
+
+// ---------- 37: packing ----------
+(function packing() {
+  const DOCS = [5, 4, 6, 2, 3, 7, 3], W = 8;
+  const COL = ["#FFE08A", "#BFE3FF", "#C9F2C7", "#FFC9DE", "#E3D2FF", "#FFD3A8", "#C8EFEA"];
+  let mode = "chunk";
+  function chunk() {
+    const wins = [[]]; let left = W, cuts = 0;
+    DOCS.forEach((len, d) => {
+      let rest = len, part = 0;
+      while (rest > 0) {
+        if (left === 0) { wins.push([]); left = W; }
+        const take = Math.min(rest, left);
+        rest -= take; left -= take;
+        wins[wins.length - 1].push({ d, n: take, cut: rest > 0 });
+        if (rest > 0) part++;
+      }
+      if (part) cuts++;
+    });
+    if (left) wins[wins.length - 1].push({ pad: left });
+    return { wins, cuts };
+  }
+  function bestFit() {
+    const order = DOCS.map((n, d) => ({ n, d })).sort((a, b) => b.n - a.n), bins = [];
+    order.forEach(o => {
+      let best = -1;
+      bins.forEach((b, j) => { const room = W - b.used; if (room >= o.n && (best < 0 || room < W - bins[best].used)) best = j; });
+      if (best < 0) { bins.push({ used: 0, items: [] }); best = bins.length - 1; }
+      bins[best].items.push({ d: o.d, n: o.n }); bins[best].used += o.n;
+    });
+    return { wins: bins.map(b => b.used < W ? [...b.items, { pad: W - b.used }] : b.items), cuts: 0 };
+  }
+  function draw() {
+    const { wins, cuts } = mode === "chunk" ? chunk() : bestFit();
+    const pads = wins.flat().reduce((s, x) => s + (x.pad || 0), 0);
+    $("pkWins").innerHTML = `<div class="small">documents: ${DOCS.map((n, d) => `<span class="pill" style="background:${COL[d]};color:#1D2238">${d + 1}: ${n}</span>`).join(" ")}</div>` +
+      wins.map((w, j) => `<div class="win" title="window ${j + 1}">${w.map(x => x.pad ? `<span class="pad" style="width:${x.pad / W * 100}%">PAD</span>` :
+        `<span class="${x.cut ? "cut" : ""}" style="width:${x.n / W * 100}%;background:${COL[x.d]}">doc ${x.d + 1}</span>`).join("")}</div>`).join("");
+    $("pkSays2").innerHTML = mode === "chunk"
+      ? `${wins.length} windows, <b>${cuts} documents cut</b> (red dashes), ${pads} padding. No space wasted, but a cut document's end lands in another window, without its start.`
+      : `${wins.length} windows, <b>no document cut</b>, ${pads} padding. Each document stays whole: important when far-apart parts must be read together.`;
+    setOn([["pkChunk", "chunk"], ["pkFit", "fit"]], mode);
+  }
+  $("pkChunk").onclick = () => { mode = "chunk"; draw(); };
+  $("pkFit").onclick = () => { mode = "fit"; draw(); };
+  addReset("pkWins", () => { mode = "chunk"; draw(); });
+  draw();
+})();
+
+// ---------- 38: model collapse ----------
+(function collapse() {
+  const WORDS = ["the", "bear", "teddy", "is", "soft", "hug", "read", "book", "night", "poem", "honey", "Persian", "lullaby", "thimble"];
+  const P0 = WORDS.map((w, k) => 1 / Math.pow(k + 1, 1.1)), Z = P0.reduce((a, b) => a + b, 0);
+  let p, gen, rnd;
+  const start = () => { p = P0.map(x => x / Z); gen = 0; rnd = rng(42); };
+  function step() {
+    const c = new Array(WORDS.length).fill(0), cum = []; let s = 0;
+    p.forEach(x => cum.push(s += x));
+    for (let n = 0; n < 60; n++) { const u = rnd() * s; c[cum.findIndex(v => v >= u)]++; }
+    p = c.map(x => x / 60); gen++;
+  }
+  function draw() {
+    const alive = p.filter(x => x > 0).length, mx = Math.max(...p);
+    $("mcBars").innerHTML = `<div class="bar head nosc"><span>word</span><span>how often it's used</span><span></span></div>` +
+      WORDS.map((w, k) => p[k] > 0 ? barHTML(w, p[k] / mx, { right: pct(p[k]) }) : `<div class="bar nosc" style="opacity:.4"><span>${w}</span><span class="small">gone</span><span></span></div>`).join("");
+    $("mcSays").innerHTML = gen === 0 ? `Generation 0: human writing, with ${WORDS.length} words, some common, many rare.` :
+      `Generation ${gen}: <b>${alive}</b> of ${WORDS.length} words left. Rare words vanish first, and never come back.`;
+    $("mcGo").hidden = gen >= 15 || alive <= 1;
+  }
+  $("mcGo").onclick = () => { step(); draw(); };
+  addReset("mcBars", () => { start(); draw(); });
+  start(); draw();
+})();
+</script>
+</body>
+</html>
