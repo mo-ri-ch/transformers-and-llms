@@ -433,8 +433,43 @@
         </div>
         <div class="feedback"></div>
       </div>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 1a.1">
+      <h2>✏️ Practice 1a.1</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b>By words:</b> every word and every punctuation mark is a token.<br><b>By characters:</b> every character is a token, spaces too.<br><b>BPE:</b> glue the two pieces that sit side by side most often.<br><b>[BOS]</b> goes at the start, <b>[EOS]</b> at the end, and <b>[PAD]</b> fills each sequence up to the longest one.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="5" data-tol="0.01" data-hint="Count each word, and the full stop as its own token." data-work="The | bears | are | reading | . = 5 tokens.">
+          <div class="pq-q">By words, how many tokens are in <span class="mono">The bears are reading.</span>?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="10" data-tol="0.01" data-hint="Count every letter, and the space too." data-work="t e d d y (5) + space (1) + b e a r (4) = 10.">
+          <div class="pq-q">By characters, how many tokens are in <span class="mono">teddy bear</span>?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="7" data-tol="0.01" data-hint="Each of the three words starts with r e. Add up how many times each word is in the pile." data-work="4 + 2 + 1 = 7.">
+          <div class="pq-q">A pile has <b>read</b> ×4, <b>ready</b> ×2 and <b>red</b> ×1, each starting as single letters. How many times does the pair <b>r e</b> appear side by side?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="4" data-tol="0.01" data-hint="Write ready as pieces: the glued piece, then the letters left." data-work="re | a | d | y = 4 tokens (it was 5).">
+          <div class="pq-q">BPE glues <b>r e</b> into one piece, <b>re</b>. Now how many tokens is <b>ready</b>?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="8" data-tol="0.01" data-hint="First add 2 to each length. Then each one is padded up to the longest." data-work="With [BOS] and [EOS]: 6, 8 and 11. Pad to 11: 5 + 3 + 0 = 8.">
+          <div class="pq-q">Three sentences have <b>4</b>, <b>6</b> and <b>9</b> tokens. Add [BOS] and [EOS] to each, then pad them all to the same length. How many [PAD] tokens in total?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">Now every token has a number. But does that number tell the model what the token means?</p>
     </section>
+
 
     <!-- 8 -->
     <section class="part" data-title="Quick basics: vectors">
@@ -507,8 +542,43 @@
         </div>
         <div class="feedback"></div>
       </div>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 1a.2">
+      <h2>✏️ Practice 1a.2</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">dot product = multiply matching numbers, then add</b><br>For two numbers each: [a, b] · [c, d] = a × c + b × d<br><b>One-hot:</b> a 1 in the token's own place, 0 everywhere else.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="0.96" data-tol="0.005" data-hint="Multiply first by first, second by second, then add." data-work="0.6 × 0.8 + 0.8 × 0.6 = 0.48 + 0.48 = 0.96. Very similar.">
+          <div class="pq-q">[0.6, 0.8] · [0.8, 0.6] = ?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="-1" data-tol="0.005" data-hint="Watch the minus signs: a plus times a minus gives a minus." data-work="0.6 × (−0.6) + 0.8 × (−0.8) = −0.36 − 0.64 = −1. Opposites.">
+          <div class="pq-q">[0.6, 0.8] · [−0.6, −0.8] = ?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.184" data-tol="0.005" data-hint="Three numbers each this time: multiply all three matching pairs, then add." data-work="0.90 × 0.05 + 0.40 × 0.10 + 0.10 × 0.99 = 0.045 + 0.040 + 0.099 = 0.184. Not very similar.">
+          <div class="pq-q">The learned embeddings <b>teddy bear</b> = [0.90, 0.40, 0.10] and <b>book</b> = [0.05, 0.10, 0.99]. Their dot product?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="4" data-tol="0.01" data-hint="A one-hot vector has one number per token in the vocabulary, and only one of them is 1." data-work="5 numbers, one of them 1, so 4 zeros.">
+          <div class="pq-q">A vocabulary has <b>5</b> tokens. How many 0s are in each one-hot vector?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0" data-tol="0.005" data-hint="Their 1s are in different places. Multiply each matching pair: is any product not zero?" data-work="Every matching pair has at least one 0, so every product is 0. The sum is 0, for any two different tokens.">
+          <div class="pq-q">Two <i>different</i> tokens with one-hot vectors: what is their dot product?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">To learn embeddings, we need a small neural network. Let's see what that is.</p>
     </section>
+
 
     <!-- 10 -->
     <section class="part" data-title="Quick basics: a guessing machine">
@@ -587,8 +657,43 @@
         <div style="margin-top:6px">Real networks use a shortcut called <b>gradients</b> that works this out for every weight at once.</div>
         <div style="margin-top:6px">See it step by step: <a href="https://gradlabs.in/learn/tiny-llm/lessons/lesson4.html" target="_blank" rel="noopener">Build a Tiny LLM: watch a tiny model learn its weights ↗</a></div>
       </div>
-      <p class="hook">Real networks do this millions of times, on millions of examples. Now let's use it to learn embeddings.</p>
+      <p class="hook">Before moving on, a little practice.</p>
     </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 1a.3">
+      <h2>✏️ Practice 1a.3</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b class="eqbox">chance = e<sup>score</sup> ÷ (sum of e<sup>score</sup> for all words)</b><br><b class="eqbox">loss = −log(chance of the right word)</b><br><i>e</i> ≈ 2.718. Log is the <code>ln</code> button on a calculator.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="0.5" data-tol="0.01" data-hint="Equal scores give equal chances, and the chances add up to 1." data-work="e¹ ÷ (e¹ + e¹) = 1/2 = 0.5.">
+          <div class="pq-q">Two words have scores <b>1.0</b> and <b>1.0</b>. What is the chance of the first?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.881" data-tol="0.01" data-hint="e² ≈ 7.389 and e⁰ = 1. Divide the first by the total." data-work="7.389 ÷ (7.389 + 1) = 7.389 ÷ 8.389 = 0.881.">
+          <div class="pq-q">Two words have scores <b>2.0</b> and <b>0.0</b>. What is the chance of the first?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.693" data-tol="0.01" data-hint="loss = −log(0.5). Use ln." data-work="−ln(0.5) = 0.693.">
+          <div class="pq-q">The right word got a chance of <b>0.5</b>. What is the loss?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.105" data-tol="0.01" data-hint="loss = −log(0.9)." data-work="−ln(0.9) = 0.105. Much smaller: the network is less wrong.">
+          <div class="pq-q">After some training, the right word gets <b>0.9</b>. What is the loss now?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="2.22" data-tol="0.02" data-hint="First the chance of is: e^0.1 ÷ (e^2.0 + e^0.5 + e^0.1). Then −log of it." data-work="e^0.1 = 1.105; total = 7.389 + 1.649 + 1.105 = 10.14. Chance = 0.109. Loss = −ln(0.109) = 2.22.">
+          <div class="pq-q">Scores are <b>cute 2.0</b>, <b>teddy bear 0.5</b>, <b>is 0.1</b>, but the right word was <b>is</b>. What is the loss?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
+      <p class="hook">Real networks do this millions of times. Now let's use it to learn embeddings.</p>
+    </section>
+
 
     <!-- 11 -->
     <section class="part" data-title="Word2vec">
@@ -652,8 +757,43 @@
         </div>
       </div>
       <p class="say">With huge amounts of text, embeddings even capture relationships: <b>teddy bear</b> is to <b>soft</b> as <b>Persian poetry</b> is to <b>art</b>. The step from one to the other points the same way.</p>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 1a.4">
+      <h2>✏️ Practice 1a.4</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br><b>CBOW:</b> sees the neighbours (up to 2 on each side) and guesses the middle word.<br><b>Skip-gram:</b> sees the middle word and guesses each neighbour.<br>Inside: the input is one-hot (size V), the embedding has d numbers, and the output has V chances.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="4" data-tol="0.01" data-hint="Up to 2 on each side of is. Count them." data-work="Left: cute, teddy bear. Right: reading, poetry. 4 neighbours.">
+          <div class="pq-q">Tokens: <span class="mono">My | cute | teddy bear | is | reading | poetry</span>. CBOW hides <b>is</b>. How many neighbours does it see?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="3" data-tol="0.01" data-hint="cute is near the start: count up to 2 on each side, but only words that exist." data-work="Left: My (only 1). Right: teddy bear, is. 3 guesses.">
+          <div class="pq-q">Same tokens. Skip-gram's middle word is <b>cute</b>. How many words must it guess?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="2" data-tol="0.01" data-hint="Nothing comes before My." data-work="Left: none. Right: cute, teddy bear. 2 guesses.">
+          <div class="pq-q">Same tokens. Skip-gram's middle word is <b>My</b>. How many words must it guess?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="10000" data-tol="0.5" data-hint="The input has one number for each token in the vocabulary." data-work="One per token: 10,000 numbers (one 1, the rest 0).">
+          <div class="pq-q">A word2vec has V = <b>10,000</b> tokens and d = <b>300</b>. How many numbers are in the one-hot input?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="300" data-tol="0.5" data-hint="The embedding is the hidden layer, of size d." data-work="d = 300 numbers. Much smaller than 10,000, and they carry meaning.">
+          <div class="pq-q">Same word2vec. How many numbers are in each embedding?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">Word2vec is simple and powerful. But it has two big blind spots.</p>
     </section>
+
 
     <!-- 14 -->
     <section class="part" data-title="What word2vec misses">
@@ -747,8 +887,38 @@
         <li><b>Training has the same problem.</b> When the network learns, the signal telling early steps how to change also fades as it travels back. This is called the <mark>vanishing gradient</mark> problem.</li>
         <li><b>It's slow.</b> Step 5 needs the memory from step 4, which needs step 3… Nothing can run in parallel, so training on huge text takes very long.</li>
       </ul>
+      <p class="hook">Before moving on, a little practice.</p>
+    </section>
+
+    <section class="part" data-nonum data-title="✏️ Practice 1a.5">
+      <h2>✏️ Practice 1a.5</h2>
+      <p class="say">New numbers, same ideas.<br>Remember:<br>In the simple picture, each new word keeps 60% of the old memory:<br><b class="eqbox">share left after k more words = 0.6<sup>k</sup></b><br>An RNN reads <b>one token per step</b>, and each step waits for the one before.</p>
+      <div class="activity">
+        <div class="do"><span data-peek="Take a pen and paper, or use the ✎ pen on this page, and write each step. It sticks better than guessing.">Work each one out.</span> Type the answer, press Check.</div>
+        <div class="pq" data-ans="0.216" data-tol="0.005" data-hint="0.6 multiplied by itself 3 times." data-work="0.6 × 0.6 × 0.6 = 0.216, about 22%.">
+          <div class="pq-q">“teddy bear” is followed by <b>3</b> more words. What share of it is left?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="0.006" data-tol="0.001" data-hint="0.6 to the power 10." data-work="0.6¹⁰ ≈ 0.006: less than 1%. Almost forgotten.">
+          <div class="pq-q">And after <b>10</b> more words?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="2" data-tol="0.01" data-hint="Try k = 1, 2, 3 and see when 0.6^k drops under 0.5." data-work="0.6¹ = 0.6 (above half). 0.6² = 0.36 (below). So after 2 words.">
+          <div class="pq-q">You want at least half of a word to be left. After how many more words is it already below half?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+        <div class="pq" data-ans="1000" data-tol="0.5" data-hint="The steps can&#x27;t run at the same time: each waits for the one before." data-work="1,000 steps one after another × 1 ms = 1,000 ms = 1 second, however many machines you have.">
+          <div class="pq-q">An RNN reads a text of <b>1,000</b> tokens. Each step takes 1 millisecond. At least how many milliseconds does it take?</div>
+          <div class="pq-in"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer"><button class="primary pq-check" type="button" hidden>Check</button></div>
+          <div class="pq-fb" aria-live="polite"></div>
+        </div>
+      </div>
       <p class="hook">Could we give the memory a smarter way to keep what matters?</p>
     </section>
+
 
     <!-- 18 -->
     <section class="part" data-title="LSTMs">
@@ -816,6 +986,121 @@
       <p class="hook">Attention was added on top of RNNs. Then came a bolder idea.</p>
     </section>
 
+
+    <section class="part" data-title="Lesson test">
+      <h2>Lesson 1a test</h2>
+      <p class="say">12 questions, one for each idea in this lesson. Answer them all right to pass. A wrong answer tells you why, and which page to look at again.</p>
+      <div class="test" data-test="1">
+        <div class="quiz" data-page="lesson1a.html#4" data-topic="Way 1: one token per word" data-right="Right. By words, only words seen in training have tokens. A typo isn&#x27;t one, so it becomes [UNK].">
+          <div class="q"><small>1. Predict</small>A model that cuts <b>by words</b> meets the typo “tedddy”. What happens?</div>
+          <div class="options">
+            <button data-right>It becomes [UNK]</button>
+            <button data-why="That&#x27;s what character or subword tokenizers do. By words, there&#x27;s no smaller piece to fall back on.">It's cut into letters</button>
+            <button data-why="The tokenizer doesn&#x27;t fix spelling. It only knows the words in its list.">It becomes “teddy”</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1a.html#7" data-topic="BPE" data-right="Right. w e appears in lower (×2) and newest (×6): 8 times, more than any other pair.">
+          <div class="q"><small>2. Work it out</small>A pile has <b>low</b> ×5, <b>lower</b> ×2 and <b>newest</b> ×6, as single letters. Which pair does BPE glue first?</div>
+          <div class="options">
+            <button data-why="l o appears in low and lower: 5 + 2 = 7. Count w e: it&#x27;s in two words too.">l + o</button>
+            <button data-right>w + e</button>
+            <button data-why="e s appears only in newest: 6 times.">e + s</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1a.html#9" data-topic="Special tokens: [BOS] [EOS] [PAD]" data-right="Right. They become 5 and 7 tokens, so the shorter one gets 2 [PAD].">
+          <div class="q"><small>3. Work it out</small>Two sentences have <b>3</b> and <b>5</b> tokens. Add [BOS] and [EOS] to each, then pad to the same length. How many [PAD] tokens?</div>
+          <div class="options">
+            <button data-why="They start with different lengths, and adding 2 to each doesn&#x27;t change the gap.">0</button>
+            <button data-right>2</button>
+            <button data-why="Each gets [BOS] and [EOS], so the gap stays 5 − 3 = 2.">4</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1a.html#11" data-topic="Quick basics: vectors" data-right="Right. 0.8 × 0.6 + 0.6 × 0.8 = 0.96, close to 1.">
+          <div class="q"><small>4. Compare</small>Which two arrows point most the same way?</div>
+          <div class="options">
+            <button data-right>[0.8, 0.6] and [0.6, 0.8]</button>
+            <button data-why="Their dot product is 0: they&#x27;re at a right angle.">[1, 0] and [0, 1]</button>
+            <button data-why="Their dot product is −1: they point opposite ways.">[0.6, 0.8] and [−0.6, −0.8]</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1a.html#12" data-topic="Token representations" data-right="Right. One-hot vectors know nothing about spelling or meaning: any two different tokens have a dot product of 0.">
+          <div class="q"><small>5. Spot the mistake</small>Someone says: “With one-hot vectors, <b>bear</b> and <b>bears</b> come out similar, because they're spelled alike.” What's wrong?</div>
+          <div class="options">
+            <button data-why="One-hot vectors are built only from each token&#x27;s place in the list. Spelling plays no part.">Nothing, that's true</button>
+            <button data-right>Any two different one-hot vectors have dot product 0</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1a.html#15" data-topic="Quick basics: scores → chances" data-right="Right. Equal scores give equal chances: 50% each.">
+          <div class="q"><small>6. Predict</small>Scores: <b>cute 2.0</b>, <b>teddy bear 0.5</b>. You raise teddy bear's score to <b>2.0</b>. What are the chances now?</div>
+          <div class="options">
+            <button data-why="Their scores are now equal, so softmax gives them the same chance.">cute still higher</button>
+            <button data-right>50% each</button>
+            <button data-why="Chances always add up to 100% together.">Both 100%</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1a.html#16" data-topic="Quick basics: learning from a mistake" data-right="Right. loss = −log(chance): B&#x27;s is −ln 0.1 = 2.30, A&#x27;s only 0.11.">
+          <div class="q"><small>7. Compare</small>Model A gives the right word <b>0.9</b>. Model B gives it <b>0.1</b>. Which has the bigger loss?</div>
+          <div class="options">
+            <button data-why="A gave the right word a high chance, so it&#x27;s barely wrong.">A</button>
+            <button data-right>B</button>
+            <button data-why="The loss depends on the chance given to the right word, and those differ.">The same</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1a.html#18" data-topic="Word2vec" data-right="Right. The guessing is only practice. We keep what it learned on the way: the embeddings.">
+          <div class="q"><small>8. Spot the mistake</small>Someone says: “Word2vec is useful because its guesses of hidden words are so good.” What's the real point?</div>
+          <div class="options">
+            <button data-right>The embeddings it learns while guessing</button>
+            <button data-why="We throw the guesses away. The practice task just forces it to learn meanings.">The guesses, used to fill in missing words</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1a.html#22" data-topic="What word2vec misses" data-right="Right. Same words, so the same vectors. Word2vec loses who did what.">
+          <div class="q"><small>9. Predict</small>Which two sentences get exactly the <b>same set</b> of word2vec vectors?</div>
+          <div class="options">
+            <button data-right>“The dog bit the man” / “The man bit the dog”</button>
+            <button data-why="bear and cat are different words, so they have different vectors.">“A cute bear” / “A cute cat”</button>
+            <button data-why="These use different words.">“I read” / “I am reading”</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1a.html#25" data-topic="RNNs forget" data-right="Right. 0.6 × 0.6 = 0.36.">
+          <div class="q"><small>10. Work it out</small>In the 60% picture, a word is followed by <b>2</b> more words. How much of it is left?</div>
+          <div class="options">
+            <button data-why="That&#x27;s after 1 more word. Each new word keeps 60% again.">60%</button>
+            <button data-right>36%</button>
+            <button data-why="Multiply, don&#x27;t subtract: 0.6 × 0.6.">20%</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1a.html#27" data-topic="LSTMs" data-right="Right. The forget gate can choose to keep it in the cell state, instead of letting it fade.">
+          <div class="q"><small>11. Explain</small>Why can an LSTM remember “teddy bear” longer than a plain RNN?</div>
+          <div class="options">
+            <button data-right>Its gates can keep it in the cell state</button>
+            <button data-why="No, it still reads one token at a time.">It reads all the words at once</button>
+            <button data-why="Size isn&#x27;t the reason. The gates decide what to keep.">It uses bigger embeddings</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+        <div class="quiz" data-page="lesson1a.html#29" data-topic="2014: attention" data-right="Right. It looks straight back at every input word and picks what matters now.">
+          <div class="q"><small>12. Explain</small>With attention, how does the writer get the important input word?</div>
+          <div class="options">
+            <button data-why="That&#x27;s the old problem attention fixes.">It hopes the word is still in the memory</button>
+            <button data-right>It looks straight back at the input words</button>
+            <button data-why="No re-reading: one direct look at each word.">It reads the input again, from the start</button>
+          </div>
+          <div class="feedback"></div>
+        </div>
+      </div>
+      <p class="hook">Did it all make sense? Then on to the big question.</p>
+    </section>
+
     <!-- 21 -->
     <section class="part" data-title="What's next?">
       <h2>What's next?</h2>
@@ -842,6 +1127,7 @@
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/common.js"></script>
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/pen.js"></script>
 <script src="https://mo-ri-ch.github.io/study-notebook-design/v1/guide.js"></script>
+<script src="../assets/practice.js"></script>
 <script>
 const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 const tok = (t, cls = "") => `<span class="tk ${cls}">${esc(t)}</span>`;

@@ -4,7 +4,7 @@
 
 const COURSE_LESSONS = [
   // Follows the order of the Autumn 2026 lectures (lessons 1–4: videos out; 5–9: coming during the quarter).
-  { part: "Part 1 · How the model works", n: 1, label: "1a", step: "words → numbers", title: "From words to numbers", file: "lesson1a.html", ready: true,
+  { part: "Part 1 · How the model works", n: 1, label: "1a", step: "words → numbers", title: "From words to numbers", file: "lesson1a.html", ready: true, test: 30,
     summary: "Tokens, embeddings, a tiny neural network, word2vec, and RNNs: how text becomes numbers a model can use.",
     leaves: "RNNs forget what they read long ago. How can a model look straight back at any earlier word?" },
   { n: 2, label: "1b", step: "attention", title: "Attention and the Transformer", file: "lesson1b.html", ready: true,
